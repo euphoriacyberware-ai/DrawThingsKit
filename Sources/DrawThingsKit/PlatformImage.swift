@@ -301,15 +301,15 @@ public struct PlatformImageHelpers {
 
     /// Create a platform image from raw RGB data
     private static func createImageFromRGBData(_ rgbData: Data, width: Int, height: Int) throws -> PlatformImage {
-        let bitsPerComponent = 8
-        let bitsPerPixel = 24
-        let bytesPerRow = width * 3
-
         guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) else {
             throw PlatformImageError.conversionFailed
         }
 
-        // Use CFData to ensure the data stays alive for the lifetime of the CGImage
+        #if os(macOS)
+        // macOS: Create CGImage directly from RGB data
+        let bitsPerComponent = 8
+        let bitsPerPixel = 24
+        let bytesPerRow = width * 3
         let cfData = rgbData as CFData
 
         guard let provider = CGDataProvider(data: cfData),
@@ -328,16 +328,41 @@ public struct PlatformImageHelpers {
               ) else {
             throw PlatformImageError.conversionFailed
         }
-
-        #if os(macOS)
         return NSImage(cgImage: cgImage, size: NSSize(width: width, height: height))
         #else
-        // On iOS, we need to render the CGImage to a new context to ensure
-        // the pixel data is copied and doesn't depend on the original data provider
-        let renderer = UIGraphicsImageRenderer(size: CGSize(width: width, height: height))
-        return renderer.image { context in
-            context.cgContext.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
+        // iOS: Convert RGB to RGBA since iOS handles RGBA better
+        // Add alpha channel (fully opaque) to the RGB data
+        var rgbaData = Data(capacity: width * height * 4)
+        for i in 0..<(width * height) {
+            let rgbOffset = i * 3
+            rgbaData.append(rgbData[rgbOffset])     // R
+            rgbaData.append(rgbData[rgbOffset + 1]) // G
+            rgbaData.append(rgbData[rgbOffset + 2]) // B
+            rgbaData.append(255)                     // A (fully opaque)
         }
+
+        let bitsPerComponent = 8
+        let bitsPerPixel = 32
+        let bytesPerRow = width * 4
+        let cfData = rgbaData as CFData
+
+        guard let provider = CGDataProvider(data: cfData),
+              let cgImage = CGImage(
+                width: width,
+                height: height,
+                bitsPerComponent: bitsPerComponent,
+                bitsPerPixel: bitsPerPixel,
+                bytesPerRow: bytesPerRow,
+                space: colorSpace,
+                bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipLast.rawValue),
+                provider: provider,
+                decode: nil,
+                shouldInterpolate: true,
+                intent: .defaultIntent
+              ) else {
+            throw PlatformImageError.conversionFailed
+        }
+        return UIImage(cgImage: cgImage, scale: 1.0, orientation: .up)
         #endif
     }
 }
