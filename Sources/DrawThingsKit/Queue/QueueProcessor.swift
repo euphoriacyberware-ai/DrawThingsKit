@@ -9,6 +9,12 @@ import Foundation
 import SwiftUI
 import DrawThingsClient
 
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
+
 /// Processes generation jobs from the queue.
 ///
 /// Handles:
@@ -34,7 +40,15 @@ public final class QueueProcessor: ObservableObject {
 
     private var processingTask: Task<Void, Never>?
 
+    /// Tracks job IDs that have been processed to prevent re-processing
+    private var processedJobIds: Set<UUID> = []
+
     public init() {}
+
+    /// Clear the processed job IDs tracking (call when you want to allow reprocessing)
+    public func clearProcessedJobIds() {
+        processedJobIds.removeAll()
+    }
 
     /// Start the processing loop.
     ///
@@ -63,6 +77,7 @@ public final class QueueProcessor: ObservableObject {
         processingTask?.cancel()
         processingTask = nil
         isRunning = false
+        processedJobIds.removeAll()
     }
 
     // MARK: - Processing Loop
@@ -93,6 +108,17 @@ public final class QueueProcessor: ObservableObject {
                 continue
             }
 
+            // Skip if we already processed this job (prevents reprocessing)
+            if processedJobIds.contains(job.id) {
+                // Job was already processed - just skip it, don't mark as failed
+                // (it may be waiting for cleanup or the status update hasn't propagated yet)
+                try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+                continue
+            }
+
+            // Mark as processed before starting
+            processedJobIds.insert(job.id)
+
             // Process the job
             await processJob(job, queue: queue, service: service, connectionManager: connectionManager)
         }
@@ -116,27 +142,28 @@ public final class QueueProcessor: ObservableObject {
             let config = try job.configuration()
 
             // Prepare canvas image if present
-            var canvasImage: NSImage? = nil
+            var canvasImage: PlatformImage? = nil
             if let canvasData = job.canvasImageData {
-                canvasImage = NSImage(data: canvasData)
+                canvasImage = PlatformImage.fromData(canvasData)
             }
 
             // Prepare mask image if present
-            var maskImage: NSImage? = nil
+            var maskImage: PlatformImage? = nil
             if let maskData = job.maskImageData {
-                maskImage = NSImage(data: maskData)
+                maskImage = PlatformImage.fromData(maskData)
             }
 
             // Prepare hints
-            var hints: [(type: String, image: NSImage, weight: Float)] = []
+            var hints: [(type: String, image: PlatformImage, weight: Float)] = []
             for hint in job.hints {
-                if let image = NSImage(data: hint.imageData) {
+                if let image = PlatformImage.fromData(hint.imageData) {
                     hints.append((type: hint.type, image: image, weight: hint.weight))
                 }
             }
 
             // Execute generation
-            var resultImages: [Data] = []
+            // Use an actor-isolated array to safely collect results across async boundaries
+            let resultCollector = ResultCollector()
 
             try await service.generateImageWithUpdates(
                 prompt: job.prompt,
@@ -148,32 +175,38 @@ public final class QueueProcessor: ObservableObject {
             ) { [weak queue] update in
                 guard let queue = queue else { return }
 
-                Task { @MainActor in
-                    switch update {
-                    case .progress(let current, let total, let stage):
+                switch update {
+                case .progress(let current, let total, let stage):
+                    Task { @MainActor in
                         let progress = JobProgress(
                             currentStep: current,
                             totalSteps: total,
                             stage: stage
                         )
                         queue.updateJobProgress(job.id, progress: progress)
+                    }
 
-                    case .preview(let imageData):
+                case .preview(let imageData):
+                    Task { @MainActor in
                         var progress = queue.currentProgress ?? JobProgress()
                         progress.previewImageData = imageData
                         queue.updateJobProgress(job.id, progress: progress)
-
-                    case .image(let imageData):
-                        resultImages.append(imageData)
-
-                    case .completed:
-                        break
-
-                    case .error(let error):
-                        print("Generation error: \(error)")
                     }
+
+                case .image(let imageData):
+                    // Synchronously add to collector - this runs on the same context as the callback
+                    resultCollector.addResult(imageData)
+
+                case .completed:
+                    break
+
+                case .error:
+                    break
                 }
             }
+
+            // Get collected results
+            let resultImages = resultCollector.getResults()
 
             // Check if we got any results
             if resultImages.isEmpty {
@@ -192,14 +225,11 @@ public final class QueueProcessor: ObservableObject {
                 // Connectivity error - pause queue for reconnection
                 queue.pauseForReconnection(error: "Connection lost: \(errorMessage)")
 
-                // Reset job to pending (it stays at head of queue)
-                if let index = queue.jobs.firstIndex(where: { $0.id == job.id }) {
-                    var updatedJob = queue.jobs[index]
-                    updatedJob.status = .pending
-                    updatedJob.startedAt = nil
-                    updatedJob.progress = nil
-                    // Note: We can't directly modify queue.jobs, so we need internal access
-                }
+                // Remove from processed set so it can be retried after reconnection
+                processedJobIds.remove(job.id)
+
+                // Reset job to pending using the queue's method
+                queue.resetJobToPending(job.id)
             } else {
                 // Other error - mark job as failed
                 queue.markJobFailed(job.id, error: errorMessage)
@@ -216,6 +246,27 @@ public final class QueueProcessor: ObservableObject {
                description.contains("timeout") ||
                description.contains("refused") ||
                description.contains("reset")
+    }
+}
+
+// MARK: - Result Collector
+
+/// Thread-safe collector for generation results.
+/// Uses a lock to safely collect results from callbacks that may run on different threads.
+private final class ResultCollector: @unchecked Sendable {
+    private var results: [Data] = []
+    private let lock = NSLock()
+
+    func addResult(_ data: Data) {
+        lock.lock()
+        defer { lock.unlock() }
+        results.append(data)
+    }
+
+    func getResults() -> [Data] {
+        lock.lock()
+        defer { lock.unlock() }
+        return results
     }
 }
 
@@ -265,57 +316,18 @@ extension DrawThingsService {
         prompt: String,
         negativePrompt: String,
         configuration: DrawThingsConfiguration,
-        canvas: NSImage?,
-        mask: NSImage?,
-        hints: [(type: String, image: NSImage, weight: Float)],
+        canvas: PlatformImage?,
+        mask: PlatformImage?,
+        hints: [(type: String, image: PlatformImage, weight: Float)],
         onUpdate: @escaping (GenerationUpdate) -> Void
     ) async throws {
         // Serialize configuration to FlatBuffer data
         let configData = try configuration.toFlatBufferData()
 
-        // Debug logging
-        print("=== Sending to DrawThings ===")
-        print("Prompt: \(prompt)")
-        print("Negative: \(negativePrompt)")
-        print("Model: \(configuration.model)")
-        print("Size: \(configuration.width)x\(configuration.height)")
-        print("Steps: \(configuration.steps)")
-        print("Sampler: \(configuration.sampler) (raw: \(configuration.sampler.rawValue))")
-        print("Guidance: \(configuration.guidanceScale)")
-        print("Seed: \(configuration.seed ?? -1)")
-        print("Shift: \(configuration.shift)")
-        print("Upscaler: \(configuration.upscaler ?? "nil")")
-        print("UpscalerScaleFactor: \(configuration.upscalerScaleFactor)")
-        print("LoRAs: \(configuration.loras.count)")
-        for (i, lora) in configuration.loras.enumerated() {
-            print("  LoRA[\(i)]: \(lora.file), weight=\(lora.weight), mode=\(lora.mode)")
-        }
-        print("Controls: \(configuration.controls.count)")
-        for (i, control) in configuration.controls.enumerated() {
-            print("  Control[\(i)]: \(control.file), weight=\(control.weight), mode=\(control.controlMode)")
-            print("    guidanceStart=\(control.guidanceStart), guidanceEnd=\(control.guidanceEnd)")
-        }
-
-        // Warning: Controls may require corresponding hint images
-        if !configuration.controls.isEmpty && hints.isEmpty {
-            print("⚠️ WARNING: Configuration has \(configuration.controls.count) control(s) but no hints were provided.")
-            print("   Controls like PuLID/IP-Adapter require input images sent as hints.")
-        }
-        print("Config size: \(configData.count) bytes")
-        print("Canvas: \(canvas != nil ? "yes" : "no")")
-        print("Mask: \(mask != nil ? "yes" : "no")")
-        print("Hints: \(hints.count)")
-        print("==============================")
-
         // Convert canvas image to DTTensor format (same as hints)
         var canvasData: Data? = nil
         if let canvas = canvas {
-            do {
-                canvasData = try ImageHelpers.nsImageToDTTensor(canvas, forceRGB: true)
-                print("  Canvas image: \(Int(canvas.size.width))x\(Int(canvas.size.height)) -> \(canvasData?.count ?? 0) bytes DTTensor")
-            } catch {
-                print("  Failed to convert canvas to DTTensor: \(error)")
-            }
+            canvasData = try? PlatformImageHelpers.imageToDTTensor(canvas, forceRGB: true)
         }
 
         // Convert mask image to PNG data
@@ -327,8 +339,7 @@ extension DrawThingsService {
         // Convert hints to HintProto array using DTTensor format
         var hintProtos: [HintProto] = []
         for hint in hints {
-            do {
-                let tensorData = try ImageHelpers.nsImageToDTTensor(hint.image, forceRGB: true)
+            if let tensorData = try? PlatformImageHelpers.imageToDTTensor(hint.image, forceRGB: true) {
                 var hintProto = HintProto()
                 hintProto.hintType = hint.type
                 var tensor = TensorAndWeight()
@@ -336,9 +347,6 @@ extension DrawThingsService {
                 tensor.weight = hint.weight
                 hintProto.tensors = [tensor]
                 hintProtos.append(hintProto)
-                print("  Hint converted to DTTensor: \(tensorData.count) bytes")
-            } catch {
-                print("  Failed to convert hint to DTTensor: \(error)")
             }
         }
 
@@ -397,38 +405,17 @@ extension DrawThingsService {
         )
 
         // Convert DTTensor results to PNG data
-        print("  Received \(results.count) result image(s)")
-        for (index, imageData) in results.enumerated() {
-            print("  Processing result \(index + 1): \(imageData.count) bytes")
-
-            // Debug: Print DTTensor header
-            if imageData.count >= 68 {
-                imageData.withUnsafeBytes { (ptr: UnsafeRawBufferPointer) in
-                    let uint32Ptr = ptr.bindMemory(to: UInt32.self)
-                    let compression = uint32Ptr[0]
-                    let height = uint32Ptr[6]
-                    let width = uint32Ptr[7]
-                    let channels = uint32Ptr[8]
-                    print("    DTTensor header: \(width)x\(height), \(channels) channels, compression=\(compression)")
-
-                    let expectedSize = 68 + Int(width) * Int(height) * Int(channels) * 2
-                    print("    Expected size: \(expectedSize) bytes, actual: \(imageData.count) bytes")
-                }
-            }
-
+        for imageData in results {
             do {
-                // Convert DTTensor format to NSImage
-                let nsImage = try ImageHelpers.dtTensorToNSImage(imageData)
-                // Convert NSImage to PNG data
-                if let pngData = nsImage.pngData() {
-                    print("    Converted to PNG: \(pngData.count) bytes")
+                // Convert DTTensor format to PlatformImage
+                let image = try PlatformImageHelpers.dtTensorToImage(imageData)
+                // Convert to PNG data
+                if let pngData = image.pngData() {
                     onUpdate(.image(pngData))
                 } else {
-                    print("    Failed to convert result image to PNG")
                     onUpdate(.error("Failed to convert result image to PNG"))
                 }
             } catch {
-                print("    Failed to convert DTTensor result: \(error)")
                 onUpdate(.error("Failed to convert result: \(error.localizedDescription)"))
             }
         }
@@ -437,15 +424,3 @@ extension DrawThingsService {
     }
 }
 
-// MARK: - NSImage PNG Data Extension
-
-extension NSImage {
-    /// Convert NSImage to PNG data.
-    func pngData() -> Data? {
-        guard let tiffData = tiffRepresentation,
-              let bitmap = NSBitmapImageRep(data: tiffData) else {
-            return nil
-        }
-        return bitmap.representation(using: .png, properties: [:])
-    }
-}
