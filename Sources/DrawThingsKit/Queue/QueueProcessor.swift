@@ -142,7 +142,8 @@ public final class QueueProcessor: ObservableObject {
             }
 
             // Execute generation
-            var resultImages: [Data] = []
+            // Use an actor-isolated array to safely collect results across async boundaries
+            let resultCollector = ResultCollector()
 
             try await service.generateImageWithUpdates(
                 prompt: job.prompt,
@@ -154,32 +155,38 @@ public final class QueueProcessor: ObservableObject {
             ) { [weak queue] update in
                 guard let queue = queue else { return }
 
-                Task { @MainActor in
-                    switch update {
-                    case .progress(let current, let total, let stage):
+                switch update {
+                case .progress(let current, let total, let stage):
+                    Task { @MainActor in
                         let progress = JobProgress(
                             currentStep: current,
                             totalSteps: total,
                             stage: stage
                         )
                         queue.updateJobProgress(job.id, progress: progress)
+                    }
 
-                    case .preview(let imageData):
+                case .preview(let imageData):
+                    Task { @MainActor in
                         var progress = queue.currentProgress ?? JobProgress()
                         progress.previewImageData = imageData
                         queue.updateJobProgress(job.id, progress: progress)
-
-                    case .image(let imageData):
-                        resultImages.append(imageData)
-
-                    case .completed:
-                        break
-
-                    case .error(let error):
-                        print("Generation error: \(error)")
                     }
+
+                case .image(let imageData):
+                    // Synchronously add to collector - this runs on the same context as the callback
+                    resultCollector.addResult(imageData)
+
+                case .completed:
+                    break
+
+                case .error(let error):
+                    print("Generation error: \(error)")
                 }
             }
+
+            // Get collected results
+            let resultImages = resultCollector.getResults()
 
             // Check if we got any results
             if resultImages.isEmpty {
@@ -222,6 +229,27 @@ public final class QueueProcessor: ObservableObject {
                description.contains("timeout") ||
                description.contains("refused") ||
                description.contains("reset")
+    }
+}
+
+// MARK: - Result Collector
+
+/// Thread-safe collector for generation results.
+/// Uses a lock to safely collect results from callbacks that may run on different threads.
+private final class ResultCollector: @unchecked Sendable {
+    private var results: [Data] = []
+    private let lock = NSLock()
+
+    func addResult(_ data: Data) {
+        lock.lock()
+        defer { lock.unlock() }
+        results.append(data)
+    }
+
+    func getResults() -> [Data] {
+        lock.lock()
+        defer { lock.unlock() }
+        return results
     }
 }
 
