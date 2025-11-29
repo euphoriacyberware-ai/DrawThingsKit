@@ -28,18 +28,17 @@ extension PlatformImage {
         #endif
     }
 
+    #if os(macOS)
     /// Convert to PNG data
     public func pngData() -> Data? {
-        #if os(macOS)
         guard let tiffData = tiffRepresentation,
               let bitmap = NSBitmapImageRep(data: tiffData) else {
             return nil
         }
         return bitmap.representation(using: .png, properties: [:])
-        #else
-        return self.pngData()
-        #endif
     }
+    #endif
+    // Note: On iOS, UIImage already has pngData() built-in, so no extension needed
 
     /// Get the image dimensions
     public var pixelWidth: Int {
