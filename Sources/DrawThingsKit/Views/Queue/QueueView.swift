@@ -1,0 +1,238 @@
+//
+//  QueueView.swift
+//  DrawThingsKit
+//
+//  Main queue management view.
+//
+
+import SwiftUI
+
+/// The main queue management view.
+///
+/// Displays:
+/// - Current job progress with preview
+/// - List of queued jobs
+/// - Queue controls (play/pause, clear)
+///
+/// Example usage:
+/// ```swift
+/// QueueView(queue: jobQueue)
+/// ```
+public struct QueueView: View {
+    @ObservedObject var queue: JobQueue
+
+    @State private var selectedJob: GenerationJob?
+
+    public init(queue: JobQueue) {
+        self.queue = queue
+    }
+
+    public var body: some View {
+        VStack(spacing: 0) {
+            // Progress section
+            QueueProgressView(queue: queue)
+                .padding()
+
+            Divider()
+
+            // Queue list
+            if queue.isEmpty {
+                emptyState
+            } else {
+                queueList
+            }
+
+            Divider()
+
+            // Controls
+            QueueControlsView(queue: queue)
+                .padding()
+        }
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 16) {
+            Spacer()
+
+            Image(systemName: "tray")
+                .font(.system(size: 48))
+                .foregroundColor(.secondary)
+
+            Text("No Jobs in Queue")
+                .font(.headline)
+
+            Text("Add generation jobs to get started")
+                .font(.caption)
+                .foregroundColor(.secondary)
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var queueList: some View {
+        List {
+            // Processing job (if any)
+            if let current = queue.currentJob {
+                Section("Processing") {
+                    QueueItemRow(
+                        job: current,
+                        onCancel: { queue.cancel(current) }
+                    )
+                }
+            }
+
+            // Pending jobs
+            if !queue.pendingJobs.isEmpty {
+                Section("Pending (\(queue.pendingJobs.count))") {
+                    ForEach(queue.pendingJobs) { job in
+                        QueueItemRow(
+                            job: job,
+                            onCancel: { queue.cancel(job) },
+                            onRemove: { queue.remove(job) }
+                        )
+                    }
+                    .onMove { source, destination in
+                        // Need to calculate actual indices in the full jobs array
+                        movePendingJobs(from: source, to: destination)
+                    }
+                }
+            }
+
+            // Completed jobs
+            if !queue.completedJobs.isEmpty {
+                Section("Completed (\(queue.completedJobs.count))") {
+                    ForEach(queue.completedJobs) { job in
+                        QueueItemRow(
+                            job: job,
+                            onRemove: { queue.remove(job) }
+                        )
+                        .onTapGesture {
+                            selectedJob = job
+                        }
+                    }
+                }
+            }
+
+            // Failed jobs
+            if !queue.failedJobs.isEmpty {
+                Section("Failed (\(queue.failedJobs.count))") {
+                    ForEach(queue.failedJobs) { job in
+                        QueueItemRow(
+                            job: job,
+                            onRetry: { queue.retry(job) },
+                            onRemove: { queue.remove(job) }
+                        )
+                    }
+                }
+            }
+        }
+        .listStyle(.inset)
+    }
+
+    private func movePendingJobs(from source: IndexSet, to destination: Int) {
+        // Get the pending job indices in the full jobs array
+        let pendingIndices = queue.jobs.enumerated()
+            .filter { $0.element.status == .pending }
+            .map { $0.offset }
+
+        // Map source indices to actual indices
+        let sourceActual = source.compactMap { pendingIndices.indices.contains($0) ? pendingIndices[$0] : nil }
+
+        // Map destination to actual index
+        let destActual: Int
+        if destination >= pendingIndices.count {
+            destActual = (pendingIndices.last ?? 0) + 1
+        } else {
+            destActual = pendingIndices[destination]
+        }
+
+        // Move in the actual array
+        queue.moveJobs(from: IndexSet(sourceActual), to: destActual)
+    }
+}
+
+/// A compact queue list view (no progress section).
+public struct QueueListView: View {
+    @ObservedObject var queue: JobQueue
+
+    public init(queue: JobQueue) {
+        self.queue = queue
+    }
+
+    public var body: some View {
+        List {
+            ForEach(queue.jobs) { job in
+                QueueItemCompactRow(job: job)
+            }
+        }
+        .listStyle(.plain)
+    }
+}
+
+/// A sidebar-style queue view.
+public struct QueueSidebarView: View {
+    @ObservedObject var queue: JobQueue
+
+    public init(queue: JobQueue) {
+        self.queue = queue
+    }
+
+    public var body: some View {
+        VStack(spacing: 0) {
+            // Header with controls
+            HStack {
+                Text("Queue")
+                    .font(.headline)
+
+                Spacer()
+
+                QueueProgressBadge(queue: queue)
+
+                Button {
+                    if queue.isPaused {
+                        queue.resume()
+                    } else {
+                        queue.pause()
+                    }
+                } label: {
+                    Image(systemName: queue.isPaused ? "play.fill" : "pause.fill")
+                }
+                .buttonStyle(.plain)
+                .disabled(!queue.hasPendingJobs && !queue.isProcessing)
+            }
+            .padding()
+
+            Divider()
+
+            // Job list
+            if queue.isEmpty {
+                VStack {
+                    Spacer()
+                    Text("No jobs")
+                        .foregroundColor(.secondary)
+                    Spacer()
+                }
+            } else {
+                List {
+                    ForEach(queue.jobs) { job in
+                        QueueItemCompactRow(job: job)
+                    }
+                }
+                .listStyle(.plain)
+            }
+        }
+    }
+}
+
+#Preview("Queue View") {
+    let queue = JobQueue()
+    return QueueView(queue: queue)
+        .frame(width: 400, height: 600)
+}
+
+#Preview("Queue Sidebar") {
+    let queue = JobQueue()
+    return QueueSidebarView(queue: queue)
+        .frame(width: 250, height: 400)
+}
