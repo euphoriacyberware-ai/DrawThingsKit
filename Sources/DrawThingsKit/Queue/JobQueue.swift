@@ -311,6 +311,24 @@ public final class JobQueue: ObservableObject {
         jobs.first { $0.status == .pending }
     }
 
+    /// Reset a job to pending status (for retry after connectivity errors).
+    func resetJobToPending(_ jobId: UUID) {
+        guard let index = jobs.firstIndex(where: { $0.id == jobId }) else { return }
+
+        jobs[index].status = .pending
+        jobs[index].startedAt = nil
+        jobs[index].progress = nil
+
+        if currentJob?.id == jobId {
+            currentJob = nil
+            isProcessing = false
+            currentProgress = nil
+            currentPreview = nil
+        }
+
+        saveJobs()
+    }
+
     // MARK: - Persistence
 
     private func loadJobs() {

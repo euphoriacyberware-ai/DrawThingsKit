@@ -40,7 +40,15 @@ public final class QueueProcessor: ObservableObject {
 
     private var processingTask: Task<Void, Never>?
 
+    /// Tracks job IDs that have been processed to prevent re-processing
+    private var processedJobIds: Set<UUID> = []
+
     public init() {}
+
+    /// Clear the processed job IDs tracking (call when you want to allow reprocessing)
+    public func clearProcessedJobIds() {
+        processedJobIds.removeAll()
+    }
 
     /// Start the processing loop.
     ///
@@ -98,6 +106,16 @@ public final class QueueProcessor: ObservableObject {
                 try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
                 continue
             }
+
+            // Skip if we already processed this job (prevents infinite loops)
+            if processedJobIds.contains(job.id) {
+                print("QueueProcessor: Skipping already-processed job \(job.id)")
+                try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+                continue
+            }
+
+            // Mark as processed before starting
+            processedJobIds.insert(job.id)
 
             // Process the job
             await processJob(job, queue: queue, service: service, connectionManager: connectionManager)
@@ -205,14 +223,11 @@ public final class QueueProcessor: ObservableObject {
                 // Connectivity error - pause queue for reconnection
                 queue.pauseForReconnection(error: "Connection lost: \(errorMessage)")
 
-                // Reset job to pending (it stays at head of queue)
-                if let index = queue.jobs.firstIndex(where: { $0.id == job.id }) {
-                    var updatedJob = queue.jobs[index]
-                    updatedJob.status = .pending
-                    updatedJob.startedAt = nil
-                    updatedJob.progress = nil
-                    // Note: We can't directly modify queue.jobs, so we need internal access
-                }
+                // Remove from processed set so it can be retried after reconnection
+                processedJobIds.remove(job.id)
+
+                // Reset job to pending using the queue's method
+                queue.resetJobToPending(job.id)
             } else {
                 // Other error - mark job as failed
                 queue.markJobFailed(job.id, error: errorMessage)
