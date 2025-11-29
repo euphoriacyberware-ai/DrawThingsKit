@@ -8,7 +8,12 @@
 import Foundation
 import SwiftUI
 import Combine
-import DrawThingsClient
+
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
 /// Manages the queue of generation jobs.
 ///
@@ -46,7 +51,7 @@ public final class JobQueue: ObservableObject {
     @Published public private(set) var isPaused: Bool = true
 
     /// Preview image from the current job.
-    @Published public private(set) var currentPreview: NSImage?
+    @Published public private(set) var currentPreview: PlatformImage?
 
     /// Progress of the current job.
     @Published public private(set) var currentProgress: JobProgress?
@@ -258,7 +263,7 @@ public final class JobQueue: ObservableObject {
 
         // Update preview image if available (convert from DTTensor format)
         if let previewData = progress.previewImageData {
-            if let image = try? ImageHelpers.dtTensorToNSImage(previewData) {
+            if let image = try? PlatformImageHelpers.dtTensorToImage(previewData) {
                 currentPreview = image
             }
         }

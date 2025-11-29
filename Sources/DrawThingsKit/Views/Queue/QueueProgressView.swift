@@ -7,6 +7,12 @@
 
 import SwiftUI
 
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
+
 /// A view showing the progress of the current job with preview image.
 public struct QueueProgressView: View {
     @ObservedObject var queue: JobQueue
@@ -68,18 +74,30 @@ public struct QueueProgressView: View {
             }
         }
         .padding()
+        #if os(macOS)
         .background(Color(NSColor.controlBackgroundColor))
+        #else
+        .background(Color(UIColor.secondarySystemBackground))
+        #endif
         .cornerRadius(8)
     }
 
     @ViewBuilder
     private var previewSection: some View {
         if let preview = queue.currentPreview {
+            #if os(macOS)
             Image(nsImage: preview)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(maxHeight: 200)
                 .cornerRadius(4)
+            #else
+            Image(uiImage: preview)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxHeight: 200)
+                .cornerRadius(4)
+            #endif
         } else {
             // Placeholder
             RoundedRectangle(cornerRadius: 4)

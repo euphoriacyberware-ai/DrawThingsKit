@@ -76,13 +76,22 @@ public struct QueueItemRow: View {
 
             // Thumbnail (for completed jobs)
             if job.isCompleted, let firstImage = job.resultImages.first,
-               let nsImage = NSImage(data: firstImage) {
-                Image(nsImage: nsImage)
+               let image = PlatformImage.fromData(firstImage) {
+                #if os(macOS)
+                Image(nsImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 40, height: 40)
                     .cornerRadius(4)
                     .clipped()
+                #else
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 40, height: 40)
+                    .cornerRadius(4)
+                    .clipped()
+                #endif
             }
 
             // Action buttons

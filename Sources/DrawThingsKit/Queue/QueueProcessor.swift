@@ -9,6 +9,12 @@ import Foundation
 import SwiftUI
 import DrawThingsClient
 
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
+
 /// Processes generation jobs from the queue.
 ///
 /// Handles:
@@ -116,21 +122,21 @@ public final class QueueProcessor: ObservableObject {
             let config = try job.configuration()
 
             // Prepare canvas image if present
-            var canvasImage: NSImage? = nil
+            var canvasImage: PlatformImage? = nil
             if let canvasData = job.canvasImageData {
-                canvasImage = NSImage(data: canvasData)
+                canvasImage = PlatformImage.fromData(canvasData)
             }
 
             // Prepare mask image if present
-            var maskImage: NSImage? = nil
+            var maskImage: PlatformImage? = nil
             if let maskData = job.maskImageData {
-                maskImage = NSImage(data: maskData)
+                maskImage = PlatformImage.fromData(maskData)
             }
 
             // Prepare hints
-            var hints: [(type: String, image: NSImage, weight: Float)] = []
+            var hints: [(type: String, image: PlatformImage, weight: Float)] = []
             for hint in job.hints {
-                if let image = NSImage(data: hint.imageData) {
+                if let image = PlatformImage.fromData(hint.imageData) {
                     hints.append((type: hint.type, image: image, weight: hint.weight))
                 }
             }
@@ -265,9 +271,9 @@ extension DrawThingsService {
         prompt: String,
         negativePrompt: String,
         configuration: DrawThingsConfiguration,
-        canvas: NSImage?,
-        mask: NSImage?,
-        hints: [(type: String, image: NSImage, weight: Float)],
+        canvas: PlatformImage?,
+        mask: PlatformImage?,
+        hints: [(type: String, image: PlatformImage, weight: Float)],
         onUpdate: @escaping (GenerationUpdate) -> Void
     ) async throws {
         // Serialize configuration to FlatBuffer data
@@ -311,8 +317,8 @@ extension DrawThingsService {
         var canvasData: Data? = nil
         if let canvas = canvas {
             do {
-                canvasData = try ImageHelpers.nsImageToDTTensor(canvas, forceRGB: true)
-                print("  Canvas image: \(Int(canvas.size.width))x\(Int(canvas.size.height)) -> \(canvasData?.count ?? 0) bytes DTTensor")
+                canvasData = try PlatformImageHelpers.imageToDTTensor(canvas, forceRGB: true)
+                print("  Canvas image: \(canvas.pixelWidth)x\(canvas.pixelHeight) -> \(canvasData?.count ?? 0) bytes DTTensor")
             } catch {
                 print("  Failed to convert canvas to DTTensor: \(error)")
             }
@@ -328,7 +334,7 @@ extension DrawThingsService {
         var hintProtos: [HintProto] = []
         for hint in hints {
             do {
-                let tensorData = try ImageHelpers.nsImageToDTTensor(hint.image, forceRGB: true)
+                let tensorData = try PlatformImageHelpers.imageToDTTensor(hint.image, forceRGB: true)
                 var hintProto = HintProto()
                 hintProto.hintType = hint.type
                 var tensor = TensorAndWeight()
@@ -417,10 +423,10 @@ extension DrawThingsService {
             }
 
             do {
-                // Convert DTTensor format to NSImage
-                let nsImage = try ImageHelpers.dtTensorToNSImage(imageData)
-                // Convert NSImage to PNG data
-                if let pngData = nsImage.pngData() {
+                // Convert DTTensor format to PlatformImage
+                let image = try PlatformImageHelpers.dtTensorToImage(imageData)
+                // Convert to PNG data
+                if let pngData = image.pngData() {
                     print("    Converted to PNG: \(pngData.count) bytes")
                     onUpdate(.image(pngData))
                 } else {
@@ -437,15 +443,3 @@ extension DrawThingsService {
     }
 }
 
-// MARK: - NSImage PNG Data Extension
-
-extension NSImage {
-    /// Convert NSImage to PNG data.
-    func pngData() -> Data? {
-        guard let tiffData = tiffRepresentation,
-              let bitmap = NSBitmapImageRep(data: tiffData) else {
-            return nil
-        }
-        return bitmap.representation(using: .png, properties: [:])
-    }
-}

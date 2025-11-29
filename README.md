@@ -4,7 +4,7 @@ A Swift package providing UI components, utilities, and model management for bui
 
 ## Overview
 
-DrawThingsKit abstracts away the complexity of connecting to Draw Things servers, managing generation jobs, and provides reusable SwiftUI components for configuration editing and queue management. It's built on top of **DrawThingsClient** and designed for macOS applications.
+DrawThingsKit abstracts away the complexity of connecting to Draw Things servers, managing generation jobs, and provides reusable SwiftUI components for configuration editing and queue management. It's built on top of **DrawThingsClient** and supports both macOS and iOS applications.
 
 ## Installation
 
@@ -678,9 +678,39 @@ struct GeneratorView: View {
 
 ---
 
+## Cross-Platform Support
+
+DrawThingsKit supports both macOS and iOS:
+
+| Platform | Minimum Version |
+|----------|-----------------|
+| macOS | 13.0+ |
+| iOS | 16.0+ |
+
+### Platform-Specific Notes
+
+- **Views**: All SwiftUI views work on both platforms
+- **Images**: Use `PlatformImage` type alias (resolves to `NSImage` on macOS, `UIImage` on iOS)
+- **Image Conversion**: Use `PlatformImageHelpers` for DTTensor conversion on both platforms
+
+```swift
+// Cross-platform image handling
+let image: PlatformImage = ...
+
+// Convert to DTTensor for Draw Things
+let tensorData = try PlatformImageHelpers.imageToDTTensor(image)
+
+// Convert DTTensor back to image
+let resultImage = try PlatformImageHelpers.dtTensorToImage(tensorData)
+```
+
+**Note**: The `ConfigurationEditorView` uses `NSPasteboard` and is only available on macOS. Other views work on both platforms.
+
+---
+
 ## Requirements
 
-- macOS 13.0+ (for SwiftUI views)
+- macOS 13.0+ / iOS 16.0+
 - Swift 5.9+
 - DrawThingsClient package
 
