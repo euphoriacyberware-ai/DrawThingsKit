@@ -63,14 +63,9 @@ public final class QueueProcessor: ObservableObject {
         queue: JobQueue,
         connectionManager: ConnectionManager
     ) {
-        print("QueueProcessor[\(ObjectIdentifier(self))]: startProcessing called, isRunning=\(isRunning)")
-        guard !isRunning else {
-            print("QueueProcessor[\(ObjectIdentifier(self))]: Already running, skipping")
-            return
-        }
+        guard !isRunning else { return }
 
         isRunning = true
-        print("QueueProcessor[\(ObjectIdentifier(self))]: Starting processing loop")
 
         processingTask = Task { [weak self] in
             await self?.processingLoop(queue: queue, connectionManager: connectionManager)
@@ -82,6 +77,7 @@ public final class QueueProcessor: ObservableObject {
         processingTask?.cancel()
         processingTask = nil
         isRunning = false
+        processedJobIds.removeAll()
     }
 
     // MARK: - Processing Loop
@@ -112,26 +108,19 @@ public final class QueueProcessor: ObservableObject {
                 continue
             }
 
-            print("QueueProcessor: Found pending job \(job.id), status=\(job.status)")
-            print("QueueProcessor: processedJobIds count=\(processedJobIds.count), contains job=\(processedJobIds.contains(job.id))")
-            print("QueueProcessor: Queue has \(queue.jobs.count) jobs, \(queue.pendingJobs.count) pending")
-
-            // Skip if we already processed this job (prevents infinite loops)
+            // Skip if we already processed this job (prevents reprocessing)
             if processedJobIds.contains(job.id) {
-                print("QueueProcessor: Skipping already-processed job \(job.id)")
-                // Mark the job as failed to break the loop
-                queue.markJobFailed(job.id, error: "Job was already processed")
+                // Job was already processed - just skip it, don't mark as failed
+                // (it may be waiting for cleanup or the status update hasn't propagated yet)
                 try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
                 continue
             }
 
             // Mark as processed before starting
             processedJobIds.insert(job.id)
-            print("QueueProcessor: Starting to process job \(job.id)")
 
             // Process the job
             await processJob(job, queue: queue, service: service, connectionManager: connectionManager)
-            print("QueueProcessor: Finished processing job \(job.id)")
         }
 
         isRunning = false
@@ -211,8 +200,8 @@ public final class QueueProcessor: ObservableObject {
                 case .completed:
                     break
 
-                case .error(let error):
-                    print("Generation error: \(error)")
+                case .error:
+                    break
                 }
             }
 
@@ -335,49 +324,10 @@ extension DrawThingsService {
         // Serialize configuration to FlatBuffer data
         let configData = try configuration.toFlatBufferData()
 
-        // Debug logging
-        print("=== Sending to DrawThings ===")
-        print("Prompt: \(prompt)")
-        print("Negative: \(negativePrompt)")
-        print("Model: \(configuration.model)")
-        print("Size: \(configuration.width)x\(configuration.height)")
-        print("Steps: \(configuration.steps)")
-        print("Sampler: \(configuration.sampler) (raw: \(configuration.sampler.rawValue))")
-        print("Guidance: \(configuration.guidanceScale)")
-        print("Seed: \(configuration.seed ?? -1)")
-        print("Shift: \(configuration.shift)")
-        print("Upscaler: \(configuration.upscaler ?? "nil")")
-        print("UpscalerScaleFactor: \(configuration.upscalerScaleFactor)")
-        print("LoRAs: \(configuration.loras.count)")
-        for (i, lora) in configuration.loras.enumerated() {
-            print("  LoRA[\(i)]: \(lora.file), weight=\(lora.weight), mode=\(lora.mode)")
-        }
-        print("Controls: \(configuration.controls.count)")
-        for (i, control) in configuration.controls.enumerated() {
-            print("  Control[\(i)]: \(control.file), weight=\(control.weight), mode=\(control.controlMode)")
-            print("    guidanceStart=\(control.guidanceStart), guidanceEnd=\(control.guidanceEnd)")
-        }
-
-        // Warning: Controls may require corresponding hint images
-        if !configuration.controls.isEmpty && hints.isEmpty {
-            print("⚠️ WARNING: Configuration has \(configuration.controls.count) control(s) but no hints were provided.")
-            print("   Controls like PuLID/IP-Adapter require input images sent as hints.")
-        }
-        print("Config size: \(configData.count) bytes")
-        print("Canvas: \(canvas != nil ? "yes" : "no")")
-        print("Mask: \(mask != nil ? "yes" : "no")")
-        print("Hints: \(hints.count)")
-        print("==============================")
-
         // Convert canvas image to DTTensor format (same as hints)
         var canvasData: Data? = nil
         if let canvas = canvas {
-            do {
-                canvasData = try PlatformImageHelpers.imageToDTTensor(canvas, forceRGB: true)
-                print("  Canvas image: \(canvas.pixelWidth)x\(canvas.pixelHeight) -> \(canvasData?.count ?? 0) bytes DTTensor")
-            } catch {
-                print("  Failed to convert canvas to DTTensor: \(error)")
-            }
+            canvasData = try? PlatformImageHelpers.imageToDTTensor(canvas, forceRGB: true)
         }
 
         // Convert mask image to PNG data
@@ -389,8 +339,7 @@ extension DrawThingsService {
         // Convert hints to HintProto array using DTTensor format
         var hintProtos: [HintProto] = []
         for hint in hints {
-            do {
-                let tensorData = try PlatformImageHelpers.imageToDTTensor(hint.image, forceRGB: true)
+            if let tensorData = try? PlatformImageHelpers.imageToDTTensor(hint.image, forceRGB: true) {
                 var hintProto = HintProto()
                 hintProto.hintType = hint.type
                 var tensor = TensorAndWeight()
@@ -398,9 +347,6 @@ extension DrawThingsService {
                 tensor.weight = hint.weight
                 hintProto.tensors = [tensor]
                 hintProtos.append(hintProto)
-                print("  Hint converted to DTTensor: \(tensorData.count) bytes")
-            } catch {
-                print("  Failed to convert hint to DTTensor: \(error)")
             }
         }
 
@@ -459,38 +405,17 @@ extension DrawThingsService {
         )
 
         // Convert DTTensor results to PNG data
-        print("  Received \(results.count) result image(s)")
-        for (index, imageData) in results.enumerated() {
-            print("  Processing result \(index + 1): \(imageData.count) bytes")
-
-            // Debug: Print DTTensor header
-            if imageData.count >= 68 {
-                imageData.withUnsafeBytes { (ptr: UnsafeRawBufferPointer) in
-                    let uint32Ptr = ptr.bindMemory(to: UInt32.self)
-                    let compression = uint32Ptr[0]
-                    let height = uint32Ptr[6]
-                    let width = uint32Ptr[7]
-                    let channels = uint32Ptr[8]
-                    print("    DTTensor header: \(width)x\(height), \(channels) channels, compression=\(compression)")
-
-                    let expectedSize = 68 + Int(width) * Int(height) * Int(channels) * 2
-                    print("    Expected size: \(expectedSize) bytes, actual: \(imageData.count) bytes")
-                }
-            }
-
+        for imageData in results {
             do {
                 // Convert DTTensor format to PlatformImage
                 let image = try PlatformImageHelpers.dtTensorToImage(imageData)
                 // Convert to PNG data
                 if let pngData = image.pngData() {
-                    print("    Converted to PNG: \(pngData.count) bytes")
                     onUpdate(.image(pngData))
                 } else {
-                    print("    Failed to convert result image to PNG")
                     onUpdate(.error("Failed to convert result image to PNG"))
                 }
             } catch {
-                print("    Failed to convert DTTensor result: \(error)")
                 onUpdate(.error("Failed to convert result: \(error.localizedDescription)"))
             }
         }
