@@ -15,7 +15,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/euphoriacyberware-ai/DT-gRPC-Swift-Client.git", branch: "ios-compatibility"),
+        .package(url: "https://github.com/euphoriacyberware-ai/DT-gRPC-Swift-Client.git", from: "1.1.1"),
     ],
     targets: [
         .target(
