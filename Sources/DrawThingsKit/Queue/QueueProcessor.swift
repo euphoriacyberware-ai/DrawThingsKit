@@ -63,9 +63,14 @@ public final class QueueProcessor: ObservableObject {
         queue: JobQueue,
         connectionManager: ConnectionManager
     ) {
-        guard !isRunning else { return }
+        print("QueueProcessor[\(ObjectIdentifier(self))]: startProcessing called, isRunning=\(isRunning)")
+        guard !isRunning else {
+            print("QueueProcessor[\(ObjectIdentifier(self))]: Already running, skipping")
+            return
+        }
 
         isRunning = true
+        print("QueueProcessor[\(ObjectIdentifier(self))]: Starting processing loop")
 
         processingTask = Task { [weak self] in
             await self?.processingLoop(queue: queue, connectionManager: connectionManager)
@@ -107,18 +112,26 @@ public final class QueueProcessor: ObservableObject {
                 continue
             }
 
+            print("QueueProcessor: Found pending job \(job.id), status=\(job.status)")
+            print("QueueProcessor: processedJobIds count=\(processedJobIds.count), contains job=\(processedJobIds.contains(job.id))")
+            print("QueueProcessor: Queue has \(queue.jobs.count) jobs, \(queue.pendingJobs.count) pending")
+
             // Skip if we already processed this job (prevents infinite loops)
             if processedJobIds.contains(job.id) {
                 print("QueueProcessor: Skipping already-processed job \(job.id)")
+                // Mark the job as failed to break the loop
+                queue.markJobFailed(job.id, error: "Job was already processed")
                 try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
                 continue
             }
 
             // Mark as processed before starting
             processedJobIds.insert(job.id)
+            print("QueueProcessor: Starting to process job \(job.id)")
 
             // Process the job
             await processJob(job, queue: queue, service: service, connectionManager: connectionManager)
+            print("QueueProcessor: Finished processing job \(job.id)")
         }
 
         isRunning = false
