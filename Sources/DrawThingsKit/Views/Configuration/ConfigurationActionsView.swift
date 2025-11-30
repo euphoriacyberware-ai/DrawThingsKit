@@ -99,7 +99,7 @@ public struct ConfigurationActionsView: View {
 
             // Presets and JSON editor row
             HStack(spacing: 6) {
-                PresetMenuView()
+                PresetMenuView(modelsManager: modelsManager)
                     .buttonStyle(.bordered)
                     .help("Load saved preset")
 
@@ -191,7 +191,7 @@ public struct ConfigurationActionsCompactView: View {
             .buttonStyle(.bordered)
             .help("Save configuration as preset")
 
-            PresetMenuView()
+            PresetMenuView(modelsManager: modelsManager)
                 .buttonStyle(.bordered)
                 .help("Load saved preset")
 

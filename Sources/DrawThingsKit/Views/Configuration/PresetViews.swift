@@ -12,7 +12,7 @@ import SwiftData
 ///
 /// Example usage:
 /// ```swift
-/// PresetMenuView()
+/// PresetMenuView(modelsManager: connectionManager.modelsManager)
 ///     .environmentObject(configurationManager)
 /// ```
 public struct PresetMenuView: View {
@@ -21,7 +21,13 @@ public struct PresetMenuView: View {
 
     @EnvironmentObject private var configurationManager: ConfigurationManager
 
-    public init() {}
+    /// Optional ModelsManager for resolving models after loading a preset.
+    /// When provided, LoRAs, ControlNets, and model selections will be properly resolved.
+    private var modelsManager: ModelsManager?
+
+    public init(modelsManager: ModelsManager? = nil) {
+        self.modelsManager = modelsManager
+    }
 
     public var body: some View {
         Menu {
@@ -64,7 +70,12 @@ public struct PresetMenuView: View {
     }
 
     private func loadPreset(_ preset: SavedConfiguration) {
-        _ = configurationManager.loadFromJSON(preset.configurationJSON)
+        if configurationManager.loadFromJSON(preset.configurationJSON) {
+            // Resolve models to populate selectedLoRAs, selectedControls, etc.
+            if let manager = modelsManager {
+                configurationManager.resolveModels(from: manager)
+            }
+        }
     }
 
     private func deletePreset(_ preset: SavedConfiguration) {
@@ -77,7 +88,7 @@ public struct PresetMenuView: View {
 /// Example usage:
 /// ```swift
 /// .sheet(isPresented: $showingPresetBrowser) {
-///     PresetBrowserView()
+///     PresetBrowserView(modelsManager: connectionManager.modelsManager)
 /// }
 /// ```
 public struct PresetBrowserView: View {
@@ -90,7 +101,13 @@ public struct PresetBrowserView: View {
     @State private var searchText = ""
     @State private var selectedPreset: SavedConfiguration?
 
-    public init() {}
+    /// Optional ModelsManager for resolving models after loading a preset.
+    /// When provided, LoRAs, ControlNets, and model selections will be properly resolved.
+    private var modelsManager: ModelsManager?
+
+    public init(modelsManager: ModelsManager? = nil) {
+        self.modelsManager = modelsManager
+    }
 
     private var filteredPresets: [SavedConfiguration] {
         if searchText.isEmpty {
@@ -129,7 +146,12 @@ public struct PresetBrowserView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Load") {
                         if let preset = selectedPreset {
-                            _ = configurationManager.loadFromJSON(preset.configurationJSON)
+                            if configurationManager.loadFromJSON(preset.configurationJSON) {
+                                // Resolve models to populate selectedLoRAs, selectedControls, etc.
+                                if let manager = modelsManager {
+                                    configurationManager.resolveModels(from: manager)
+                                }
+                            }
                             dismiss()
                         }
                     }

@@ -44,7 +44,10 @@ public struct LoRAConfiguration: Identifiable, Hashable {
     }
 
     public static func == (lhs: LoRAConfiguration, rhs: LoRAConfiguration) -> Bool {
-        lhs.id == rhs.id
+        lhs.id == rhs.id &&
+        lhs.weight == rhs.weight &&
+        lhs.mode == rhs.mode &&
+        lhs.enabled == rhs.enabled
     }
 }
 
@@ -92,7 +95,12 @@ public struct ControlNetConfiguration: Identifiable, Hashable {
     }
 
     public static func == (lhs: ControlNetConfiguration, rhs: ControlNetConfiguration) -> Bool {
-        lhs.id == rhs.id
+        lhs.id == rhs.id &&
+        lhs.weight == rhs.weight &&
+        lhs.guidanceStart == rhs.guidanceStart &&
+        lhs.guidanceEnd == rhs.guidanceEnd &&
+        lhs.controlMode == rhs.controlMode &&
+        lhs.enabled == rhs.enabled
     }
 }
 
