@@ -22,11 +22,13 @@ Or add via Xcode: File → Add Packages → Enter the repository URL.
 
 ```swift
 import SwiftUI
+import SwiftData
 import DrawThingsKit
 
 @main
 struct MyApp: App {
     @StateObject private var connectionManager = ConnectionManager()
+    @StateObject private var configurationManager = ConfigurationManager()
     @StateObject private var queue = JobQueue()
     @StateObject private var processor = QueueProcessor()
 
@@ -34,6 +36,7 @@ struct MyApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(connectionManager)
+                .environmentObject(configurationManager)
                 .environmentObject(queue)
         }
         .task {
@@ -49,9 +52,13 @@ struct MyApp: App {
 Sources/DrawThingsKit/
 ├── Configuration/     # JSON serialization & presets
 ├── Connection/        # Server profiles & connection management
-├── Models/            # Model catalog management
-├── Queue/             # Job queue & processing
-└── Views/             # Reusable SwiftUI components (macOS)
+├── Logging/           # DTLogger unified logging system
+├── Models/            # Model catalog & ConfigurationManager
+├── Queue/             # Job queue, events & processing
+└── Views/
+    ├── Configuration/ # Config editors, presets, section views
+    ├── Connection/    # Server profile & status views
+    └── Queue/         # Queue progress, list & control views
 ```
 
 ---
@@ -184,13 +191,97 @@ queue.retry(failedJob)
 - `currentJob: GenerationJob?` - Currently processing job
 - `isProcessing: Bool` - Whether a job is running
 - `isPaused: Bool` - Whether queue is paused
-- `currentPreview: NSImage?` - Preview of current generation
+- `currentPreview: PlatformImage?` - Preview of current generation
 - `currentProgress: JobProgress?` - Progress of current job
 
 **Computed Properties:**
 - `pendingJobs`, `completedJobs`, `failedJobs` - Filtered job lists
 - `pendingCount`, `activeQueueCount` - Counts
 - `hasPendingJobs`, `isEmpty` - State checks
+
+#### Job Events
+
+The `JobQueue` provides a Combine publisher for job lifecycle events, making it easy to react to job completion, failures, and progress updates:
+
+```swift
+import Combine
+
+// Subscribe to job events
+var cancellables = Set<AnyCancellable>()
+
+queue.events
+    .sink { event in
+        switch event {
+        case .jobAdded(let job):
+            print("Job added: \(job.id)")
+
+        case .jobStarted(let job):
+            print("Job started: \(job.id)")
+
+        case .jobProgress(let job, let progress):
+            // Update UI with progress, show preview thumbnail
+            if let previewData = progress.previewImageData {
+                let image = try? PlatformImageHelpers.dtTensorToImage(previewData)
+                // Display preview...
+            }
+
+        case .jobCompleted(let job, let results):
+            // Handle completed job - results contains PNG image data
+            print("Job completed with \(results.count) images")
+            if let imageData = results.first {
+                // Save or display the image...
+            }
+
+        case .jobFailed(let job, let error):
+            print("Job failed: \(error)")
+
+        case .jobCancelled(let job):
+            print("Job cancelled: \(job.id)")
+
+        case .jobRemoved(let jobId):
+            print("Job removed: \(jobId)")
+        }
+    }
+    .store(in: &cancellables)
+```
+
+**In SwiftUI**, use `.onReceive` to handle events:
+
+```swift
+struct ContentView: View {
+    @EnvironmentObject var queue: JobQueue
+
+    var body: some View {
+        // Your view content
+        MyView()
+            .onReceive(queue.events) { event in
+                handleJobEvent(event)
+            }
+    }
+
+    func handleJobEvent(_ event: JobEvent) {
+        switch event {
+        case .jobCompleted(let job, let results):
+            // Store results, update UI, etc.
+        case .jobFailed(let job, let error):
+            // Show error alert
+        default:
+            break
+        }
+    }
+}
+```
+
+**JobEvent Types:**
+| Event | Associated Data | Description |
+|-------|-----------------|-------------|
+| `.jobAdded` | `GenerationJob` | Job was added to queue |
+| `.jobStarted` | `GenerationJob` | Job began processing |
+| `.jobProgress` | `GenerationJob`, `JobProgress` | Progress update with optional preview |
+| `.jobCompleted` | `GenerationJob`, `[Data]` | Job finished with result images |
+| `.jobFailed` | `GenerationJob`, `String` | Job failed with error message |
+| `.jobCancelled` | `GenerationJob` | Job was cancelled |
+| `.jobRemoved` | `UUID` | Job was removed from queue |
 
 ### QueueProcessor
 
@@ -319,6 +410,66 @@ Each model type exposes relevant metadata:
 | `UpscalerModel` | `name`, `file`, `scaleFactor`, `blocks` |
 
 All model types use `file` as their `id` for `Identifiable` conformance.
+
+### ConfigurationManager
+
+Manages the active configuration, prompt state, and model selections for generation.
+
+```swift
+@StateObject var configurationManager = ConfigurationManager()
+
+// Set prompt
+configurationManager.prompt = "A beautiful sunset"
+configurationManager.negativePrompt = "ugly, blurry"
+
+// Access/modify configuration
+configurationManager.activeConfiguration.width = 1024
+configurationManager.activeConfiguration.height = 1024
+configurationManager.activeConfiguration.steps = 30
+
+// Model selection (optional - use with pickers)
+configurationManager.selectedCheckpoint = modelsManager.checkpoints.first
+configurationManager.selectedRefiner = modelsManager.refinerModels.first
+
+// Sync model selections to configuration before generation
+configurationManager.syncModelsToConfiguration()
+
+// Clipboard operations
+configurationManager.copyToClipboard()      // Copy config as JSON
+configurationManager.pasteFromClipboard()   // Paste config from JSON
+
+// Import/export JSON
+let json = configurationManager.exportToJSON()
+configurationManager.loadFromJSON(json)
+
+// Reset to defaults
+configurationManager.resetToDefaults()
+
+// Resolve model selections after loading a preset
+configurationManager.resolveModels(from: modelsManager)
+```
+
+**Published Properties:**
+- `activeConfiguration: DrawThingsConfiguration` - The current configuration
+- `prompt: String` - The generation prompt
+- `negativePrompt: String` - The negative prompt
+- `selectedCheckpoint: CheckpointModel?` - Selected base model
+- `selectedRefiner: CheckpointModel?` - Selected refiner model
+
+**Usage with JobQueue:**
+
+```swift
+func generate() {
+    configurationManager.syncModelsToConfiguration()
+
+    let job = try GenerationJob(
+        prompt: configurationManager.prompt,
+        negativePrompt: configurationManager.negativePrompt,
+        configuration: configurationManager.activeConfiguration
+    )
+    queue.enqueue(job)
+}
+```
 
 ---
 
@@ -452,6 +603,91 @@ Features:
 - Paste, Copy, Format, Validate, Clear buttons
 - Real-time validation status
 - Auto-format on paste
+
+### Configuration Actions
+
+Views for managing configuration presets and clipboard operations:
+
+```swift
+// Full action bar with Copy, Paste, Save, Presets buttons
+ConfigurationActionsView(
+    configurationManager: configurationManager,
+    modelContext: modelContext
+)
+
+// Compact single-row version
+ConfigurationActionsCompactView(
+    configurationManager: configurationManager,
+    modelContext: modelContext
+)
+
+// Save configuration sheet (presented modally)
+SaveConfigurationSheet(
+    configurationManager: configurationManager,
+    modelContext: modelContext,
+    isPresented: $showingSaveSheet
+)
+
+// Preset picker menu
+PresetPickerMenu(
+    configurationManager: configurationManager,
+    presets: savedConfigurations
+)
+
+// Preset list for settings/management
+PresetListView(
+    configurationManager: configurationManager,
+    modelContext: modelContext
+)
+```
+
+**ConfigurationActionsView Features:**
+- **Copy**: Copy current configuration to clipboard as JSON
+- **Paste**: Paste configuration from clipboard
+- **Save**: Save current configuration as a named preset
+- **Presets**: Load from saved presets or reset to defaults
+
+### Configuration Section Views
+
+Reusable form sections for building configuration UIs:
+
+```swift
+// Model selection with picker or text field (auto-switches based on connection)
+ModelSection(
+    configurationManager: configurationManager,
+    modelsManager: modelsManager
+)
+
+// Prompt input fields
+PromptSection(
+    prompt: $configurationManager.prompt,
+    negativePrompt: $configurationManager.negativePrompt
+)
+
+// Dimensions with presets
+DimensionsSection(configuration: $configurationManager.activeConfiguration)
+
+// Steps, guidance, sampler, seed
+ParametersSection(configuration: $configurationManager.activeConfiguration)
+
+// Seed with randomize button
+SeedSection(configuration: $configurationManager.activeConfiguration)
+
+// LoRA management
+LoRASection(
+    configuration: $configurationManager.activeConfiguration,
+    modelsManager: modelsManager
+)
+
+// ControlNet management
+ControlNetSection(
+    configuration: $configurationManager.activeConfiguration,
+    modelsManager: modelsManager
+)
+
+// Advanced options (clip skip, refiner, etc.)
+AdvancedSection(configuration: $configurationManager.activeConfiguration)
+```
 
 ---
 
@@ -627,10 +863,11 @@ import DrawThingsKit
 
 struct GeneratorView: View {
     @EnvironmentObject var connectionManager: ConnectionManager
+    @EnvironmentObject var configurationManager: ConfigurationManager
     @EnvironmentObject var queue: JobQueue
 
-    @State private var prompt = ""
-    @State private var negativePrompt = ""
+    @State private var generatedImage: PlatformImage?
+    @State private var errorMessage: String?
 
     var body: some View {
         VStack {
@@ -638,8 +875,16 @@ struct GeneratorView: View {
             ConnectionStatusBadge(connectionManager: connectionManager)
 
             // Prompt input
-            TextField("Prompt", text: $prompt)
-            TextField("Negative", text: $negativePrompt)
+            PromptSection(
+                prompt: $configurationManager.prompt,
+                negativePrompt: $configurationManager.negativePrompt
+            )
+
+            // Model selection
+            ModelSection(
+                configurationManager: configurationManager,
+                modelsManager: connectionManager.modelsManager
+            )
 
             // Generate button
             Button("Generate") {
@@ -650,28 +895,63 @@ struct GeneratorView: View {
             // Queue progress
             QueueProgressView(queue: queue)
 
-            // Queue controls
-            QueueControlsView(queue: queue)
+            // Display result
+            if let image = generatedImage {
+                Image(platformImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+            }
+
+            // Error display
+            if let error = errorMessage {
+                Text(error)
+                    .foregroundColor(.red)
+            }
+        }
+        .onReceive(queue.events) { event in
+            handleJobEvent(event)
         }
     }
 
     func generate() {
-        var config = DrawThingsConfiguration()
-        config.width = 1024
-        config.height = 1024
-        config.steps = 30
-        config.model = connectionManager.modelsManager.checkpoints.first?.file ?? ""
+        configurationManager.syncModelsToConfiguration()
 
         do {
             let job = try GenerationJob(
-                prompt: prompt,
-                negativePrompt: negativePrompt,
-                configuration: config
+                prompt: configurationManager.prompt,
+                negativePrompt: configurationManager.negativePrompt,
+                configuration: configurationManager.activeConfiguration
             )
             queue.enqueue(job)
+            errorMessage = nil
         } catch {
-            print("Failed to create job: \(error)")
+            errorMessage = "Failed to create job: \(error.localizedDescription)"
         }
+    }
+
+    func handleJobEvent(_ event: JobEvent) {
+        switch event {
+        case .jobCompleted(_, let results):
+            if let imageData = results.first,
+               let image = PlatformImage.fromData(imageData) {
+                generatedImage = image
+            }
+        case .jobFailed(_, let error):
+            errorMessage = error
+        default:
+            break
+        }
+    }
+}
+
+// Helper extension for cross-platform Image
+extension Image {
+    init(platformImage: PlatformImage) {
+        #if os(macOS)
+        self.init(nsImage: platformImage)
+        #else
+        self.init(uiImage: platformImage)
+        #endif
     }
 }
 ```
@@ -705,6 +985,87 @@ let resultImage = try PlatformImageHelpers.dtTensorToImage(tensorData)
 ```
 
 **Note**: The `ConfigurationEditorView` uses `NSPasteboard` and is only available on macOS. Other views work on both platforms.
+
+---
+
+## Logging
+
+DrawThingsKit includes a unified logging system using Apple's `os.log` for efficient, structured logging.
+
+### DTLogger
+
+```swift
+// Log messages at different levels
+DTLogger.debug("Starting connection", category: .connection)
+DTLogger.info("Job enqueued: \(job.id)", category: .queue)
+DTLogger.warning("Retrying failed job", category: .queue)
+DTLogger.error("Failed to parse config: \(error)", category: .configuration)
+DTLogger.fault("Critical failure", category: .general)
+
+// Log data payloads (debug builds only)
+DTLogger.logData(requestData, label: "gRPC Request", category: .grpc)
+
+// Log JSON configuration (debug builds only)
+DTLogger.logConfiguration(configJSON, label: "Generation Config", category: .configuration)
+
+// Scoped operation logging with timing
+let endOperation = DTLogger.startOperation("Image Generation", category: .generation)
+// ... do work ...
+endOperation()  // Logs "Image Generation completed in 2.34s"
+```
+
+**Log Categories:**
+| Category | Description |
+|----------|-------------|
+| `.connection` | Server connection lifecycle |
+| `.queue` | Job queue operations |
+| `.generation` | Image generation process |
+| `.grpc` | gRPC communication details |
+| `.models` | Model loading and selection |
+| `.configuration` | Configuration parsing and validation |
+| `.general` | General purpose logging |
+
+**Log Levels:**
+| Level | Use Case |
+|-------|----------|
+| `.debug` | Verbose development info |
+| `.info` | General information |
+| `.warning` | Potential issues |
+| `.error` | Recoverable errors |
+| `.fault` | Critical, unrecoverable errors |
+
+**Configuration:**
+
+```swift
+// Access shared logger
+let logger = DTLogger.shared
+
+// Set minimum log level
+logger.minimumLevel = .info  // Ignores debug messages
+
+// Enable/disable logging
+logger.isEnabled = false
+
+// Console output (default: true in DEBUG, false in RELEASE)
+logger.logToConsole = true
+
+// Include timestamps in console output
+logger.includeTimestamps = true
+```
+
+**Viewing Logs:**
+
+In Terminal:
+```bash
+log stream --predicate 'subsystem == "com.drawthings.kit"' --level debug
+```
+
+In Xcode console, logs appear with timestamps and category prefixes:
+```
+[12:34:56.789] [Generation] Job A1B2C3D4 prompt: "a beautiful sunset"
+[12:34:56.790] [gRPC] Sending generateImage request (prompt: 42 chars, config: 1024 bytes)
+[12:34:58.123] [Generation] Job A1B2C3D4 completed in 1340.00ms
+```
 
 ---
 
