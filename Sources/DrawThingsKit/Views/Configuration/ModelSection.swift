@@ -82,6 +82,35 @@ public struct ModelSection: View {
             Toggle("MOE", isOn: $allowAnyRefiner)
                 .help("Mixture of Experts - allows any model to be used as refiner")
         }
+        .onChange(of: modelsManager.baseModels) { _, newModels in
+            // When models become available, try to match text field values to actual models
+            if !newModels.isEmpty {
+                resolveSelectionsFromNames()
+            }
+        }
+        .onAppear {
+            // Also check on appear in case models are already loaded
+            if hasModels {
+                resolveSelectionsFromNames()
+            }
+        }
+    }
+
+    /// Try to match the model/refiner name strings to actual CheckpointModel selections
+    private func resolveSelectionsFromNames() {
+        // Match base model by filename
+        if selectedCheckpoint == nil && !modelName.isEmpty {
+            if let match = modelsManager.checkpoints.first(where: { $0.file == modelName }) {
+                selectedCheckpoint = match
+            }
+        }
+
+        // Match refiner by filename
+        if selectedRefiner == nil, let refiner = refinerName, !refiner.isEmpty {
+            if let match = modelsManager.checkpoints.first(where: { $0.file == refiner }) {
+                selectedRefiner = match
+            }
+        }
     }
 
     // MARK: - Picker Views (when connected)
