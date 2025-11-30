@@ -25,26 +25,24 @@ public struct ModelSection: View {
     @Binding var selectedRefiner: CheckpointModel?
     @Binding var refinerStart: Float
 
-    var allowAnyRefiner: Bool
+    @State private var allowAnyRefiner: Bool = false
 
     public init(
         modelsManager: ModelsManager,
         selectedCheckpoint: Binding<CheckpointModel?>,
         selectedRefiner: Binding<CheckpointModel?>,
-        refinerStart: Binding<Float>,
-        allowAnyRefiner: Bool = false
+        refinerStart: Binding<Float>
     ) {
         self.modelsManager = modelsManager
         self._selectedCheckpoint = selectedCheckpoint
         self._selectedRefiner = selectedRefiner
         self._refinerStart = refinerStart
-        self.allowAnyRefiner = allowAnyRefiner
     }
 
     public var body: some View {
         Section("Models") {
             // Base Model Picker
-            Picker("Base Model", selection: $selectedCheckpoint) {
+            Picker("Model", selection: $selectedCheckpoint) {
                 Text("Select a model...").tag(nil as CheckpointModel?)
                 ForEach(modelsManager.baseModels) { checkpoint in
                     Text(checkpoint.name).tag(checkpoint as CheckpointModel?)
@@ -55,7 +53,7 @@ public struct ModelSection: View {
             }
 
             // Refiner Model Picker
-            Picker("Refiner Model", selection: $selectedRefiner) {
+            Picker("Refiner", selection: $selectedRefiner) {
                 Text("None").tag(nil as CheckpointModel?)
 
                 // Show either all base models or just refiners
@@ -77,6 +75,9 @@ public struct ModelSection: View {
                         .monospacedDigit()
                 }
             }
+
+            Toggle("MOE", isOn: $allowAnyRefiner)
+                .help("Mixture of Experts - allows any model to be used as refiner")
         }
     }
 }
