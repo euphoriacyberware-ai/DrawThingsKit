@@ -48,6 +48,12 @@ public final class ConfigurationManager: ObservableObject {
     /// Selected refiner model (syncs with activeConfiguration.refinerModel)
     @Published public var selectedRefiner: CheckpointModel? = nil
 
+    /// Selected LoRA configurations
+    @Published public var selectedLoRAs: [LoRAConfiguration] = []
+
+    /// Selected ControlNet configurations
+    @Published public var selectedControls: [ControlNetConfiguration] = []
+
     public init() {}
 
     /// Sync model selections to configuration (call before using activeConfiguration)
@@ -143,5 +149,7 @@ public final class ConfigurationManager: ObservableObject {
         negativePrompt = ""
         selectedCheckpoint = nil
         selectedRefiner = nil
+        selectedLoRAs = []
+        selectedControls = []
     }
 }
