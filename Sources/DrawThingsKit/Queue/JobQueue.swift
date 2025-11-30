@@ -15,6 +15,26 @@ import AppKit
 import UIKit
 #endif
 
+// MARK: - Job Events
+
+/// Events emitted by the job queue for easy observation.
+public enum JobEvent {
+    /// A job was added to the queue
+    case jobAdded(GenerationJob)
+    /// A job started processing
+    case jobStarted(GenerationJob)
+    /// A job's progress was updated
+    case jobProgress(GenerationJob, JobProgress)
+    /// A job completed successfully with result images
+    case jobCompleted(GenerationJob, results: [Data])
+    /// A job failed with an error message
+    case jobFailed(GenerationJob, error: String)
+    /// A job was cancelled
+    case jobCancelled(GenerationJob)
+    /// A job was removed from the queue
+    case jobRemoved(UUID)
+}
+
 /// Manages the queue of generation jobs.
 ///
 /// Provides:
@@ -23,6 +43,7 @@ import UIKit
 /// - Pause/resume functionality
 /// - Current job and progress tracking
 /// - Persistence through QueueStorage
+/// - Event publisher for job lifecycle events
 ///
 /// Example usage:
 /// ```swift
@@ -33,6 +54,20 @@ import UIKit
 ///
 /// // Start processing
 /// queue.resume()
+///
+/// // Listen for job events
+/// queue.events
+///     .sink { event in
+///         switch event {
+///         case .jobCompleted(let job, let results):
+///             // Handle completed job
+///         case .jobFailed(let job, let error):
+///             // Handle failed job
+///         default:
+///             break
+///         }
+///     }
+///     .store(in: &cancellables)
 /// ```
 @MainActor
 public final class JobQueue: ObservableObject {
@@ -58,6 +93,12 @@ public final class JobQueue: ObservableObject {
 
     /// Error message if queue processing encountered an error.
     @Published public private(set) var lastError: String?
+
+    // MARK: - Event Publisher
+
+    /// Publisher for job lifecycle events.
+    /// Subscribe to this to be notified when jobs complete, fail, etc.
+    public let events = PassthroughSubject<JobEvent, Never>()
 
     // MARK: - Private Properties
 
@@ -124,6 +165,7 @@ public final class JobQueue: ObservableObject {
         newJob.status = .pending
         jobs.append(newJob)
         saveJobs()
+        events.send(.jobAdded(newJob))
     }
 
     /// Add multiple jobs to the queue.
@@ -132,6 +174,7 @@ public final class JobQueue: ObservableObject {
         for var job in newJobs {
             job.status = .pending
             jobs.append(job)
+            events.send(.jobAdded(job))
         }
         saveJobs()
     }
@@ -142,8 +185,10 @@ public final class JobQueue: ObservableObject {
         // Can't remove the currently processing job
         guard currentJob?.id != job.id else { return }
 
-        jobs.removeAll { $0.id == job.id }
+        let jobId = job.id
+        jobs.removeAll { $0.id == jobId }
         saveJobs()
+        events.send(.jobRemoved(jobId))
     }
 
     /// Cancel a job.
@@ -166,6 +211,7 @@ public final class JobQueue: ObservableObject {
         }
 
         saveJobs()
+        events.send(.jobCancelled(jobs[index]))
     }
 
     /// Move a job in the queue.
@@ -252,6 +298,7 @@ public final class JobQueue: ObservableObject {
         isProcessing = true
         currentProgress = jobs[index].progress
         saveJobs()
+        events.send(.jobStarted(jobs[index]))
     }
 
     /// Update progress for a job.
@@ -267,6 +314,8 @@ public final class JobQueue: ObservableObject {
                 currentPreview = image
             }
         }
+
+        events.send(.jobProgress(jobs[index], progress))
     }
 
     /// Mark a job as completed with results.
@@ -278,6 +327,8 @@ public final class JobQueue: ObservableObject {
         jobs[index].resultImages = results
         jobs[index].errorMessage = nil
 
+        let completedJob = jobs[index]
+
         if currentJob?.id == jobId {
             currentJob = nil
             isProcessing = false
@@ -286,6 +337,7 @@ public final class JobQueue: ObservableObject {
         }
 
         saveJobs()
+        events.send(.jobCompleted(completedJob, results: results))
     }
 
     /// Mark a job as failed.
@@ -296,6 +348,8 @@ public final class JobQueue: ObservableObject {
         jobs[index].completedAt = Date()
         jobs[index].errorMessage = error
 
+        let failedJob = jobs[index]
+
         if currentJob?.id == jobId {
             currentJob = nil
             isProcessing = false
@@ -304,6 +358,7 @@ public final class JobQueue: ObservableObject {
         }
 
         saveJobs()
+        events.send(.jobFailed(failedJob, error: error))
     }
 
     /// Get the next pending job.
