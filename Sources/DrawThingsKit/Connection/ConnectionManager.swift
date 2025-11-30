@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 import DrawThingsClient
+import os.log
 
 // MARK: - Connection State
 
@@ -84,6 +85,7 @@ public final class ConnectionManager: ObservableObject {
     public init(storage: ProfileStorage = ProfileStorage()) {
         self.storage = storage
         loadProfiles()
+        DTLogger.debug("ConnectionManager initialized with \(profiles.count) profile(s)", category: .connection)
     }
 
     // MARK: - Public Properties
@@ -182,8 +184,11 @@ public final class ConnectionManager: ObservableObject {
     /// Connect to a server profile.
     /// - Parameter profile: The profile to connect to.
     public func connect(to profile: ServerProfile) async {
+        DTLogger.info("Connecting to \(profile.name) at \(profile.address)...", category: .connection)
+
         // Disconnect from any existing connection
         if connectionState.isConnected {
+            DTLogger.debug("Disconnecting from existing connection first", category: .connection)
             disconnect()
         }
 
@@ -192,6 +197,7 @@ public final class ConnectionManager: ObservableObject {
 
         do {
             // Create the service
+            DTLogger.debug("Creating DrawThingsService (TLS: \(profile.useTLS))", category: .connection)
             let newService = try DrawThingsService(
                 address: profile.address,
                 useTLS: profile.useTLS
@@ -199,16 +205,24 @@ public final class ConnectionManager: ObservableObject {
             self.service = newService
 
             // Test connection with echo
+            DTLogger.debug("Sending echo request...", category: .connection)
             let response = try await newService.echo(name: "DrawThingsKit")
+            DTLogger.debug("Echo response received", category: .connection)
 
             // Update models from metadata
             if response.hasOverride {
+                DTLogger.debug("Received metadata: models=\(response.override.models.count) bytes, loras=\(response.override.loras.count) bytes", category: .connection)
                 modelsManager.updateFromMetadata(response.override)
+                DTLogger.info("Loaded \(modelsManager.checkpoints.count) model(s), \(modelsManager.loras.count) LoRA(s)", category: .connection)
+            } else {
+                DTLogger.warning("Server response has no model metadata", category: .connection)
             }
 
+            DTLogger.info("Connected to \(profile.name)", category: .connection)
             connectionState = .connected
 
         } catch {
+            DTLogger.error("Connection failed: \(error.localizedDescription)", category: .connection)
             service = nil
             connectionState = .error(error.localizedDescription)
         }
@@ -217,14 +231,21 @@ public final class ConnectionManager: ObservableObject {
     /// Connect to the default profile, if one exists.
     public func connectToDefault() async {
         guard let defaultProfile = defaultProfile else {
+            DTLogger.warning("No default profile configured", category: .connection)
             connectionState = .error("No default profile configured")
             return
         }
+        DTLogger.debug("Connecting to default profile: \(defaultProfile.name)", category: .connection)
         await connect(to: defaultProfile)
     }
 
     /// Disconnect from the current server.
     public func disconnect() {
+        if let profile = activeProfile {
+            DTLogger.info("Disconnecting from \(profile.name)", category: .connection)
+        } else {
+            DTLogger.debug("Disconnect called with no active profile", category: .connection)
+        }
         service = nil
         activeProfile = nil
         connectionState = .disconnected
@@ -234,8 +255,10 @@ public final class ConnectionManager: ObservableObject {
     /// Attempt to reconnect to the active profile.
     public func reconnect() async {
         guard let profile = activeProfile else {
+            DTLogger.debug("Reconnect called but no active profile", category: .connection)
             return
         }
+        DTLogger.info("Reconnecting to \(profile.name)...", category: .connection)
         await connect(to: profile)
     }
 

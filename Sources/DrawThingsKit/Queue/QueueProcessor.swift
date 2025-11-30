@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 import DrawThingsClient
+import os.log
 
 #if os(macOS)
 import AppKit
@@ -43,7 +44,9 @@ public final class QueueProcessor: ObservableObject {
     /// Tracks job IDs that have been processed to prevent re-processing
     private var processedJobIds: Set<UUID> = []
 
-    public init() {}
+    public init() {
+        DTLogger.debug("QueueProcessor initialized", category: .queue)
+    }
 
     /// Clear the processed job IDs tracking (call when you want to allow reprocessing)
     public func clearProcessedJobIds() {
@@ -63,8 +66,12 @@ public final class QueueProcessor: ObservableObject {
         queue: JobQueue,
         connectionManager: ConnectionManager
     ) {
-        guard !isRunning else { return }
+        guard !isRunning else {
+            DTLogger.debug("startProcessing called but already running", category: .queue)
+            return
+        }
 
+        DTLogger.info("Starting queue processor", category: .queue)
         isRunning = true
 
         processingTask = Task { [weak self] in
@@ -74,6 +81,7 @@ public final class QueueProcessor: ObservableObject {
 
     /// Stop the processing loop.
     public func stopProcessing() {
+        DTLogger.info("Stopping queue processor", category: .queue)
         processingTask?.cancel()
         processingTask = nil
         isRunning = false
@@ -86,6 +94,8 @@ public final class QueueProcessor: ObservableObject {
         queue: JobQueue,
         connectionManager: ConnectionManager
     ) async {
+        DTLogger.debug("Processing loop started", category: .queue)
+
         while !Task.isCancelled {
             // Check if paused
             if queue.isPaused {
@@ -96,6 +106,7 @@ public final class QueueProcessor: ObservableObject {
             // Check for connection
             guard connectionManager.connectionState.isConnected,
                   let service = connectionManager.activeService else {
+                DTLogger.warning("Not connected to server, pausing queue", category: .queue)
                 queue.pauseForReconnection(error: "Not connected to server")
                 try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
                 continue
@@ -116,6 +127,8 @@ public final class QueueProcessor: ObservableObject {
                 continue
             }
 
+            DTLogger.info("Starting job \(job.id.uuidString.prefix(8))...", category: .queue)
+
             // Mark as processed before starting
             processedJobIds.insert(job.id)
 
@@ -123,6 +136,7 @@ public final class QueueProcessor: ObservableObject {
             await processJob(job, queue: queue, service: service, connectionManager: connectionManager)
         }
 
+        DTLogger.debug("Processing loop ended", category: .queue)
         isRunning = false
     }
 
@@ -134,6 +148,9 @@ public final class QueueProcessor: ObservableObject {
         service: DrawThingsService,
         connectionManager: ConnectionManager
     ) async {
+        let jobIdShort = String(job.id.uuidString.prefix(8))
+        let endOperation = DTLogger.startOperation("Job \(jobIdShort)", category: .generation)
+
         // Mark job as started
         queue.markJobStarted(job.id)
 
@@ -141,16 +158,31 @@ public final class QueueProcessor: ObservableObject {
             // Parse configuration
             let config = try job.configuration()
 
+            // Log the configuration being sent
+            DTLogger.debug("Job \(jobIdShort) prompt: \"\(job.prompt.prefix(100))\"", category: .generation)
+            if !job.negativePrompt.isEmpty {
+                DTLogger.debug("Job \(jobIdShort) negative: \"\(job.negativePrompt.prefix(100))\"", category: .generation)
+            }
+            DTLogger.debug("Job \(jobIdShort) model: \(config.model)", category: .generation)
+            DTLogger.debug("Job \(jobIdShort) size: \(config.width)x\(config.height), steps: \(config.steps), cfg: \(config.guidanceScale)", category: .generation)
+
+            // Log the full configuration JSON in debug builds
+            if let configJSON = try? config.toJSON() {
+                DTLogger.logConfiguration(configJSON, label: "Job \(jobIdShort) Configuration", category: .configuration)
+            }
+
             // Prepare canvas image if present
             var canvasImage: PlatformImage? = nil
             if let canvasData = job.canvasImageData {
                 canvasImage = PlatformImage.fromData(canvasData)
+                DTLogger.debug("Job \(jobIdShort) has canvas image: \(canvasData.count) bytes", category: .generation)
             }
 
             // Prepare mask image if present
             var maskImage: PlatformImage? = nil
             if let maskData = job.maskImageData {
                 maskImage = PlatformImage.fromData(maskData)
+                DTLogger.debug("Job \(jobIdShort) has mask image: \(maskData.count) bytes", category: .generation)
             }
 
             // Prepare hints
@@ -158,6 +190,7 @@ public final class QueueProcessor: ObservableObject {
             for hint in job.hints {
                 if let image = PlatformImage.fromData(hint.imageData) {
                     hints.append((type: hint.type, image: image, weight: hint.weight))
+                    DTLogger.debug("Job \(jobIdShort) has hint: \(hint.type) (weight: \(hint.weight))", category: .generation)
                 }
             }
 
@@ -211,11 +244,16 @@ public final class QueueProcessor: ObservableObject {
             // Check if we got any results
             if resultImages.isEmpty {
                 // No images returned - treat as a failure
+                DTLogger.error("Job \(jobIdShort) failed: No images returned from generation", category: .generation)
                 queue.markJobFailed(job.id, error: "No images returned from generation")
             } else {
                 // Mark job as completed with results
+                let totalBytes = resultImages.reduce(0) { $0 + $1.count }
+                DTLogger.info("Job \(jobIdShort) completed with \(resultImages.count) image(s), \(ByteCountFormatter.string(fromByteCount: Int64(totalBytes), countStyle: .binary))", category: .generation)
                 queue.markJobCompleted(job.id, results: resultImages)
             }
+
+            endOperation()
 
         } catch {
             // Determine if this is a connectivity error
@@ -223,6 +261,7 @@ public final class QueueProcessor: ObservableObject {
 
             if isConnectivityError(error) {
                 // Connectivity error - pause queue for reconnection
+                DTLogger.warning("Job \(jobIdShort) connectivity error: \(errorMessage)", category: .generation)
                 queue.pauseForReconnection(error: "Connection lost: \(errorMessage)")
 
                 // Remove from processed set so it can be retried after reconnection
@@ -232,8 +271,11 @@ public final class QueueProcessor: ObservableObject {
                 queue.resetJobToPending(job.id)
             } else {
                 // Other error - mark job as failed
+                DTLogger.error("Job \(jobIdShort) failed: \(errorMessage)", category: .generation)
                 queue.markJobFailed(job.id, error: errorMessage)
             }
+
+            endOperation()
         }
     }
 
@@ -321,19 +363,28 @@ extension DrawThingsService {
         hints: [(type: String, image: PlatformImage, weight: Float)],
         onUpdate: @escaping (GenerationUpdate) -> Void
     ) async throws {
+        DTLogger.debug("Preparing gRPC request...", category: .grpc)
+
         // Serialize configuration to FlatBuffer data
         let configData = try configuration.toFlatBufferData()
+        DTLogger.logData(configData, label: "Configuration FlatBuffer", category: .grpc)
 
         // Convert canvas image to DTTensor format (same as hints)
         var canvasData: Data? = nil
         if let canvas = canvas {
             canvasData = try? PlatformImageHelpers.imageToDTTensor(canvas, forceRGB: true)
+            if let data = canvasData {
+                DTLogger.debug("Canvas DTTensor: \(ByteCountFormatter.string(fromByteCount: Int64(data.count), countStyle: .binary))", category: .grpc)
+            }
         }
 
         // Convert mask image to PNG data
         var maskData: Data? = nil
         if let mask = mask {
             maskData = mask.pngData()
+            if let data = maskData {
+                DTLogger.debug("Mask PNG: \(ByteCountFormatter.string(fromByteCount: Int64(data.count), countStyle: .binary))", category: .grpc)
+            }
         }
 
         // Convert hints to HintProto array using DTTensor format
@@ -347,11 +398,14 @@ extension DrawThingsService {
                 tensor.weight = hint.weight
                 hintProto.tensors = [tensor]
                 hintProtos.append(hintProto)
+                DTLogger.debug("Hint '\(hint.type)' DTTensor: \(ByteCountFormatter.string(fromByteCount: Int64(tensorData.count), countStyle: .binary))", category: .grpc)
             }
         }
 
         // Get total steps from configuration for progress tracking
         let totalSteps = Int(configuration.steps)
+
+        DTLogger.info("Sending gRPC generateImage request (prompt: \(prompt.count) chars, config: \(configData.count) bytes)", category: .grpc)
 
         // Call the actual service method
         let results = try await generateImage(
@@ -404,22 +458,29 @@ extension DrawThingsService {
             }
         )
 
+        DTLogger.info("gRPC request returned \(results.count) result(s)", category: .grpc)
+
         // Convert DTTensor results to PNG data
-        for imageData in results {
+        for (index, imageData) in results.enumerated() {
+            DTLogger.debug("Processing result \(index + 1): DTTensor \(ByteCountFormatter.string(fromByteCount: Int64(imageData.count), countStyle: .binary))", category: .grpc)
             do {
                 // Convert DTTensor format to PlatformImage
                 let image = try PlatformImageHelpers.dtTensorToImage(imageData)
                 // Convert to PNG data
                 if let pngData = image.pngData() {
+                    DTLogger.debug("Result \(index + 1) converted to PNG: \(ByteCountFormatter.string(fromByteCount: Int64(pngData.count), countStyle: .binary))", category: .grpc)
                     onUpdate(.image(pngData))
                 } else {
+                    DTLogger.error("Result \(index + 1): Failed to convert to PNG", category: .grpc)
                     onUpdate(.error("Failed to convert result image to PNG"))
                 }
             } catch {
+                DTLogger.error("Result \(index + 1) conversion failed: \(error.localizedDescription)", category: .grpc)
                 onUpdate(.error("Failed to convert result: \(error.localizedDescription)"))
             }
         }
 
+        DTLogger.debug("gRPC request completed", category: .grpc)
         onUpdate(.completed)
     }
 }
