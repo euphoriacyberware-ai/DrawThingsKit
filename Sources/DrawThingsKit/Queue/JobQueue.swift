@@ -83,7 +83,10 @@ public final class JobQueue: ObservableObject {
     @Published public private(set) var isProcessing: Bool = false
 
     /// Whether the queue is paused.
-    @Published public private(set) var isPaused: Bool = true
+    /// Defaults to `false` (ready to process). The queue will automatically start
+    /// processing when jobs are added and a connection is available.
+    /// Call `pause()` during app initialization if you want the queue to start paused.
+    @Published public private(set) var isPaused: Bool = false
 
     /// Preview image from the current job.
     @Published public private(set) var currentPreview: PlatformImage?

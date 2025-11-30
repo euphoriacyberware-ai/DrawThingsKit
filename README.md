@@ -190,7 +190,7 @@ queue.retry(failedJob)
 - `jobs: [GenerationJob]` - All jobs in queue
 - `currentJob: GenerationJob?` - Currently processing job
 - `isProcessing: Bool` - Whether a job is running
-- `isPaused: Bool` - Whether queue is paused
+- `isPaused: Bool` - Whether queue is paused (defaults to `false`)
 - `currentPreview: PlatformImage?` - Preview of current generation
 - `currentProgress: JobProgress?` - Progress of current job
 
@@ -198,6 +198,34 @@ queue.retry(failedJob)
 - `pendingJobs`, `completedJobs`, `failedJobs` - Filtered job lists
 - `pendingCount`, `activeQueueCount` - Counts
 - `hasPendingJobs`, `isEmpty` - State checks
+
+**Auto-Processing Behavior:**
+
+By default, the queue is ready to process (`isPaused = false`). When jobs are enqueued and a connection is available, processing starts automatically. The queue pauses automatically on connection errors and resumes when you call `resume()` after reconnecting.
+
+To start the queue in a paused state (requiring explicit user action to begin):
+
+```swift
+@main
+struct MyApp: App {
+    @StateObject private var queue = JobQueue()
+
+    init() {
+        // Start paused - user must explicitly resume
+        queue.pause()
+    }
+
+    // Or pause in .task after the view appears
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .task {
+                    queue.pause()  // Start paused
+                }
+        }
+    }
+}
+```
 
 #### Job Events
 

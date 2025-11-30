@@ -103,11 +103,11 @@ public final class QueueProcessor: ObservableObject {
                 continue
             }
 
-            // Check for connection
+            // Check for connection - just wait if not connected, don't pause
+            // (pauseForReconnection is only called when we lose connection during a job)
             guard connectionManager.connectionState.isConnected,
                   let service = connectionManager.activeService else {
-                DTLogger.warning("Not connected to server, pausing queue", category: .queue)
-                queue.pauseForReconnection(error: "Not connected to server")
+                // Not connected - wait and check again without pausing
                 try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
                 continue
             }
