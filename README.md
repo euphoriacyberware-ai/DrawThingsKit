@@ -229,7 +229,9 @@ struct MyApp: App {
 
 #### Job Events
 
-The `JobQueue` provides a Combine publisher for job lifecycle events, making it easy to react to job completion, failures, and progress updates:
+The `JobQueue` provides a Combine publisher for job lifecycle events, making it easy to react to job completion, failures, and progress updates.
+
+**All image data is provided as native `PlatformImage` types** (NSImage on macOS, UIImage on iOS). The Kit handles all DTTensor format conversion internally, so your app works with familiar image types.
 
 ```swift
 import Combine
@@ -247,17 +249,21 @@ queue.events
             print("Job started: \(job.id)")
 
         case .jobProgress(let job, let progress):
-            // Update UI with progress, show preview thumbnail
-            if let previewData = progress.previewImageData {
-                let image = try? PlatformImageHelpers.dtTensorToImage(previewData)
-                // Display preview...
+            // Preview is already converted to PlatformImage
+            if let previewImage = progress.previewImage {
+                // Display preview directly - no conversion needed
+                displayPreview(previewImage)
             }
 
-        case .jobCompleted(let job, let results):
-            // Handle completed job - results contains PNG image data
-            print("Job completed with \(results.count) images")
-            if let imageData = results.first {
-                // Save or display the image...
+        case .jobCompleted(let job, let images):
+            // Images are native PlatformImage types, ready to display
+            print("Job completed with \(images.count) images")
+            if let firstImage = images.first {
+                displayResult(firstImage)
+                // Convert to PNG for storage if needed
+                if let pngData = firstImage.pngData() {
+                    saveToDatabase(pngData)
+                }
             }
 
         case .jobFailed(let job, let error):
@@ -278,21 +284,29 @@ queue.events
 ```swift
 struct ContentView: View {
     @EnvironmentObject var queue: JobQueue
+    @State private var resultImage: PlatformImage?
 
     var body: some View {
-        // Your view content
-        MyView()
-            .onReceive(queue.events) { event in
-                handleJobEvent(event)
+        VStack {
+            if let image = resultImage {
+                Image(platformImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
             }
+        }
+        .onReceive(queue.events) { event in
+            handleJobEvent(event)
+        }
     }
 
     func handleJobEvent(_ event: JobEvent) {
         switch event {
-        case .jobCompleted(let job, let results):
-            // Store results, update UI, etc.
-        case .jobFailed(let job, let error):
+        case .jobCompleted(_, let images):
+            // Images are ready to display
+            resultImage = images.first
+        case .jobFailed(_, let error):
             // Show error alert
+            print("Error: \(error)")
         default:
             break
         }
@@ -305,8 +319,8 @@ struct ContentView: View {
 |-------|-----------------|-------------|
 | `.jobAdded` | `GenerationJob` | Job was added to queue |
 | `.jobStarted` | `GenerationJob` | Job began processing |
-| `.jobProgress` | `GenerationJob`, `JobProgress` | Progress update with optional preview |
-| `.jobCompleted` | `GenerationJob`, `[Data]` | Job finished with result images |
+| `.jobProgress` | `GenerationJob`, `JobProgress` | Progress update with preview image |
+| `.jobCompleted` | `GenerationJob`, `[PlatformImage]` | Job finished with result images |
 | `.jobFailed` | `GenerationJob`, `String` | Job failed with error message |
 | `.jobCancelled` | `GenerationJob` | Job was cancelled |
 | `.jobRemoved` | `UUID` | Job was removed from queue |
@@ -353,8 +367,9 @@ job.isPending
 job.isCompleted
 job.canRetry    // Failed with retries remaining
 
-// Results (after completion)
-job.resultImages  // Array of PNG Data
+// Results (after completion) - native PlatformImage types
+job.resultImages      // [PlatformImage] - all result images
+job.firstResultImage  // PlatformImage? - convenience for first image
 ```
 
 ### ModelsManager
@@ -772,12 +787,14 @@ struct JobProgress {
     var currentStep: Int
     var totalSteps: Int
     var stage: String?
-    var previewImageData: Data?
+    var previewImage: PlatformImage?  // Preview as native image type
 
     var progressFraction: Double   // 0.0 to 1.0
     var progressPercentage: Int    // 0 to 100
 }
 ```
+
+The `previewImage` is automatically converted from the server's DTTensor format with correct color handling for different model families (Flux, Qwen, Wan, SD3, etc.).
 
 ### HintData
 
@@ -1071,11 +1088,9 @@ struct GeneratorView: View {
 
     func handleJobEvent(_ event: JobEvent) {
         switch event {
-        case .jobCompleted(_, let results):
-            if let imageData = results.first,
-               let image = PlatformImage.fromData(imageData) {
-                generatedImage = image
-            }
+        case .jobCompleted(_, let images):
+            // Images are native PlatformImage types - ready to display
+            generatedImage = images.first
         case .jobFailed(_, let error):
             errorMessage = error
         default:
@@ -1111,17 +1126,26 @@ DrawThingsKit supports both macOS and iOS:
 
 - **Views**: All SwiftUI views work on both platforms
 - **Images**: Use `PlatformImage` type alias (resolves to `NSImage` on macOS, `UIImage` on iOS)
-- **Image Conversion**: Use `PlatformImageHelpers` for DTTensor conversion on both platforms
+- **Image Conversion**: The Kit handles all DTTensor conversion internally - you work with native image types
 
 ```swift
 // Cross-platform image handling
-let image: PlatformImage = ...
+// Results and previews from JobQueue are already PlatformImage
+queue.events.sink { event in
+    switch event {
+    case .jobCompleted(_, let images):
+        // images is [PlatformImage] - ready to use
+        let firstImage: PlatformImage? = images.first
+    case .jobProgress(_, let progress):
+        // previewImage is PlatformImage? - ready to display
+        let preview: PlatformImage? = progress.previewImage
+    default:
+        break
+    }
+}
 
-// Convert to DTTensor for Draw Things
-let tensorData = try PlatformImageHelpers.imageToDTTensor(image)
-
-// Convert DTTensor back to image
-let resultImage = try PlatformImageHelpers.dtTensorToImage(tensorData)
+// For sending images TO Draw Things (canvas, hints), use PlatformImageHelpers
+let canvasData = try PlatformImageHelpers.imageToDTTensor(myImage)
 ```
 
 **Note**: The `ConfigurationEditorView` uses `NSPasteboard` and is only available on macOS. Other views work on both platforms.

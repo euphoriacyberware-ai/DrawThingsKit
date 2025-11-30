@@ -9,6 +9,12 @@ import Foundation
 import SwiftUI
 import DrawThingsClient
 
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
+
 // MARK: - Job Status
 
 /// The status of a generation job.
@@ -23,22 +29,58 @@ public enum JobStatus: String, Codable, Sendable {
 // MARK: - Job Progress
 
 /// Progress information for a running job.
-public struct JobProgress: Codable, Sendable {
+///
+/// Note: This type uses `@unchecked Sendable` because `PlatformImage` is not Sendable,
+/// but the image property is only accessed on the main thread for UI purposes.
+public struct JobProgress: Codable, @unchecked Sendable {
     public var currentStep: Int
     public var totalSteps: Int
     public var stage: String?
-    public var previewImageData: Data?
+
+    /// Raw DTTensor preview data (internal use only, not exposed to apps).
+    internal var previewImageData: Data?
+
+    /// Converted preview image ready for display.
+    /// This is populated by JobQueue after converting from DTTensor format.
+    /// Note: This property is transient and not persisted.
+    public var previewImage: PlatformImage? {
+        get { _previewImage }
+        set { _previewImage = newValue }
+    }
+
+    // Non-Codable storage for the converted image
+    private var _previewImage: PlatformImage?
+
+    // Custom coding keys to exclude the transient image
+    private enum CodingKeys: String, CodingKey {
+        case currentStep, totalSteps, stage, previewImageData
+    }
 
     public init(
         currentStep: Int = 0,
         totalSteps: Int = 0,
         stage: String? = nil,
-        previewImageData: Data? = nil
+        previewImage: PlatformImage? = nil
+    ) {
+        self.currentStep = currentStep
+        self.totalSteps = totalSteps
+        self.stage = stage
+        self.previewImageData = nil
+        self._previewImage = previewImage
+    }
+
+    /// Internal initializer that accepts raw DTTensor data
+    internal init(
+        currentStep: Int,
+        totalSteps: Int,
+        stage: String?,
+        previewImageData: Data?
     ) {
         self.currentStep = currentStep
         self.totalSteps = totalSteps
         self.stage = stage
         self.previewImageData = previewImageData
+        self._previewImage = nil
     }
 
     public var progressFraction: Double {
@@ -91,8 +133,19 @@ public struct GenerationJob: Identifiable, Codable {
     public var progress: JobProgress?
     public var errorMessage: String?
 
-    // Results (image data in PNG format)
-    public var resultImages: [Data]
+    // Results (image data in PNG format, internal storage)
+    internal var resultImageData: [Data]
+
+    /// Result images as native platform images.
+    /// These are converted on-demand from the stored PNG data.
+    public var resultImages: [PlatformImage] {
+        resultImageData.compactMap { PlatformImage.fromData($0) }
+    }
+
+    /// First result image, if any.
+    public var firstResultImage: PlatformImage? {
+        resultImageData.first.flatMap { PlatformImage.fromData($0) }
+    }
 
     // Timestamps
     public var createdAt: Date
@@ -123,7 +176,7 @@ public struct GenerationJob: Identifiable, Codable {
         self.status = .pending
         self.progress = nil
         self.errorMessage = nil
-        self.resultImages = []
+        self.resultImageData = []
         self.createdAt = Date()
         self.startedAt = nil
         self.completedAt = nil

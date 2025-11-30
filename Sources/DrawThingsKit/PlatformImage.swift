@@ -192,13 +192,18 @@ public struct PlatformImageHelpers {
     public static func dtTensorToImage(_ tensorData: Data, modelFamily: LatentModelFamily? = nil) throws -> PlatformImage {
         // Delegate to DrawThingsClient's implementation which has all model-specific coefficients
         do {
-            return try DrawThingsClient.PlatformImageHelpers.dtTensorToImage(tensorData, modelFamily: modelFamily)
-        } catch DrawThingsClient.ImageError.invalidData {
-            throw PlatformImageError.invalidData
-        } catch DrawThingsClient.ImageError.compressionNotSupported {
-            throw PlatformImageError.compressionNotSupported
-        } catch DrawThingsClient.ImageError.conversionFailed {
-            throw PlatformImageError.conversionFailed
+            return try ImageHelpers.dtTensorToImage(tensorData, modelFamily: modelFamily)
+        } catch let error as ImageError {
+            switch error {
+            case .invalidData:
+                throw PlatformImageError.invalidData
+            case .compressionNotSupported:
+                throw PlatformImageError.compressionNotSupported
+            case .conversionFailed:
+                throw PlatformImageError.conversionFailed
+            default:
+                throw PlatformImageError.conversionFailed
+            }
         } catch {
             throw PlatformImageError.conversionFailed
         }

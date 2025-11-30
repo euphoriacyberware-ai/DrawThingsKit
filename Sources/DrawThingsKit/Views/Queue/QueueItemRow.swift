@@ -75,8 +75,7 @@ public struct QueueItemRow: View {
             }
 
             // Thumbnail (for completed jobs)
-            if job.isCompleted, let firstImage = job.resultImages.first,
-               let image = PlatformImage.fromData(firstImage) {
+            if job.isCompleted, let image = job.firstResultImage {
                 #if os(macOS)
                 Image(nsImage: image)
                     .resizable()

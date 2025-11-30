@@ -25,8 +25,8 @@ public enum JobEvent {
     case jobStarted(GenerationJob)
     /// A job's progress was updated
     case jobProgress(GenerationJob, JobProgress)
-    /// A job completed successfully with result images
-    case jobCompleted(GenerationJob, results: [Data])
+    /// A job completed successfully with result images (as native PlatformImage)
+    case jobCompleted(GenerationJob, images: [PlatformImage])
     /// A job failed with an error message
     case jobFailed(GenerationJob, error: String)
     /// A job was cancelled
@@ -108,11 +108,19 @@ public final class JobQueue: ObservableObject {
     private let storage: QueueStorage
     private var processingTask: Task<Void, Never>?
 
+    /// Optional ModelsManager for accurate model family detection in previews.
+    /// If provided, uses the version field from the model catalog for better latent-to-RGB conversion.
+    public weak var modelsManager: ModelsManager?
+
     // MARK: - Initialization
 
-    /// Initialize with optional custom storage.
-    public init(storage: QueueStorage = QueueStorage()) {
+    /// Initialize with optional custom storage and models manager.
+    /// - Parameters:
+    ///   - storage: Storage for job persistence
+    ///   - modelsManager: Optional ModelsManager for accurate model family detection in previews
+    public init(storage: QueueStorage = QueueStorage(), modelsManager: ModelsManager? = nil) {
         self.storage = storage
+        self.modelsManager = modelsManager
         loadJobs()
     }
 
@@ -308,32 +316,49 @@ public final class JobQueue: ObservableObject {
     func updateJobProgress(_ jobId: UUID, progress: JobProgress) {
         guard let index = jobs.firstIndex(where: { $0.id == jobId }) else { return }
 
-        jobs[index].progress = progress
-        currentProgress = progress
+        var updatedProgress = progress
 
         // Update preview image if available (convert from DTTensor format)
         if let previewData = progress.previewImageData {
             // Detect model family from configuration for correct latent-to-RGB conversion
             var modelFamily: LatentModelFamily? = nil
             if let config = try? jobs[index].configuration() {
-                modelFamily = LatentModelFamily.detect(from: config.model)
+                // Try to use ModelsManager for accurate version-based detection
+                if let manager = modelsManager {
+                    let version = manager.version(forFile: config.model)
+                    modelFamily = manager.latentModelFamily(forFile: config.model)
+                    DTLogger.debug("Preview conversion: model='\(config.model)', version='\(version ?? "nil")', family=\(modelFamily ?? .unknown)", category: .generation)
+                } else {
+                    // Fall back to filename-based detection
+                    modelFamily = LatentModelFamily.detect(from: config.model)
+                    DTLogger.debug("Preview conversion (no ModelsManager): model='\(config.model)', family=\(modelFamily ?? .unknown)", category: .generation)
+                }
+            } else {
+                DTLogger.debug("Preview conversion: failed to get configuration from job", category: .generation)
             }
 
             if let image = try? PlatformImageHelpers.dtTensorToImage(previewData, modelFamily: modelFamily) {
                 currentPreview = image
+                updatedProgress.previewImage = image
             }
         }
 
-        events.send(.jobProgress(jobs[index], progress))
+        jobs[index].progress = updatedProgress
+        currentProgress = updatedProgress
+
+        events.send(.jobProgress(jobs[index], updatedProgress))
     }
 
     /// Mark a job as completed with results.
+    /// - Parameters:
+    ///   - jobId: The job ID
+    ///   - results: Result images as PNG data
     func markJobCompleted(_ jobId: UUID, results: [Data]) {
         guard let index = jobs.firstIndex(where: { $0.id == jobId }) else { return }
 
         jobs[index].status = .completed
         jobs[index].completedAt = Date()
-        jobs[index].resultImages = results
+        jobs[index].resultImageData = results
         jobs[index].errorMessage = nil
 
         let completedJob = jobs[index]
@@ -346,7 +371,10 @@ public final class JobQueue: ObservableObject {
         }
 
         saveJobs()
-        events.send(.jobCompleted(completedJob, results: results))
+
+        // Convert PNG data to PlatformImages for the event
+        let images = results.compactMap { PlatformImage.fromData($0) }
+        events.send(.jobCompleted(completedJob, images: images))
     }
 
     /// Mark a job as failed.

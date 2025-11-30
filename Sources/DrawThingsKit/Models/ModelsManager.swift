@@ -239,6 +239,32 @@ public final class ModelsManager: ObservableObject {
         checkpoints.isEmpty && loras.isEmpty && controlNets.isEmpty
     }
 
+    /// Find a checkpoint model by its filename.
+    /// - Parameter filename: The model filename (e.g., "qwen_image_1.0_q8p.ckpt")
+    /// - Returns: The matching CheckpointModel, or nil if not found
+    public func checkpoint(forFile filename: String) -> CheckpointModel? {
+        checkpoints.first { $0.file == filename }
+    }
+
+    /// Get the model version string for a given filename.
+    /// - Parameter filename: The model filename
+    /// - Returns: The version string (e.g., "qwenImage", "flux1"), or nil if not found
+    public func version(forFile filename: String) -> String? {
+        checkpoint(forFile: filename)?.version
+    }
+
+    /// Detect the latent model family for a given filename.
+    /// Uses the version field from the model catalog for accurate detection.
+    /// - Parameter filename: The model filename
+    /// - Returns: The detected LatentModelFamily
+    public func latentModelFamily(forFile filename: String) -> LatentModelFamily {
+        if let version = version(forFile: filename) {
+            return LatentModelFamily.detect(from: version)
+        }
+        // Fall back to filename-based detection
+        return LatentModelFamily.detect(from: filename)
+    }
+
     /// Summary of loaded models for display.
     public var summary: String {
         var parts: [String] = []
