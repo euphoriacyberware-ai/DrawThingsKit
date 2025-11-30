@@ -297,3 +297,62 @@ public struct QueueItemCompactRow: View {
     .padding()
     .frame(width: 400)
 }
+
+#Preview("Queue Item Compact Row") {
+    List {
+        QueueItemCompactRow(
+            job: try! GenerationJob(
+                prompt: "Pending job",
+                configuration: DrawThingsConfiguration()
+            )
+        )
+
+        QueueItemCompactRow(
+            job: {
+                var job = try! GenerationJob(
+                    prompt: "Processing job example",
+                    configuration: DrawThingsConfiguration()
+                )
+                job.status = .processing
+                job.progress = JobProgress(currentStep: 15, totalSteps: 30, stage: "Sampling")
+                return job
+            }()
+        )
+
+        QueueItemCompactRow(
+            job: {
+                var job = try! GenerationJob(
+                    prompt: "Completed job",
+                    configuration: DrawThingsConfiguration()
+                )
+                job.status = .completed
+                return job
+            }()
+        )
+
+        QueueItemCompactRow(
+            job: {
+                var job = try! GenerationJob(
+                    prompt: "Failed job",
+                    configuration: DrawThingsConfiguration()
+                )
+                job.status = .failed
+                job.errorMessage = "Out of memory"
+                return job
+            }()
+        )
+
+        QueueItemCompactRow(
+            job: {
+                var job = try! GenerationJob(
+                    prompt: "Cancelled job",
+                    configuration: DrawThingsConfiguration()
+                )
+                job.status = .cancelled
+                return job
+            }()
+        )
+    }
+    .listStyle(.plain)
+    .frame(width: 250, height: 200)
+}
