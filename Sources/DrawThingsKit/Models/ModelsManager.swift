@@ -253,4 +253,37 @@ public final class ModelsManager: ObservableObject {
         }
         return parts.isEmpty ? "No models" : parts.joined(separator: ", ")
     }
+
+    // MARK: - Preview Helpers
+
+    #if DEBUG
+    /// Create a ModelsManager with mock checkpoint data for SwiftUI previews.
+    public static func preview(withCheckpoints checkpoints: [CheckpointModel]) -> ModelsManager {
+        let manager = ModelsManager()
+        manager.checkpoints = checkpoints
+        return manager
+    }
+    #endif
 }
+
+// MARK: - Preview Helpers
+
+#if DEBUG
+extension CheckpointModel {
+    /// Create a mock CheckpointModel for previews.
+    public static func mock(
+        name: String,
+        file: String,
+        version: String? = nil
+    ) -> CheckpointModel {
+        // Use JSONDecoder to create instance since all properties are let
+        let json: [String: Any?] = [
+            "name": name,
+            "file": file,
+            "version": version
+        ]
+        let data = try! JSONSerialization.data(withJSONObject: json.compactMapValues { $0 })
+        return try! JSONDecoder().decode(CheckpointModel.self, from: data)
+    }
+}
+#endif
