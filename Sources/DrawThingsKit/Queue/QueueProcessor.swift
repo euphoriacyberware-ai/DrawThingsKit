@@ -388,18 +388,26 @@ extension DrawThingsService {
         }
 
         // Convert hints to HintProto array using DTTensor format
-        var hintProtos: [HintProto] = []
+        // Group hints by type (like ComfyUI does) - one HintProto per type with multiple tensors
+        var hintsByType: [String: [TensorAndWeight]] = [:]
         for hint in hints {
             if let tensorData = try? PlatformImageHelpers.imageToDTTensor(hint.image, forceRGB: true) {
-                var hintProto = HintProto()
-                hintProto.hintType = hint.type
                 var tensor = TensorAndWeight()
                 tensor.tensor = tensorData
                 tensor.weight = hint.weight
-                hintProto.tensors = [tensor]
-                hintProtos.append(hintProto)
-                DTLogger.debug("Hint '\(hint.type)' DTTensor: \(ByteCountFormatter.string(fromByteCount: Int64(tensorData.count), countStyle: .binary))", category: .grpc)
+                hintsByType[hint.type, default: []].append(tensor)
+                DTLogger.debug("Hint '\(hint.type)' DTTensor: \(ByteCountFormatter.string(fromByteCount: Int64(tensorData.count), countStyle: .binary)) (weight: \(hint.weight))", category: .grpc)
             }
+        }
+
+        // Build HintProto array - one per hint type
+        var hintProtos: [HintProto] = []
+        for (hintType, tensors) in hintsByType {
+            var hintProto = HintProto()
+            hintProto.hintType = hintType
+            hintProto.tensors = tensors
+            hintProtos.append(hintProto)
+            DTLogger.debug("HintProto '\(hintType)' with \(tensors.count) tensor(s)", category: .grpc)
         }
 
         // Get total steps from configuration for progress tracking

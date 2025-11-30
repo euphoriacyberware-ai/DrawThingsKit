@@ -68,16 +68,53 @@ public final class ConfigurationManager: ObservableObject {
         }
         // If selectedRefiner is nil but was explicitly cleared (not just unset),
         // we leave activeConfiguration.refinerModel as-is to preserve text field values
+
+        // Sync LoRAs - convert UI configurations to DrawThingsClient format
+        activeConfiguration.loras = selectedLoRAs.toLoRAConfigs()
+
+        // Sync ControlNets - convert UI configurations to DrawThingsClient format
+        activeConfiguration.controls = selectedControls.toControlConfigs()
     }
 
     /// Update selected models from a ModelsManager after loading a preset
     /// Call this after loading a configuration to resolve model filenames to CheckpointModel objects
     public func resolveModels(from modelsManager: ModelsManager) {
+        // Resolve checkpoint
         selectedCheckpoint = modelsManager.checkpoints.first { $0.file == activeConfiguration.model }
+
+        // Resolve refiner
         if let refinerFile = activeConfiguration.refinerModel {
             selectedRefiner = modelsManager.checkpoints.first { $0.file == refinerFile }
         } else {
             selectedRefiner = nil
+        }
+
+        // Resolve LoRAs from configuration
+        selectedLoRAs = activeConfiguration.loras.compactMap { loraConfig in
+            guard let loraModel = modelsManager.loras.first(where: { $0.file == loraConfig.file }) else {
+                return nil
+            }
+            return LoRAConfiguration(
+                lora: loraModel,
+                weight: Double(loraConfig.weight),
+                mode: loraConfig.mode,
+                enabled: true
+            )
+        }
+
+        // Resolve ControlNets from configuration
+        selectedControls = activeConfiguration.controls.compactMap { controlConfig in
+            guard let controlModel = modelsManager.controlNets.first(where: { $0.file == controlConfig.file }) else {
+                return nil
+            }
+            return ControlNetConfiguration(
+                controlNet: controlModel,
+                weight: Double(controlConfig.weight),
+                guidanceStart: Double(controlConfig.guidanceStart),
+                guidanceEnd: Double(controlConfig.guidanceEnd),
+                controlMode: controlConfig.controlMode,
+                enabled: true
+            )
         }
     }
 
