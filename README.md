@@ -54,7 +54,7 @@ Sources/DrawThingsKit/
 ├── Connection/        # Server profiles & connection management
 ├── Logging/           # DTLogger unified logging system
 ├── Models/            # Model catalog & ConfigurationManager
-├── Queue/             # Job queue, events & processing
+├── Queue/             # Job queue, events, processing & HintBuilder
 └── Views/
     ├── Configuration/ # Config editors, presets, section views
     ├── Connection/    # Server profile & status views
@@ -789,6 +789,118 @@ struct HintData {
     var imageData: Data   // Image bytes
     var weight: Float
 }
+```
+
+### HintBuilder
+
+A fluent builder for constructing hints for image generation. This helper abstracts the complexity of hint construction and ensures proper formatting for Draw Things.
+
+```swift
+// Basic usage - add moodboard images for style transfer
+let hints = HintBuilder()
+    .addMoodboardImage(styleImageData, weight: 1.0)
+    .addMoodboardImage(referenceImageData, weight: 0.8)
+    .build()
+
+let job = try GenerationJob(
+    prompt: "A portrait in the style of image 2 with colors from image 3",
+    configuration: config,
+    canvasImageData: sourceImage,  // This is "image 1"
+    hints: hints                    // Moodboard images become "image 2", "image 3", etc.
+)
+```
+
+**Moodboard/Shuffle Hints:**
+
+Used with models like Qwen Image Edit for style and content transfer. Images are referenced as "image 2", "image 3", etc. in prompts (canvas/source image is "image 1").
+
+```swift
+// Single image
+builder.addMoodboardImage(imageData, weight: 1.0)
+
+// Multiple images with same weight
+builder.addMoodboardImages([image1, image2, image3], weight: 1.0)
+
+// Multiple images with individual weights
+builder.addMoodboardImages([
+    (data: dressImage, weight: 1.0),
+    (data: styleImage, weight: 0.8),
+    (data: colorImage, weight: 0.5)
+])
+```
+
+**ControlNet Hints:**
+
+```swift
+let hints = HintBuilder()
+    .addDepthMap(depthImageData, weight: 1.0)      // Structural guidance
+    .addPose(poseImageData, weight: 0.8)           // Character positioning
+    .addCannyEdges(edgeImageData, weight: 1.0)     // Edge detection
+    .addScribble(sketchImageData, weight: 0.7)     // Rough sketch
+    .addColorReference(colorImageData, weight: 0.5) // Color palette
+    .addLineArt(lineArtData, weight: 1.0)          // Line art
+    .build()
+```
+
+**Generic Hints:**
+
+For custom or less common hint types:
+
+```swift
+// Using HintType enum
+builder.addHint(type: .tile, imageData: tileData, weight: 1.0)
+builder.addHint(type: .seg, imageData: segmentationData, weight: 0.8)
+
+// Using custom string
+builder.addHint(type: "custom_type", imageData: imageData, weight: 1.0)
+```
+
+**HintType Enum:**
+
+All supported hint types:
+
+| Type | Description |
+|------|-------------|
+| `.shuffle` | Moodboard/reference images for style transfer |
+| `.depth` | Depth map for structural guidance |
+| `.pose` | Pose skeleton for character positioning |
+| `.canny` | Canny edge detection |
+| `.scribble` | Rough sketches for composition |
+| `.color` | Color palette reference |
+| `.lineart` | Line art for structural guidance |
+| `.softedge` | Soft edge detection |
+| `.seg` | Segmentation map |
+| `.inpaint` | Inpainting hint |
+| `.ip2p` | Image-to-image prompt |
+| `.mlsd` | MLSD line detection |
+| `.tile` | Tile-based generation |
+| `.blur` | Blur hint |
+| `.lowquality` | Low quality hint |
+| `.gray` | Grayscale hint |
+| `.custom` | Generic custom type |
+
+**Inline Builder Syntax:**
+
+GenerationJob supports an inline builder closure for convenience:
+
+```swift
+let job = try GenerationJob(
+    prompt: "A person wearing the dress from image 2",
+    configuration: config,
+    canvasImageData: personImage
+) { builder in
+    builder.addMoodboardImage(dressImage, weight: 1.0)
+    builder.addMoodboardImage(backgroundImage, weight: 0.5)
+}
+```
+
+**Builder Properties:**
+
+```swift
+let builder = HintBuilder()
+builder.count     // Number of hints added
+builder.isEmpty   // Whether any hints have been added
+builder.clear()   // Remove all hints and start fresh
 ```
 
 ### Model Types
