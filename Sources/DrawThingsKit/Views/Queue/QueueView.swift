@@ -217,10 +217,73 @@ public struct QueueSidebarView: View {
                 List {
                     ForEach(queue.jobs) { job in
                         QueueItemCompactRow(job: job)
+                            .contextMenu {
+                                jobContextMenu(for: job)
+                            }
+                    }
+                    .onDelete { indexSet in
+                        for index in indexSet {
+                            let job = queue.jobs[index]
+                            if !job.isProcessing {
+                                queue.remove(job)
+                            }
+                        }
                     }
                 }
                 .listStyle(.plain)
             }
+        }
+    }
+
+    @ViewBuilder
+    private func jobContextMenu(for job: GenerationJob) -> some View {
+        if job.isProcessing {
+            Button(role: .destructive) {
+                queue.cancel(job)
+            } label: {
+                Label("Cancel", systemImage: "stop.fill")
+            }
+        } else {
+            if job.isFailed && job.canRetry {
+                Button {
+                    queue.retry(job)
+                } label: {
+                    Label("Retry", systemImage: "arrow.clockwise")
+                }
+            }
+
+            Button(role: .destructive) {
+                queue.remove(job)
+            } label: {
+                Label("Remove", systemImage: "trash")
+            }
+        }
+
+        if !queue.jobs.filter({ $0.status == job.status && $0.id != job.id }).isEmpty {
+            Divider()
+
+            Button(role: .destructive) {
+                clearJobsWithStatus(job.status)
+            } label: {
+                Label("Clear All \(statusName(job.status))", systemImage: "trash.fill")
+            }
+        }
+    }
+
+    private func statusName(_ status: JobStatus) -> String {
+        switch status {
+        case .pending: return "Pending"
+        case .processing: return "Processing"
+        case .completed: return "Completed"
+        case .failed: return "Failed"
+        case .cancelled: return "Cancelled"
+        }
+    }
+
+    private func clearJobsWithStatus(_ status: JobStatus) {
+        let jobsToRemove = queue.jobs.filter { $0.status == status && !$0.isProcessing }
+        for job in jobsToRemove {
+            queue.remove(job)
         }
     }
 }
