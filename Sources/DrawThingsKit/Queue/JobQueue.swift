@@ -313,7 +313,13 @@ public final class JobQueue: ObservableObject {
 
         // Update preview image if available (convert from DTTensor format)
         if let previewData = progress.previewImageData {
-            if let image = try? PlatformImageHelpers.dtTensorToImage(previewData) {
+            // Detect model family from configuration for correct latent-to-RGB conversion
+            var modelFamily: LatentModelFamily? = nil
+            if let config = try? jobs[index].configuration() {
+                modelFamily = LatentModelFamily.detect(from: config.model)
+            }
+
+            if let image = try? PlatformImageHelpers.dtTensorToImage(previewData, modelFamily: modelFamily) {
                 currentPreview = image
             }
         }

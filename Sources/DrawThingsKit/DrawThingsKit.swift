@@ -16,3 +16,4 @@ import DrawThingsClient
 @_exported import enum DrawThingsClient.LoRAMode
 @_exported import class DrawThingsClient.DrawThingsService
 @_exported import struct DrawThingsClient.MetadataOverride
+@_exported import enum DrawThingsClient.LatentModelFamily

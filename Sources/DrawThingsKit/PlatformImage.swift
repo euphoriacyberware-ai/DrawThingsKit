@@ -7,6 +7,7 @@
 
 import Foundation
 import CoreGraphics
+import DrawThingsClient
 
 #if os(macOS)
 import AppKit
@@ -177,126 +178,30 @@ public struct PlatformImageHelpers {
     }
 
     /// Convert DTTensor data to a platform image
-    /// - Parameter tensorData: The DTTensor data from Draw Things
+    /// - Parameters:
+    ///   - tensorData: The DTTensor data from Draw Things
+    ///   - modelFamily: Optional model family for correct latent-to-RGB conversion (defaults to .flux for 16-channel)
     /// - Returns: A platform image
-    public static func dtTensorToImage(_ tensorData: Data) throws -> PlatformImage {
-        guard tensorData.count >= 68 else {
+    ///
+    /// Different model architectures use different latent space representations. For accurate preview colors,
+    /// pass the appropriate model family. Detect automatically using:
+    /// ```swift
+    /// let family = LatentModelFamily.detect(from: modelName)
+    /// let image = try PlatformImageHelpers.dtTensorToImage(tensorData, modelFamily: family)
+    /// ```
+    public static func dtTensorToImage(_ tensorData: Data, modelFamily: LatentModelFamily? = nil) throws -> PlatformImage {
+        // Delegate to DrawThingsClient's implementation which has all model-specific coefficients
+        do {
+            return try DrawThingsClient.PlatformImageHelpers.dtTensorToImage(tensorData, modelFamily: modelFamily)
+        } catch DrawThingsClient.ImageError.invalidData {
             throw PlatformImageError.invalidData
-        }
-
-        // Read header
-        var header = [UInt32](repeating: 0, count: 17)
-        tensorData.prefix(68).withUnsafeBytes { (ptr: UnsafeRawBufferPointer) in
-            let uint32Ptr = ptr.bindMemory(to: UInt32.self)
-            for i in 0..<17 {
-                header[i] = uint32Ptr[i]
-            }
-        }
-
-        let compressionFlag = header[0]
-        let height = Int(header[6])
-        let width = Int(header[7])
-        let channels = Int(header[8])
-
-        if compressionFlag == 1012247 {
+        } catch DrawThingsClient.ImageError.compressionNotSupported {
             throw PlatformImageError.compressionNotSupported
-        }
-
-        guard channels == 3 || channels == 4 || channels == 16 else {
+        } catch DrawThingsClient.ImageError.conversionFailed {
+            throw PlatformImageError.conversionFailed
+        } catch {
             throw PlatformImageError.conversionFailed
         }
-
-        let pixelDataOffset = 68
-        let expectedDataSize = pixelDataOffset + (width * height * channels * 2)
-
-        guard tensorData.count >= expectedDataSize else {
-            throw PlatformImageError.invalidData
-        }
-
-        // Output RGB data
-        var rgbData = Data(count: width * height * 3)
-
-        tensorData.withUnsafeBytes { (rawPtr: UnsafeRawBufferPointer) in
-            let basePtr = rawPtr.baseAddress!.advanced(by: pixelDataOffset)
-            let float16Ptr = basePtr.assumingMemoryBound(to: UInt16.self)
-
-            rgbData.withUnsafeMutableBytes { (outPtr: UnsafeMutableRawBufferPointer) in
-                let uint8Ptr = outPtr.baseAddress!.assumingMemoryBound(to: UInt8.self)
-
-                if channels == 16 {
-                    // 16-channel latent space to RGB (Flux coefficients)
-                    for i in 0..<(width * height) {
-                        let v0 = Float(Float16(bitPattern: float16Ptr[i * 16 + 0]))
-                        let v1 = Float(Float16(bitPattern: float16Ptr[i * 16 + 1]))
-                        let v2 = Float(Float16(bitPattern: float16Ptr[i * 16 + 2]))
-                        let v3 = Float(Float16(bitPattern: float16Ptr[i * 16 + 3]))
-                        let v4 = Float(Float16(bitPattern: float16Ptr[i * 16 + 4]))
-                        let v5 = Float(Float16(bitPattern: float16Ptr[i * 16 + 5]))
-                        let v6 = Float(Float16(bitPattern: float16Ptr[i * 16 + 6]))
-                        let v7 = Float(Float16(bitPattern: float16Ptr[i * 16 + 7]))
-                        let v8 = Float(Float16(bitPattern: float16Ptr[i * 16 + 8]))
-                        let v9 = Float(Float16(bitPattern: float16Ptr[i * 16 + 9]))
-                        let v10 = Float(Float16(bitPattern: float16Ptr[i * 16 + 10]))
-                        let v11 = Float(Float16(bitPattern: float16Ptr[i * 16 + 11]))
-                        let v12 = Float(Float16(bitPattern: float16Ptr[i * 16 + 12]))
-                        let v13 = Float(Float16(bitPattern: float16Ptr[i * 16 + 13]))
-                        let v14 = Float(Float16(bitPattern: float16Ptr[i * 16 + 14]))
-                        let v15 = Float(Float16(bitPattern: float16Ptr[i * 16 + 15]))
-
-                        var rVal: Float = -0.0346 * v0 + 0.0034 * v1 + 0.0275 * v2 - 0.0174 * v3
-                        rVal += 0.0859 * v4 + 0.0004 * v5 + 0.0405 * v6 - 0.0236 * v7
-                        rVal += -0.0245 * v8 + 0.1008 * v9 - 0.0515 * v10 + 0.0428 * v11
-                        rVal += 0.0817 * v12 - 0.1264 * v13 - 0.0280 * v14 - 0.1262 * v15 - 0.0329
-                        let r = rVal * 127.5 + 127.5
-
-                        var gVal: Float = 0.0244 * v0 + 0.0210 * v1 - 0.0668 * v2 + 0.0160 * v3
-                        gVal += 0.0721 * v4 + 0.0383 * v5 + 0.0861 * v6 - 0.0185 * v7
-                        gVal += 0.0250 * v8 + 0.0755 * v9 + 0.0201 * v10 - 0.0012 * v11
-                        gVal += 0.0765 * v12 - 0.0522 * v13 - 0.0881 * v14 - 0.0982 * v15 - 0.0718
-                        let g = gVal * 127.5 + 127.5
-
-                        var bVal: Float = 0.0681 * v0 + 0.0687 * v1 - 0.0433 * v2 + 0.0617 * v3
-                        bVal += 0.0329 * v4 + 0.0115 * v5 + 0.0915 * v6 - 0.0259 * v7
-                        bVal += 0.1180 * v8 - 0.0421 * v9 + 0.0011 * v10 - 0.0036 * v11
-                        bVal += 0.0749 * v12 - 0.1103 * v13 - 0.0499 * v14 - 0.0778 * v15 - 0.0851
-                        let b = bVal * 127.5 + 127.5
-
-                        uint8Ptr[i * 3 + 0] = UInt8(clamping: Int(r.isFinite ? r : 0))
-                        uint8Ptr[i * 3 + 1] = UInt8(clamping: Int(g.isFinite ? g : 0))
-                        uint8Ptr[i * 3 + 2] = UInt8(clamping: Int(b.isFinite ? b : 0))
-                    }
-                } else if channels == 4 {
-                    // 4-channel latent space to RGB (SDXL coefficients)
-                    for i in 0..<(width * height) {
-                        let v0 = Float(Float16(bitPattern: float16Ptr[i * 4 + 0]))
-                        let v1 = Float(Float16(bitPattern: float16Ptr[i * 4 + 1]))
-                        let v2 = Float(Float16(bitPattern: float16Ptr[i * 4 + 2]))
-                        let v3 = Float(Float16(bitPattern: float16Ptr[i * 4 + 3]))
-
-                        let r = 47.195 * v0 - 29.114 * v1 + 11.883 * v2 - 38.063 * v3 + 141.64
-                        let g = 53.237 * v0 - 1.4623 * v1 + 12.991 * v2 - 28.043 * v3 + 127.46
-                        let b = 58.182 * v0 + 4.3734 * v1 - 3.3735 * v2 - 26.722 * v3 + 114.5
-
-                        uint8Ptr[i * 3 + 0] = UInt8(clamping: Int(r))
-                        uint8Ptr[i * 3 + 1] = UInt8(clamping: Int(g))
-                        uint8Ptr[i * 3 + 2] = UInt8(clamping: Int(b))
-                    }
-                } else {
-                    // 3-channel RGB: Convert from [-1, 1] to [0, 255]
-                    let pixelCount = width * height * channels
-                    for i in 0..<pixelCount {
-                        let float16Bits = float16Ptr[i]
-                        let float16Value = Float16(bitPattern: float16Bits)
-                        let floatValue = Float(float16Value)
-                        let uint8Value = UInt8(clamping: Int(floatValue.isFinite ? (floatValue + 1.0) * 127.5 : 127.5))
-                        uint8Ptr[i] = uint8Value
-                    }
-                }
-            }
-        }
-
-        // Create platform image from RGB data
-        return try createImageFromRGBData(rgbData, width: width, height: height)
     }
 
     /// Create a platform image from raw RGB data
