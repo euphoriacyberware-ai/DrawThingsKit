@@ -611,28 +611,17 @@ ConnectionStatusView(connectionManager: connectionManager) {
 ### Queue Views
 
 ```swift
-// Full queue interface with progress and list
+// Full queue interface with progress and job list
 QueueView(queue: queue)
 
-// Current job progress with preview
+// Current job progress with preview image
 QueueProgressView(queue: queue)
-
-// Compact progress badge for toolbars
-QueueProgressBadge(queue: queue)
 
 // Play/pause/clear controls
 QueueControlsView(queue: queue)
 
-// Toolbar-style control strip
-QueueToolbar(queue: queue) {
-    // Add job action
-}
-
-// Compact list (no progress section)
-QueueListView(queue: queue)
-
-// Sidebar-style layout
-QueueSidebarView(queue: queue)
+// Individual job row (used internally by QueueView)
+QueueItemRow(job: job, queue: queue)
 ```
 
 ### Configuration Editor
