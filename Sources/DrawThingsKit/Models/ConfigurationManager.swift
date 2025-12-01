@@ -54,6 +54,9 @@ public final class ConfigurationManager: ObservableObject {
     /// Selected ControlNet configurations
     @Published public var selectedControls: [ControlNetConfiguration] = []
 
+    /// Mixture of Experts mode - enables Wan 2.2 style workflows where any model can be used as refiner
+    @Published public var mixtureOfExperts: Bool = false
+
     public init() {}
 
     /// Sync model selections to configuration (call before using activeConfiguration)

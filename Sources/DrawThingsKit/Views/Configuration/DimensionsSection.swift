@@ -65,7 +65,7 @@ public struct DimensionsSection: View {
                 .help("Swap width and height")
             }
 
-            // Width slider
+            // Width slider (no step parameter to avoid tick marks)
             HStack {
                 Text("Width")
                     .frame(width: 50, alignment: .leading)
@@ -77,8 +77,7 @@ public struct DimensionsSection: View {
                         get: { Double(width) },
                         set: { width = Int32($0).roundedToStep(step) }
                     ),
-                    in: Double(minDimension)...Double(maxDimension),
-                    step: Double(step)
+                    in: Double(minDimension)...Double(maxDimension)
                 )
 
                 Text("\(width)")
@@ -87,7 +86,7 @@ public struct DimensionsSection: View {
                     .font(.caption)
             }
 
-            // Height slider
+            // Height slider (no step parameter to avoid tick marks)
             HStack {
                 Text("Height")
                     .frame(width: 50, alignment: .leading)
@@ -99,8 +98,7 @@ public struct DimensionsSection: View {
                         get: { Double(height) },
                         set: { height = Int32($0).roundedToStep(step) }
                     ),
-                    in: Double(minDimension)...Double(maxDimension),
-                    step: Double(step)
+                    in: Double(minDimension)...Double(maxDimension)
                 )
 
                 Text("\(height)")
@@ -111,7 +109,6 @@ public struct DimensionsSection: View {
 
             // Presets
             if showPresets {
-                Divider()
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {

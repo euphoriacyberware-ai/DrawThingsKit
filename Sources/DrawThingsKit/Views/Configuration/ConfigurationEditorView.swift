@@ -193,21 +193,11 @@ public struct ConfigurationEditorView: View {
             .help("Format JSON")
 
             Button {
-                validateImmediate(jsonText)
-            } label: {
-                Label("Validate", systemImage: "checkmark.circle")
-            }
-            .help("Validate configuration")
-
-            Divider()
-                .frame(height: 20)
-
-            Button {
                 clearConfiguration()
             } label: {
                 Label("Clear", systemImage: "trash")
             }
-            .help("Clear configuration (use defaults)")
+            .help("Clear configuration")
 
             Spacer()
 
@@ -233,7 +223,7 @@ public struct ConfigurationEditorView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundColor(.green)
-                        Text("Valid configuration")
+                        Text("Valid JSON")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }

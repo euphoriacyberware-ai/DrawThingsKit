@@ -84,7 +84,6 @@ public struct PromptSection: View {
 
             // Advanced: Separate encoder prompts
             if showAdvanced {
-                Divider()
 
                 Toggle("Separate CLIP-L Prompt", isOn: $separateClipL)
                     .toggleStyle(.switch)

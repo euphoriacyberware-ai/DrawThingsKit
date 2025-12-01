@@ -11,6 +11,7 @@ import DrawThingsClient
 /// A composable section for advanced generation settings.
 ///
 /// Includes:
+/// - Clip Skip
 /// - Tiled Diffusion settings
 /// - Tiled Decoding settings
 /// - HiRes Fix settings
@@ -20,12 +21,20 @@ import DrawThingsClient
 /// Example usage:
 /// ```swift
 /// AdvancedSection(
+///     clipSkip: $clipSkip,
 ///     tiledDiffusion: $tiledDiffusion,
 ///     diffusionTileWidth: $diffusionTileWidth,
 ///     ...
 /// )
 /// ```
 public struct AdvancedSection: View {
+    // Clip Skip
+    @Binding var clipSkip: Int32
+
+    // CFG Zero Star
+    @Binding var cfgZeroStar: Bool
+    @Binding var cfgZeroInitSteps: Int32
+
     // Tiled Diffusion
     @Binding var tiledDiffusion: Bool
     @Binding var diffusionTileWidth: Int32
@@ -55,6 +64,9 @@ public struct AdvancedSection: View {
     @Binding var preserveOriginalAfterInpaint: Bool
 
     public init(
+        clipSkip: Binding<Int32>,
+        cfgZeroStar: Binding<Bool>,
+        cfgZeroInitSteps: Binding<Int32>,
         tiledDiffusion: Binding<Bool>,
         diffusionTileWidth: Binding<Int32>,
         diffusionTileHeight: Binding<Int32>,
@@ -74,6 +86,9 @@ public struct AdvancedSection: View {
         maskBlurOutset: Binding<Int32>,
         preserveOriginalAfterInpaint: Binding<Bool>
     ) {
+        self._clipSkip = clipSkip
+        self._cfgZeroStar = cfgZeroStar
+        self._cfgZeroInitSteps = cfgZeroInitSteps
         self._tiledDiffusion = tiledDiffusion
         self._diffusionTileWidth = diffusionTileWidth
         self._diffusionTileHeight = diffusionTileHeight
@@ -96,6 +111,28 @@ public struct AdvancedSection: View {
 
     public var body: some View {
         DisclosureGroup("Advanced") {
+            // Clip Skip
+            ParameterSlider(
+                label: "Clip Skip",
+                value: Binding(
+                    get: { Double(clipSkip) },
+                    set: { clipSkip = Int32($0) }
+                ),
+                range: 1...4,
+                step: 1,
+                format: "%.0f"
+            )
+
+            Divider()
+
+            // CFG Zero Star
+            CFGZeroStarSubSection(
+                cfgZeroStar: $cfgZeroStar,
+                cfgZeroInitSteps: $cfgZeroInitSteps
+            )
+
+            Divider()
+
             // Tiled Diffusion
             TiledDiffusionSubSection(
                 tiledDiffusion: $tiledDiffusion,
@@ -146,6 +183,36 @@ public struct AdvancedSection: View {
 }
 
 // MARK: - Sub-Sections
+
+public struct CFGZeroStarSubSection: View {
+    @Binding var cfgZeroStar: Bool
+    @Binding var cfgZeroInitSteps: Int32
+
+    public init(
+        cfgZeroStar: Binding<Bool>,
+        cfgZeroInitSteps: Binding<Int32>
+    ) {
+        self._cfgZeroStar = cfgZeroStar
+        self._cfgZeroInitSteps = cfgZeroInitSteps
+    }
+
+    public var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Toggle("CFG Zero Star", isOn: $cfgZeroStar)
+                .help("Enable CFG Zero Star sampling for improved quality")
+
+            if cfgZeroStar {
+                ParameterSlider(
+                    label: "Init Steps",
+                    value: Binding(get: { Double(cfgZeroInitSteps) }, set: { cfgZeroInitSteps = Int32($0) }),
+                    range: 0...50,
+                    step: 1,
+                    format: "%.0f"
+                )
+            }
+        }
+    }
+}
 
 public struct TiledDiffusionSubSection: View {
     @Binding var tiledDiffusion: Bool
@@ -311,29 +378,11 @@ public struct QualitySubSection: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Quality")
-                .font(.caption)
-                .foregroundColor(.secondary)
-
             ParameterSlider(
                 label: "Sharpness",
                 value: Binding(get: { Double(sharpness) }, set: { sharpness = Float($0) }),
                 range: 0...2,
                 step: 0.1,
-                format: "%.1f"
-            )
-            ParameterSlider(
-                label: "Aesthetic+",
-                value: Binding(get: { Double(aestheticScore) }, set: { aestheticScore = Float($0) }),
-                range: 0...10,
-                step: 0.5,
-                format: "%.1f"
-            )
-            ParameterSlider(
-                label: "Aesthetic-",
-                value: Binding(get: { Double(negativeAestheticScore) }, set: { negativeAestheticScore = Float($0) }),
-                range: 0...10,
-                step: 0.5,
                 format: "%.1f"
             )
         }
@@ -384,6 +433,9 @@ public struct InpaintSubSection: View {
 #Preview {
     Form {
         AdvancedSection(
+            clipSkip: .constant(1),
+            cfgZeroStar: .constant(false),
+            cfgZeroInitSteps: .constant(0),
             tiledDiffusion: .constant(false),
             diffusionTileWidth: .constant(16),
             diffusionTileHeight: .constant(16),

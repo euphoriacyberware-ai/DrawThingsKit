@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DrawThingsClient
 
 /// A composable section for selecting base and refiner models.
 ///
@@ -19,6 +20,7 @@ import SwiftUI
 ///     selectedCheckpoint: $selectedCheckpoint,
 ///     selectedRefiner: $selectedRefiner,
 ///     refinerStart: $refinerStart,
+///     sampler: $sampler,
 ///     modelName: $configuration.model,
 ///     refinerName: $configuration.refinerModel
 /// )
@@ -29,10 +31,10 @@ public struct ModelSection: View {
     @Binding var selectedCheckpoint: CheckpointModel?
     @Binding var selectedRefiner: CheckpointModel?
     @Binding var refinerStart: Float
+    @Binding var sampler: SamplerType
     @Binding var modelName: String
     @Binding var refinerName: String?
-
-    @State private var allowAnyRefiner: Bool = false
+    @Binding var mixtureOfExperts: Bool
 
     /// Whether models are available from the server
     private var hasModels: Bool {
@@ -44,15 +46,19 @@ public struct ModelSection: View {
         selectedCheckpoint: Binding<CheckpointModel?>,
         selectedRefiner: Binding<CheckpointModel?>,
         refinerStart: Binding<Float>,
+        sampler: Binding<SamplerType>,
         modelName: Binding<String>,
-        refinerName: Binding<String?>
+        refinerName: Binding<String?>,
+        mixtureOfExperts: Binding<Bool>
     ) {
         self.modelsManager = modelsManager
         self._selectedCheckpoint = selectedCheckpoint
         self._selectedRefiner = selectedRefiner
         self._refinerStart = refinerStart
+        self._sampler = sampler
         self._modelName = modelName
         self._refinerName = refinerName
+        self._mixtureOfExperts = mixtureOfExperts
     }
 
     public var body: some View {
@@ -72,15 +78,27 @@ public struct ModelSection: View {
                 HStack {
                     Text("Refiner Start")
                         .foregroundColor(.secondary)
-                    Slider(value: $refinerStart, in: 0...1, step: 0.05)
+                    Slider(value: $refinerStart, in: 0...1) { editing in
+                        if !editing {
+                            // Snap to 5% increments
+                            refinerStart = (refinerStart / 0.05).rounded() * 0.05
+                        }
+                    }
                     Text(String(format: "%.0f%%", refinerStart * 100))
                         .frame(width: 50, alignment: .trailing)
                         .monospacedDigit()
                 }
             }
 
-            Toggle("MOE", isOn: $allowAnyRefiner)
-                .help("Mixture of Experts - allows any model to be used as refiner")
+            Toggle("Mixture of Experts", isOn: $mixtureOfExperts)
+                .help("Enable for Wan 2.2 workflows - allows any model to be selected as refiner")
+
+            // Sampler Picker
+            Picker("Sampler", selection: $sampler) {
+                ForEach(SamplerPresets.all) { info in
+                    Text(info.name).tag(info.type)
+                }
+            }
         }
         .onChange(of: modelsManager.baseModels) { _, newModels in
             // When models become available, try to match text field values to actual models
@@ -132,13 +150,13 @@ public struct ModelSection: View {
         Picker("Refiner", selection: $selectedRefiner) {
             Text("None").tag(nil as CheckpointModel?)
 
-            // Show either all base models or just refiners
-            let availableRefiners = allowAnyRefiner ? modelsManager.baseModels : modelsManager.refinerModels
+            // Show either all base models or just refiners based on Mixture of Experts mode
+            let availableRefiners = mixtureOfExperts ? modelsManager.baseModels : modelsManager.refinerModels
             ForEach(availableRefiners) { refiner in
                 Text(refiner.name).tag(refiner as CheckpointModel?)
             }
         }
-        .help(allowAnyRefiner ? "Any model can be selected as refiner" : "Only refiner-flagged models available")
+        .help(mixtureOfExperts ? "Mixture of Experts: any model can be selected as refiner" : "Only refiner-flagged models available")
         .onChange(of: selectedRefiner) { _, newValue in
             refinerName = newValue?.file
         }
@@ -216,12 +234,14 @@ public struct ModelPicker: View {
             selectedCheckpoint: .constant(nil),
             selectedRefiner: .constant(nil),
             refinerStart: .constant(0.85),
+            sampler: .constant(.dpmpp2mkarras),
             modelName: .constant("sd_xl_base_1.0.safetensors"),
-            refinerName: .constant(nil)
+            refinerName: .constant(nil),
+            mixtureOfExperts: .constant(false)
         )
     }
     .formStyle(.grouped)
-    .frame(width: 400, height: 300)
+    .frame(width: 400, height: 350)
 }
 
 #Preview("Not Connected - With Refiner") {
@@ -232,12 +252,14 @@ public struct ModelPicker: View {
             selectedCheckpoint: .constant(nil),
             selectedRefiner: .constant(nil),
             refinerStart: .constant(0.85),
+            sampler: .constant(.dpmpp2mkarras),
             modelName: .constant("sd_xl_base_1.0.safetensors"),
-            refinerName: .constant("sd_xl_refiner_1.0.safetensors")
+            refinerName: .constant("sd_xl_refiner_1.0.safetensors"),
+            mixtureOfExperts: .constant(false)
         )
     }
     .formStyle(.grouped)
-    .frame(width: 400, height: 350)
+    .frame(width: 400, height: 400)
 }
 
 #if DEBUG
@@ -255,12 +277,14 @@ public struct ModelPicker: View {
             selectedCheckpoint: .constant(nil),
             selectedRefiner: .constant(nil),
             refinerStart: .constant(0.85),
+            sampler: .constant(.dpmpp2mkarras),
             modelName: .constant(""),
-            refinerName: .constant(nil)
+            refinerName: .constant(nil),
+            mixtureOfExperts: .constant(false)
         )
     }
     .formStyle(.grouped)
-    .frame(width: 400, height: 300)
+    .frame(width: 400, height: 350)
 }
 
 #Preview("Connected - With Refiner Selected") {
@@ -276,11 +300,13 @@ public struct ModelPicker: View {
             selectedCheckpoint: .constant(manager.baseModels.first),
             selectedRefiner: .constant(refiner),
             refinerStart: .constant(0.85),
+            sampler: .constant(.dpmpp2mkarras),
             modelName: .constant("sd_xl_base_1.0.safetensors"),
-            refinerName: .constant("sd_xl_refiner_1.0.safetensors")
+            refinerName: .constant("sd_xl_refiner_1.0.safetensors"),
+            mixtureOfExperts: .constant(false)
         )
     }
     .formStyle(.grouped)
-    .frame(width: 400, height: 350)
+    .frame(width: 400, height: 400)
 }
 #endif
