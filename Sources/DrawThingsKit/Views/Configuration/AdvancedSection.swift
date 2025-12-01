@@ -11,6 +11,7 @@ import DrawThingsClient
 /// A composable section for advanced generation settings.
 ///
 /// Includes:
+/// - Clip Skip
 /// - Tiled Diffusion settings
 /// - Tiled Decoding settings
 /// - HiRes Fix settings
@@ -20,12 +21,16 @@ import DrawThingsClient
 /// Example usage:
 /// ```swift
 /// AdvancedSection(
+///     clipSkip: $clipSkip,
 ///     tiledDiffusion: $tiledDiffusion,
 ///     diffusionTileWidth: $diffusionTileWidth,
 ///     ...
 /// )
 /// ```
 public struct AdvancedSection: View {
+    // Clip Skip
+    @Binding var clipSkip: Int32
+
     // Tiled Diffusion
     @Binding var tiledDiffusion: Bool
     @Binding var diffusionTileWidth: Int32
@@ -55,6 +60,7 @@ public struct AdvancedSection: View {
     @Binding var preserveOriginalAfterInpaint: Bool
 
     public init(
+        clipSkip: Binding<Int32>,
         tiledDiffusion: Binding<Bool>,
         diffusionTileWidth: Binding<Int32>,
         diffusionTileHeight: Binding<Int32>,
@@ -74,6 +80,7 @@ public struct AdvancedSection: View {
         maskBlurOutset: Binding<Int32>,
         preserveOriginalAfterInpaint: Binding<Bool>
     ) {
+        self._clipSkip = clipSkip
         self._tiledDiffusion = tiledDiffusion
         self._diffusionTileWidth = diffusionTileWidth
         self._diffusionTileHeight = diffusionTileHeight
@@ -96,6 +103,20 @@ public struct AdvancedSection: View {
 
     public var body: some View {
         DisclosureGroup("Advanced") {
+            // Clip Skip
+            ParameterSlider(
+                label: "Clip Skip",
+                value: Binding(
+                    get: { Double(clipSkip) },
+                    set: { clipSkip = Int32($0) }
+                ),
+                range: 1...4,
+                step: 1,
+                format: "%.0f"
+            )
+
+            Divider()
+
             // Tiled Diffusion
             TiledDiffusionSubSection(
                 tiledDiffusion: $tiledDiffusion,
@@ -311,29 +332,11 @@ public struct QualitySubSection: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Quality")
-                .font(.caption)
-                .foregroundColor(.secondary)
-
             ParameterSlider(
                 label: "Sharpness",
                 value: Binding(get: { Double(sharpness) }, set: { sharpness = Float($0) }),
                 range: 0...2,
                 step: 0.1,
-                format: "%.1f"
-            )
-            ParameterSlider(
-                label: "Aesthetic+",
-                value: Binding(get: { Double(aestheticScore) }, set: { aestheticScore = Float($0) }),
-                range: 0...10,
-                step: 0.5,
-                format: "%.1f"
-            )
-            ParameterSlider(
-                label: "Aesthetic-",
-                value: Binding(get: { Double(negativeAestheticScore) }, set: { negativeAestheticScore = Float($0) }),
-                range: 0...10,
-                step: 0.5,
                 format: "%.1f"
             )
         }
@@ -384,6 +387,7 @@ public struct InpaintSubSection: View {
 #Preview {
     Form {
         AdvancedSection(
+            clipSkip: .constant(1),
             tiledDiffusion: .constant(false),
             diffusionTileWidth: .constant(16),
             diffusionTileHeight: .constant(16),

@@ -6,17 +6,23 @@
 //
 
 import SwiftUI
+import Combine
 import DrawThingsClient
 
 #if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
 /// A reusable view for editing Draw Things configuration JSON.
 ///
 /// This view provides:
 /// - A JSON text editor with monospace font
 /// - Toolbar with Paste, Copy, Format, Validate, and Clear buttons
-/// - Real-time validation status display
+/// - Real-time validation status display (debounced for performance)
 /// - Automatic formatting on paste
+/// - Cross-platform support (macOS and iOS)
 ///
 /// Example usage:
 /// ```swift
@@ -46,6 +52,7 @@ public struct ConfigurationEditorView: View {
 
     @State private var jsonText: String = ""
     @State private var validationResult: DrawThingsConfiguration.ValidationResult?
+    @State private var validationTask: Task<Void, Never>?
 
     /// Create a configuration editor view.
     ///
@@ -74,15 +81,19 @@ public struct ConfigurationEditorView: View {
             toolbar
                 .padding(.horizontal)
                 .padding(.vertical, 8)
-                .background(Color(NSColor.controlBackgroundColor))
+                .background(toolbarBackground)
 
             Divider()
 
             // JSON Editor
             TextEditor(text: $jsonText)
                 .font(.system(.body, design: .monospaced))
+                #if os(iOS)
+                .autocapitalization(.none)
+                .disableAutocorrection(true)
+                #endif
                 .onChange(of: jsonText) { _, newValue in
-                    validate(newValue)
+                    debouncedValidate(newValue)
                 }
 
             Divider()
@@ -90,11 +101,41 @@ public struct ConfigurationEditorView: View {
             // Help text
             footer
         }
-        .frame(width: 700, height: 600)
+        .frame(minWidth: 400, idealWidth: 700, maxWidth: .infinity,
+               minHeight: 400, idealHeight: 600, maxHeight: .infinity)
         .onAppear {
             jsonText = json.isEmpty ? "{}" : DrawThingsConfiguration.formatJSON(json) ?? json
-            validate(jsonText)
+            validateImmediate(jsonText)
         }
+        .onChange(of: json) { _, newValue in
+            // Sync external changes if the editor content hasn't been modified
+            let formatted = DrawThingsConfiguration.formatJSON(newValue) ?? newValue
+            if jsonText != formatted {
+                jsonText = formatted.isEmpty ? "{}" : formatted
+                validateImmediate(jsonText)
+            }
+        }
+        .onDisappear {
+            validationTask?.cancel()
+        }
+    }
+
+    // MARK: - Platform Helpers
+
+    private var toolbarBackground: Color {
+        #if os(macOS)
+        Color(NSColor.controlBackgroundColor)
+        #else
+        Color(UIColor.secondarySystemBackground)
+        #endif
+    }
+
+    private var footerBackground: Color {
+        #if os(macOS)
+        Color(NSColor.controlBackgroundColor)
+        #else
+        Color(UIColor.secondarySystemBackground)
+        #endif
     }
 
     // MARK: - Header
@@ -152,21 +193,11 @@ public struct ConfigurationEditorView: View {
             .help("Format JSON")
 
             Button {
-                validate(jsonText)
-            } label: {
-                Label("Validate", systemImage: "checkmark.circle")
-            }
-            .help("Validate configuration")
-
-            Divider()
-                .frame(height: 20)
-
-            Button {
                 clearConfiguration()
             } label: {
                 Label("Clear", systemImage: "trash")
             }
-            .help("Clear configuration (use defaults)")
+            .help("Clear configuration")
 
             Spacer()
 
@@ -192,7 +223,7 @@ public struct ConfigurationEditorView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundColor(.green)
-                        Text("Valid configuration")
+                        Text("Valid JSON")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -211,23 +242,34 @@ public struct ConfigurationEditorView: View {
             Spacer()
         }
         .padding(8)
-        .background(Color(NSColor.controlBackgroundColor))
+        .background(footerBackground)
     }
 
     // MARK: - Actions
 
     private func pasteFromClipboard() {
+        #if os(macOS)
         let pasteboard = NSPasteboard.general
         if let string = pasteboard.string(forType: .string) {
             jsonText = DrawThingsConfiguration.formatJSON(string) ?? string
-            validate(jsonText)
+            validateImmediate(jsonText)
         }
+        #else
+        if let string = UIPasteboard.general.string {
+            jsonText = DrawThingsConfiguration.formatJSON(string) ?? string
+            validateImmediate(jsonText)
+        }
+        #endif
     }
 
     private func copyToClipboard() {
+        #if os(macOS)
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(jsonText, forType: .string)
+        #else
+        UIPasteboard.general.string = jsonText
+        #endif
     }
 
     private func formatJSON() {
@@ -236,13 +278,25 @@ public struct ConfigurationEditorView: View {
         }
     }
 
-    private func validate(_ text: String) {
+    private func validateImmediate(_ text: String) {
+        validationTask?.cancel()
         validationResult = DrawThingsConfiguration.validateJSON(text)
+    }
+
+    private func debouncedValidate(_ text: String) {
+        validationTask?.cancel()
+        validationTask = Task {
+            try? await Task.sleep(nanoseconds: 300_000_000) // 300ms debounce
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                validationResult = DrawThingsConfiguration.validateJSON(text)
+            }
+        }
     }
 
     private func clearConfiguration() {
         jsonText = "{}"
-        validate(jsonText)
+        validateImmediate(jsonText)
     }
 
     private func applyConfiguration() {
@@ -261,5 +315,3 @@ public struct ConfigurationEditorView: View {
         title: "Test Configuration"
     )
 }
-
-#endif

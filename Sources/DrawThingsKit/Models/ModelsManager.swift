@@ -239,6 +239,32 @@ public final class ModelsManager: ObservableObject {
         checkpoints.isEmpty && loras.isEmpty && controlNets.isEmpty
     }
 
+    /// Find a checkpoint model by its filename.
+    /// - Parameter filename: The model filename (e.g., "qwen_image_1.0_q8p.ckpt")
+    /// - Returns: The matching CheckpointModel, or nil if not found
+    public func checkpoint(forFile filename: String) -> CheckpointModel? {
+        checkpoints.first { $0.file == filename }
+    }
+
+    /// Get the model version string for a given filename.
+    /// - Parameter filename: The model filename
+    /// - Returns: The version string (e.g., "qwenImage", "flux1"), or nil if not found
+    public func version(forFile filename: String) -> String? {
+        checkpoint(forFile: filename)?.version
+    }
+
+    /// Detect the latent model family for a given filename.
+    /// Uses the version field from the model catalog for accurate detection.
+    /// - Parameter filename: The model filename
+    /// - Returns: The detected LatentModelFamily
+    public func latentModelFamily(forFile filename: String) -> LatentModelFamily {
+        if let version = version(forFile: filename) {
+            return LatentModelFamily.detect(from: version)
+        }
+        // Fall back to filename-based detection
+        return LatentModelFamily.detect(from: filename)
+    }
+
     /// Summary of loaded models for display.
     public var summary: String {
         var parts: [String] = []
@@ -253,4 +279,37 @@ public final class ModelsManager: ObservableObject {
         }
         return parts.isEmpty ? "No models" : parts.joined(separator: ", ")
     }
+
+    // MARK: - Preview Helpers
+
+    #if DEBUG
+    /// Create a ModelsManager with mock checkpoint data for SwiftUI previews.
+    public static func preview(withCheckpoints checkpoints: [CheckpointModel]) -> ModelsManager {
+        let manager = ModelsManager()
+        manager.checkpoints = checkpoints
+        return manager
+    }
+    #endif
 }
+
+// MARK: - Preview Helpers
+
+#if DEBUG
+extension CheckpointModel {
+    /// Create a mock CheckpointModel for previews.
+    public static func mock(
+        name: String,
+        file: String,
+        version: String? = nil
+    ) -> CheckpointModel {
+        // Use JSONDecoder to create instance since all properties are let
+        let json: [String: Any?] = [
+            "name": name,
+            "file": file,
+            "version": version
+        ]
+        let data = try! JSONSerialization.data(withJSONObject: json.compactMapValues { $0 })
+        return try! JSONDecoder().decode(CheckpointModel.self, from: data)
+    }
+}
+#endif

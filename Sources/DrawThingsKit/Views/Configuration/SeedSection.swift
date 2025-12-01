@@ -55,16 +55,17 @@ public struct SeedSection: View {
                 .controlSize(.small)
             }
 
-            if seed == -1 {
-                Text("A random seed will be generated")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
+//            if seed == -1 {
+//                Text("A random seed will be generated")
+//                    .font(.caption)
+//                    .foregroundColor(.secondary)
+//            }
 
             if showAdvanced {
                 Picker("Seed Mode", selection: $seedMode) {
-                    Text("Legacy").tag(Int32(0))
-                    Text("Torch CPU Compatible").tag(Int32(2))
+                    Text("NVIDIA").tag(Int32(0))
+                    Text("Torch CPU").tag(Int32(1))
+                    Text("Scale Alike").tag(Int32(2))
                 }
                 .pickerStyle(.segmented)
             }

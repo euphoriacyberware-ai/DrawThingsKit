@@ -3,10 +3,10 @@
     {
       "identity" : "dt-grpc-swift-client",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/euphoriacyberware-ai/DT-gRPC-Swift-Client.git",
+      "location" : "https://github.com/euphoriacyberware-ai/DT-gRPC-Swift-Client",
       "state" : {
-        "revision" : "e6fa4f92a0e08fa98917f38d714fcc768676fdf5",
-        "version" : "1.1.1"
+        "revision" : "6c3b11b941b10dc167f8f743dcaefa21da5672d1",
+        "version" : "1.2.0"
       }
     },
     {

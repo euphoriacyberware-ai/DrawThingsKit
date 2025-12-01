@@ -15,6 +15,26 @@ import AppKit
 import UIKit
 #endif
 
+// MARK: - Job Events
+
+/// Events emitted by the job queue for easy observation.
+public enum JobEvent {
+    /// A job was added to the queue
+    case jobAdded(GenerationJob)
+    /// A job started processing
+    case jobStarted(GenerationJob)
+    /// A job's progress was updated
+    case jobProgress(GenerationJob, JobProgress)
+    /// A job completed successfully with result images (as native PlatformImage)
+    case jobCompleted(GenerationJob, images: [PlatformImage])
+    /// A job failed with an error message
+    case jobFailed(GenerationJob, error: String)
+    /// A job was cancelled
+    case jobCancelled(GenerationJob)
+    /// A job was removed from the queue
+    case jobRemoved(UUID)
+}
+
 /// Manages the queue of generation jobs.
 ///
 /// Provides:
@@ -23,6 +43,7 @@ import UIKit
 /// - Pause/resume functionality
 /// - Current job and progress tracking
 /// - Persistence through QueueStorage
+/// - Event publisher for job lifecycle events
 ///
 /// Example usage:
 /// ```swift
@@ -33,6 +54,20 @@ import UIKit
 ///
 /// // Start processing
 /// queue.resume()
+///
+/// // Listen for job events
+/// queue.events
+///     .sink { event in
+///         switch event {
+///         case .jobCompleted(let job, let results):
+///             // Handle completed job
+///         case .jobFailed(let job, let error):
+///             // Handle failed job
+///         default:
+///             break
+///         }
+///     }
+///     .store(in: &cancellables)
 /// ```
 @MainActor
 public final class JobQueue: ObservableObject {
@@ -48,7 +83,10 @@ public final class JobQueue: ObservableObject {
     @Published public private(set) var isProcessing: Bool = false
 
     /// Whether the queue is paused.
-    @Published public private(set) var isPaused: Bool = true
+    /// Defaults to `false` (ready to process). The queue will automatically start
+    /// processing when jobs are added and a connection is available.
+    /// Call `pause()` during app initialization if you want the queue to start paused.
+    @Published public private(set) var isPaused: Bool = false
 
     /// Preview image from the current job.
     @Published public private(set) var currentPreview: PlatformImage?
@@ -59,16 +97,30 @@ public final class JobQueue: ObservableObject {
     /// Error message if queue processing encountered an error.
     @Published public private(set) var lastError: String?
 
+    // MARK: - Event Publisher
+
+    /// Publisher for job lifecycle events.
+    /// Subscribe to this to be notified when jobs complete, fail, etc.
+    public let events = PassthroughSubject<JobEvent, Never>()
+
     // MARK: - Private Properties
 
     private let storage: QueueStorage
     private var processingTask: Task<Void, Never>?
 
+    /// Optional ModelsManager for accurate model family detection in previews.
+    /// If provided, uses the version field from the model catalog for better latent-to-RGB conversion.
+    public weak var modelsManager: ModelsManager?
+
     // MARK: - Initialization
 
-    /// Initialize with optional custom storage.
-    public init(storage: QueueStorage = QueueStorage()) {
+    /// Initialize with optional custom storage and models manager.
+    /// - Parameters:
+    ///   - storage: Storage for job persistence
+    ///   - modelsManager: Optional ModelsManager for accurate model family detection in previews
+    public init(storage: QueueStorage = QueueStorage(), modelsManager: ModelsManager? = nil) {
         self.storage = storage
+        self.modelsManager = modelsManager
         loadJobs()
     }
 
@@ -124,6 +176,7 @@ public final class JobQueue: ObservableObject {
         newJob.status = .pending
         jobs.append(newJob)
         saveJobs()
+        events.send(.jobAdded(newJob))
     }
 
     /// Add multiple jobs to the queue.
@@ -132,6 +185,7 @@ public final class JobQueue: ObservableObject {
         for var job in newJobs {
             job.status = .pending
             jobs.append(job)
+            events.send(.jobAdded(job))
         }
         saveJobs()
     }
@@ -142,8 +196,10 @@ public final class JobQueue: ObservableObject {
         // Can't remove the currently processing job
         guard currentJob?.id != job.id else { return }
 
-        jobs.removeAll { $0.id == job.id }
+        let jobId = job.id
+        jobs.removeAll { $0.id == jobId }
         saveJobs()
+        events.send(.jobRemoved(jobId))
     }
 
     /// Cancel a job.
@@ -166,6 +222,7 @@ public final class JobQueue: ObservableObject {
         }
 
         saveJobs()
+        events.send(.jobCancelled(jobs[index]))
     }
 
     /// Move a job in the queue.
@@ -252,31 +309,59 @@ public final class JobQueue: ObservableObject {
         isProcessing = true
         currentProgress = jobs[index].progress
         saveJobs()
+        events.send(.jobStarted(jobs[index]))
     }
 
     /// Update progress for a job.
     func updateJobProgress(_ jobId: UUID, progress: JobProgress) {
         guard let index = jobs.firstIndex(where: { $0.id == jobId }) else { return }
 
-        jobs[index].progress = progress
-        currentProgress = progress
+        var updatedProgress = progress
 
         // Update preview image if available (convert from DTTensor format)
         if let previewData = progress.previewImageData {
-            if let image = try? PlatformImageHelpers.dtTensorToImage(previewData) {
+            // Detect model family from configuration for correct latent-to-RGB conversion
+            var modelFamily: LatentModelFamily? = nil
+            if let config = try? jobs[index].configuration() {
+                // Try to use ModelsManager for accurate version-based detection
+                if let manager = modelsManager {
+                    let version = manager.version(forFile: config.model)
+                    modelFamily = manager.latentModelFamily(forFile: config.model)
+                    DTLogger.debug("Preview conversion: model='\(config.model)', version='\(version ?? "nil")', family=\(modelFamily ?? .unknown)", category: .generation)
+                } else {
+                    // Fall back to filename-based detection
+                    modelFamily = LatentModelFamily.detect(from: config.model)
+                    DTLogger.debug("Preview conversion (no ModelsManager): model='\(config.model)', family=\(modelFamily ?? .unknown)", category: .generation)
+                }
+            } else {
+                DTLogger.debug("Preview conversion: failed to get configuration from job", category: .generation)
+            }
+
+            if let image = try? PlatformImageHelpers.dtTensorToImage(previewData, modelFamily: modelFamily) {
                 currentPreview = image
+                updatedProgress.previewImage = image
             }
         }
+
+        jobs[index].progress = updatedProgress
+        currentProgress = updatedProgress
+
+        events.send(.jobProgress(jobs[index], updatedProgress))
     }
 
     /// Mark a job as completed with results.
+    /// - Parameters:
+    ///   - jobId: The job ID
+    ///   - results: Result images as PNG data
     func markJobCompleted(_ jobId: UUID, results: [Data]) {
         guard let index = jobs.firstIndex(where: { $0.id == jobId }) else { return }
 
         jobs[index].status = .completed
         jobs[index].completedAt = Date()
-        jobs[index].resultImages = results
+        jobs[index].resultImageData = results
         jobs[index].errorMessage = nil
+
+        let completedJob = jobs[index]
 
         if currentJob?.id == jobId {
             currentJob = nil
@@ -286,6 +371,10 @@ public final class JobQueue: ObservableObject {
         }
 
         saveJobs()
+
+        // Convert PNG data to PlatformImages for the event
+        let images = results.compactMap { PlatformImage.fromData($0) }
+        events.send(.jobCompleted(completedJob, images: images))
     }
 
     /// Mark a job as failed.
@@ -296,6 +385,8 @@ public final class JobQueue: ObservableObject {
         jobs[index].completedAt = Date()
         jobs[index].errorMessage = error
 
+        let failedJob = jobs[index]
+
         if currentJob?.id == jobId {
             currentJob = nil
             isProcessing = false
@@ -304,6 +395,7 @@ public final class JobQueue: ObservableObject {
         }
 
         saveJobs()
+        events.send(.jobFailed(failedJob, error: error))
     }
 
     /// Get the next pending job.

@@ -14,19 +14,26 @@ import DrawThingsClient
 /// ```swift
 /// LoRASection(
 ///     modelsManager: modelsManager,
-///     selectedLoRAs: $selectedLoRAs
+///     selectedLoRAs: $selectedLoRAs,
+///     mixtureOfExperts: $mixtureOfExperts
 /// )
 /// ```
 public struct LoRASection: View {
     @ObservedObject var modelsManager: ModelsManager
     @Binding var selectedLoRAs: [LoRAConfiguration]
 
+    /// When true, shows the Base/Refiner mode picker for each LoRA.
+    /// This is only needed for Mixture of Experts workflows (e.g., Wan 2.2).
+    var showModeSelector: Bool
+
     public init(
         modelsManager: ModelsManager,
-        selectedLoRAs: Binding<[LoRAConfiguration]>
+        selectedLoRAs: Binding<[LoRAConfiguration]>,
+        mixtureOfExperts: Bool = false
     ) {
         self.modelsManager = modelsManager
         self._selectedLoRAs = selectedLoRAs
+        self.showModeSelector = mixtureOfExperts
     }
 
     private var enabledCount: Int {
@@ -66,7 +73,10 @@ public struct LoRASection: View {
                             .padding(.vertical, 8)
                     } else {
                         ForEach($selectedLoRAs) { $loraConfig in
-                            LoRARow(config: $loraConfig) {
+                            LoRARow(
+                                config: $loraConfig,
+                                showModeSelector: showModeSelector
+                            ) {
                                 removeLoRA(loraConfig)
                             }
                         }
@@ -92,10 +102,16 @@ public struct LoRASection: View {
 /// A row view for a single LoRA configuration.
 public struct LoRARow: View {
     @Binding var config: LoRAConfiguration
+    let showModeSelector: Bool
     let onDelete: () -> Void
 
-    public init(config: Binding<LoRAConfiguration>, onDelete: @escaping () -> Void) {
+    public init(
+        config: Binding<LoRAConfiguration>,
+        showModeSelector: Bool = false,
+        onDelete: @escaping () -> Void
+    ) {
         self._config = config
+        self.showModeSelector = showModeSelector
         self.onDelete = onDelete
     }
 
@@ -127,13 +143,18 @@ public struct LoRARow: View {
                 .help("Remove LoRA")
             }
 
-            // Weight slider
+            // Weight slider (no step parameter to avoid tick marks, snaps on release)
             HStack {
                 Text("Weight:")
                     .font(.caption)
                     .foregroundColor(.secondary)
 
-                Slider(value: $config.weight, in: -1.5...2.5, step: 0.05)
+                Slider(value: $config.weight, in: -1.5...2.5) { editing in
+                    if !editing {
+                        // Snap to 0.05 increments when released
+                        config.weight = (config.weight / 0.05).rounded() * 0.05
+                    }
+                }
 
                 Text(String(format: "%.2f", config.weight))
                     .font(.caption)
@@ -141,19 +162,21 @@ public struct LoRARow: View {
                     .frame(width: 50, alignment: .trailing)
             }
 
-            // Mode picker
-            HStack {
-                Text("Mode:")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+            // Mode picker - only shown for Mixture of Experts workflows
+            if showModeSelector {
+                HStack {
+                    Text("Mode:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
 
-                Picker("", selection: $config.mode) {
-                    Text("All").tag(LoRAMode.all)
-                    Text("Base").tag(LoRAMode.base)
-                    Text("Refiner").tag(LoRAMode.refiner)
+                    Picker("", selection: $config.mode) {
+                        Text("All").tag(LoRAMode.all)
+                        Text("Base").tag(LoRAMode.base)
+                        Text("Refiner").tag(LoRAMode.refiner)
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
                 }
-                .pickerStyle(.segmented)
-                .labelsHidden()
             }
         }
         .padding(.vertical, 4)

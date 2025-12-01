@@ -22,11 +22,13 @@ Or add via Xcode: File → Add Packages → Enter the repository URL.
 
 ```swift
 import SwiftUI
+import SwiftData
 import DrawThingsKit
 
 @main
 struct MyApp: App {
     @StateObject private var connectionManager = ConnectionManager()
+    @StateObject private var configurationManager = ConfigurationManager()
     @StateObject private var queue = JobQueue()
     @StateObject private var processor = QueueProcessor()
 
@@ -34,6 +36,7 @@ struct MyApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(connectionManager)
+                .environmentObject(configurationManager)
                 .environmentObject(queue)
         }
         .task {
@@ -49,9 +52,13 @@ struct MyApp: App {
 Sources/DrawThingsKit/
 ├── Configuration/     # JSON serialization & presets
 ├── Connection/        # Server profiles & connection management
-├── Models/            # Model catalog management
-├── Queue/             # Job queue & processing
-└── Views/             # Reusable SwiftUI components (macOS)
+├── Logging/           # DTLogger unified logging system
+├── Models/            # Model catalog & ConfigurationManager
+├── Queue/             # Job queue, events, processing & HintBuilder
+└── Views/
+    ├── Configuration/ # Config editors, presets, section views
+    ├── Connection/    # Server profile & status views
+    └── Queue/         # Queue progress, list & control views
 ```
 
 ---
@@ -183,14 +190,140 @@ queue.retry(failedJob)
 - `jobs: [GenerationJob]` - All jobs in queue
 - `currentJob: GenerationJob?` - Currently processing job
 - `isProcessing: Bool` - Whether a job is running
-- `isPaused: Bool` - Whether queue is paused
-- `currentPreview: NSImage?` - Preview of current generation
+- `isPaused: Bool` - Whether queue is paused (defaults to `false`)
+- `currentPreview: PlatformImage?` - Preview of current generation
 - `currentProgress: JobProgress?` - Progress of current job
 
 **Computed Properties:**
 - `pendingJobs`, `completedJobs`, `failedJobs` - Filtered job lists
 - `pendingCount`, `activeQueueCount` - Counts
 - `hasPendingJobs`, `isEmpty` - State checks
+
+**Auto-Processing Behavior:**
+
+By default, the queue is ready to process (`isPaused = false`). When jobs are enqueued and a connection is available, processing starts automatically. The queue pauses automatically on connection errors and resumes when you call `resume()` after reconnecting.
+
+To start the queue in a paused state (requiring explicit user action to begin):
+
+```swift
+@main
+struct MyApp: App {
+    @StateObject private var queue = JobQueue()
+
+    init() {
+        // Start paused - user must explicitly resume
+        queue.pause()
+    }
+
+    // Or pause in .task after the view appears
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .task {
+                    queue.pause()  // Start paused
+                }
+        }
+    }
+}
+```
+
+#### Job Events
+
+The `JobQueue` provides a Combine publisher for job lifecycle events, making it easy to react to job completion, failures, and progress updates.
+
+**All image data is provided as native `PlatformImage` types** (NSImage on macOS, UIImage on iOS). The Kit handles all DTTensor format conversion internally, so your app works with familiar image types.
+
+```swift
+import Combine
+
+// Subscribe to job events
+var cancellables = Set<AnyCancellable>()
+
+queue.events
+    .sink { event in
+        switch event {
+        case .jobAdded(let job):
+            print("Job added: \(job.id)")
+
+        case .jobStarted(let job):
+            print("Job started: \(job.id)")
+
+        case .jobProgress(let job, let progress):
+            // Preview is already converted to PlatformImage
+            if let previewImage = progress.previewImage {
+                // Display preview directly - no conversion needed
+                displayPreview(previewImage)
+            }
+
+        case .jobCompleted(let job, let images):
+            // Images are native PlatformImage types, ready to display
+            print("Job completed with \(images.count) images")
+            if let firstImage = images.first {
+                displayResult(firstImage)
+                // Convert to PNG for storage if needed
+                if let pngData = firstImage.pngData() {
+                    saveToDatabase(pngData)
+                }
+            }
+
+        case .jobFailed(let job, let error):
+            print("Job failed: \(error)")
+
+        case .jobCancelled(let job):
+            print("Job cancelled: \(job.id)")
+
+        case .jobRemoved(let jobId):
+            print("Job removed: \(jobId)")
+        }
+    }
+    .store(in: &cancellables)
+```
+
+**In SwiftUI**, use `.onReceive` to handle events:
+
+```swift
+struct ContentView: View {
+    @EnvironmentObject var queue: JobQueue
+    @State private var resultImage: PlatformImage?
+
+    var body: some View {
+        VStack {
+            if let image = resultImage {
+                Image(platformImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+            }
+        }
+        .onReceive(queue.events) { event in
+            handleJobEvent(event)
+        }
+    }
+
+    func handleJobEvent(_ event: JobEvent) {
+        switch event {
+        case .jobCompleted(_, let images):
+            // Images are ready to display
+            resultImage = images.first
+        case .jobFailed(_, let error):
+            // Show error alert
+            print("Error: \(error)")
+        default:
+            break
+        }
+    }
+}
+```
+
+**JobEvent Types:**
+| Event | Associated Data | Description |
+|-------|-----------------|-------------|
+| `.jobAdded` | `GenerationJob` | Job was added to queue |
+| `.jobStarted` | `GenerationJob` | Job began processing |
+| `.jobProgress` | `GenerationJob`, `JobProgress` | Progress update with preview image |
+| `.jobCompleted` | `GenerationJob`, `[PlatformImage]` | Job finished with result images |
+| `.jobFailed` | `GenerationJob`, `String` | Job failed with error message |
+| `.jobCancelled` | `GenerationJob` | Job was cancelled |
+| `.jobRemoved` | `UUID` | Job was removed from queue |
 
 ### QueueProcessor
 
@@ -234,8 +367,9 @@ job.isPending
 job.isCompleted
 job.canRetry    // Failed with retries remaining
 
-// Results (after completion)
-job.resultImages  // Array of PNG Data
+// Results (after completion) - native PlatformImage types
+job.resultImages      // [PlatformImage] - all result images
+job.firstResultImage  // PlatformImage? - convenience for first image
 ```
 
 ### ModelsManager
@@ -319,6 +453,66 @@ Each model type exposes relevant metadata:
 | `UpscalerModel` | `name`, `file`, `scaleFactor`, `blocks` |
 
 All model types use `file` as their `id` for `Identifiable` conformance.
+
+### ConfigurationManager
+
+Manages the active configuration, prompt state, and model selections for generation.
+
+```swift
+@StateObject var configurationManager = ConfigurationManager()
+
+// Set prompt
+configurationManager.prompt = "A beautiful sunset"
+configurationManager.negativePrompt = "ugly, blurry"
+
+// Access/modify configuration
+configurationManager.activeConfiguration.width = 1024
+configurationManager.activeConfiguration.height = 1024
+configurationManager.activeConfiguration.steps = 30
+
+// Model selection (optional - use with pickers)
+configurationManager.selectedCheckpoint = modelsManager.checkpoints.first
+configurationManager.selectedRefiner = modelsManager.refinerModels.first
+
+// Sync model selections to configuration before generation
+configurationManager.syncModelsToConfiguration()
+
+// Clipboard operations
+configurationManager.copyToClipboard()      // Copy config as JSON
+configurationManager.pasteFromClipboard()   // Paste config from JSON
+
+// Import/export JSON
+let json = configurationManager.exportToJSON()
+configurationManager.loadFromJSON(json)
+
+// Reset to defaults
+configurationManager.resetToDefaults()
+
+// Resolve model selections after loading a preset
+configurationManager.resolveModels(from: modelsManager)
+```
+
+**Published Properties:**
+- `activeConfiguration: DrawThingsConfiguration` - The current configuration
+- `prompt: String` - The generation prompt
+- `negativePrompt: String` - The negative prompt
+- `selectedCheckpoint: CheckpointModel?` - Selected base model
+- `selectedRefiner: CheckpointModel?` - Selected refiner model
+
+**Usage with JobQueue:**
+
+```swift
+func generate() {
+    configurationManager.syncModelsToConfiguration()
+
+    let job = try GenerationJob(
+        prompt: configurationManager.prompt,
+        negativePrompt: configurationManager.negativePrompt,
+        configuration: configurationManager.activeConfiguration
+    )
+    queue.enqueue(job)
+}
+```
 
 ---
 
@@ -453,6 +647,211 @@ Features:
 - Real-time validation status
 - Auto-format on paste
 
+### Configuration Actions
+
+Views for managing configuration presets and clipboard operations:
+
+```swift
+// Full action bar with Copy, Paste, Save, Presets buttons
+ConfigurationActionsView(
+    configurationManager: configurationManager,
+    modelContext: modelContext
+)
+
+// Compact single-row version
+ConfigurationActionsCompactView(
+    configurationManager: configurationManager,
+    modelContext: modelContext
+)
+
+// Save configuration sheet (presented modally)
+SaveConfigurationSheet(
+    configurationManager: configurationManager,
+    modelContext: modelContext,
+    isPresented: $showingSaveSheet
+)
+
+// Preset picker menu
+PresetPickerMenu(
+    configurationManager: configurationManager,
+    presets: savedConfigurations
+)
+
+// Preset list for settings/management
+PresetListView(
+    configurationManager: configurationManager,
+    modelContext: modelContext
+)
+```
+
+**ConfigurationActionsView Features:**
+- **Copy**: Copy current configuration to clipboard as JSON
+- **Paste**: Paste configuration from clipboard
+- **Save**: Save current configuration as a named preset
+- **Presets**: Load from saved presets or reset to defaults
+
+### Configuration Section Views
+
+Reusable SwiftUI form sections for building configuration UIs. Each section is a composable view that binds directly to `DrawThingsConfiguration` properties.
+
+**Standard Sections** (always visible):
+
+```swift
+// Prompt input fields
+PromptSection(
+    prompt: $configurationManager.prompt,
+    negativePrompt: $configurationManager.negativePrompt
+)
+
+// Model selection - checkpoint, refiner, sampler, Mixture of Experts toggle
+ModelSection(
+    modelsManager: connectionManager.modelsManager,
+    selectedCheckpoint: $configurationManager.selectedCheckpoint,
+    selectedRefiner: $configurationManager.selectedRefiner,
+    refinerStart: $configurationManager.activeConfiguration.refinerStart,
+    sampler: $configurationManager.activeConfiguration.sampler,
+    modelName: $configurationManager.activeConfiguration.model,
+    refinerName: $configurationManager.activeConfiguration.refinerModel,
+    mixtureOfExperts: $configurationManager.mixtureOfExperts
+)
+
+// LoRA management with weight sliders
+// When Mixture of Experts is enabled, shows mode selector (All/Base/Refiner)
+LoRASection(
+    modelsManager: connectionManager.modelsManager,
+    selectedLoRAs: $configurationManager.selectedLoRAs,
+    mixtureOfExperts: configurationManager.mixtureOfExperts
+)
+
+// Core generation parameters
+// When showAdvanced is true, also shows CFG Zero Star toggle and Init Steps
+ParametersSection(
+    steps: $configurationManager.activeConfiguration.steps,
+    guidanceScale: $configurationManager.activeConfiguration.guidanceScale,
+    cfgZeroStar: $configurationManager.activeConfiguration.cfgZeroStar,
+    cfgZeroInitSteps: $configurationManager.activeConfiguration.cfgZeroInitSteps,
+    resolutionDependentShift: $configurationManager.activeConfiguration.resolutionDependentShift,
+    shift: $configurationManager.activeConfiguration.shift,
+    showAdvanced: showAdvanced
+)
+
+// Dimensions with presets and swap button
+DimensionsSection(
+    width: $configurationManager.activeConfiguration.width,
+    height: $configurationManager.activeConfiguration.height
+)
+
+// Seed with mode selector
+// When showAdvanced is true, shows additional seed modes
+SeedSection(
+    seed: $configurationManager.activeConfiguration.seed,
+    seedMode: $configurationManager.activeConfiguration.seedMode,
+    showAdvanced: showAdvanced
+)
+
+// Image-to-image strength
+StrengthSection(
+    strength: $configurationManager.activeConfiguration.strength
+)
+
+// Batch size (1-4 images per generation)
+BatchSection(
+    batchSize: $configurationManager.activeConfiguration.batchSize
+)
+
+// ControlNet model selection
+ControlNetSection(
+    modelsManager: connectionManager.modelsManager,
+    selectedControls: $configurationManager.selectedControls
+)
+```
+
+**Advanced Sections** (typically shown when an "Advanced" toggle is enabled):
+
+```swift
+if showAdvanced {
+    // Advanced generation settings
+    // Includes: Clip Skip, Tiled Diffusion/Decoding, HiRes Fix, Sharpness, Inpainting
+    AdvancedSection(
+        clipSkip: $config.clipSkip,
+        tiledDiffusion: $config.tiledDiffusion,
+        diffusionTileWidth: $config.diffusionTileWidth,
+        diffusionTileHeight: $config.diffusionTileHeight,
+        diffusionTileOverlap: $config.diffusionTileOverlap,
+        tiledDecoding: $config.tiledDecoding,
+        decodingTileWidth: $config.decodingTileWidth,
+        decodingTileHeight: $config.decodingTileHeight,
+        decodingTileOverlap: $config.decodingTileOverlap,
+        hiresFix: $config.hiresFix,
+        hiresFixWidth: $config.hiresFixWidth,
+        hiresFixHeight: $config.hiresFixHeight,
+        hiresFixStrength: $config.hiresFixStrength,
+        sharpness: $config.sharpness,
+        aestheticScore: $config.aestheticScore,
+        negativeAestheticScore: $config.negativeAestheticScore,
+        maskBlur: $config.maskBlur,
+        maskBlurOutset: $config.maskBlurOutset,
+        preserveOriginalAfterInpaint: $config.preserveOriginalAfterInpaint
+    )
+
+    // TEA Cache for faster generation
+    TeaCacheSection(
+        teaCache: $config.teaCache,
+        teaCacheStart: $config.teaCacheStart,
+        teaCacheEnd: $config.teaCacheEnd,
+        teaCacheThreshold: $config.teaCacheThreshold,
+        teaCacheMaxSkipSteps: $config.teaCacheMaxSkipSteps
+    )
+
+    // Video generation settings
+    VideoSection(
+        numFrames: $config.numFrames
+    )
+
+    // Causal inference for video models (CausVid)
+    CausalInferenceSection(
+        causalInferenceEnabled: $config.causalInferenceEnabled,
+        causalInference: $config.causalInference,
+        causalInferencePad: $config.causalInferencePad
+    )
+}
+```
+
+**Section Details:**
+
+| Section | Description |
+|---------|-------------|
+| `PromptSection` | Text fields for prompt and negative prompt |
+| `ModelSection` | Checkpoint/refiner pickers, sampler, Mixture of Experts toggle |
+| `LoRASection` | LoRA selection with weight sliders, optional mode selector |
+| `ParametersSection` | Steps, CFG Scale, CFG Zero Star (advanced), Resolution Dependent Shift, Shift |
+| `DimensionsSection` | Width/height sliders with presets and aspect ratio display |
+| `SeedSection` | Seed input with randomize, seed mode picker |
+| `StrengthSection` | Img2img strength slider |
+| `BatchSection` | Batch size slider |
+| `ControlNetSection` | ControlNet model selection with weight sliders |
+| `AdvancedSection` | Clip Skip, tiling, HiRes Fix, sharpness, inpainting settings |
+| `TeaCacheSection` | TEA Cache toggle and parameters for faster generation |
+| `VideoSection` | Number of frames for video generation |
+| `CausalInferenceSection` | CausVid settings for video models |
+
+**ParameterSlider:**
+
+All sections use the `ParameterSlider` component for numeric inputs:
+
+```swift
+// Reusable slider with label and value display
+ParameterSlider(
+    label: "Steps",
+    value: $stepsBinding,  // Binding<Double>
+    range: 1...150,
+    step: 1,
+    format: "%.0f"
+)
+```
+
+Sliders snap to step values when released, avoiding dense tick marks for large ranges.
+
 ---
 
 ## Data Types
@@ -508,12 +907,14 @@ struct JobProgress {
     var currentStep: Int
     var totalSteps: Int
     var stage: String?
-    var previewImageData: Data?
+    var previewImage: PlatformImage?  // Preview as native image type
 
     var progressFraction: Double   // 0.0 to 1.0
     var progressPercentage: Int    // 0 to 100
 }
 ```
+
+The `previewImage` is automatically converted from the server's DTTensor format with correct color handling for different model families (Flux, Qwen, Wan, SD3, etc.).
 
 ### HintData
 
@@ -525,6 +926,118 @@ struct HintData {
     var imageData: Data   // Image bytes
     var weight: Float
 }
+```
+
+### HintBuilder
+
+A fluent builder for constructing hints for image generation. This helper abstracts the complexity of hint construction and ensures proper formatting for Draw Things.
+
+```swift
+// Basic usage - add moodboard images for style transfer
+let hints = HintBuilder()
+    .addMoodboardImage(styleImageData, weight: 1.0)
+    .addMoodboardImage(referenceImageData, weight: 0.8)
+    .build()
+
+let job = try GenerationJob(
+    prompt: "A portrait in the style of image 2 with colors from image 3",
+    configuration: config,
+    canvasImageData: sourceImage,  // This is "image 1"
+    hints: hints                    // Moodboard images become "image 2", "image 3", etc.
+)
+```
+
+**Moodboard/Shuffle Hints:**
+
+Used with models like Qwen Image Edit for style and content transfer. Images are referenced as "image 2", "image 3", etc. in prompts (canvas/source image is "image 1").
+
+```swift
+// Single image
+builder.addMoodboardImage(imageData, weight: 1.0)
+
+// Multiple images with same weight
+builder.addMoodboardImages([image1, image2, image3], weight: 1.0)
+
+// Multiple images with individual weights
+builder.addMoodboardImages([
+    (data: dressImage, weight: 1.0),
+    (data: styleImage, weight: 0.8),
+    (data: colorImage, weight: 0.5)
+])
+```
+
+**ControlNet Hints:**
+
+```swift
+let hints = HintBuilder()
+    .addDepthMap(depthImageData, weight: 1.0)      // Structural guidance
+    .addPose(poseImageData, weight: 0.8)           // Character positioning
+    .addCannyEdges(edgeImageData, weight: 1.0)     // Edge detection
+    .addScribble(sketchImageData, weight: 0.7)     // Rough sketch
+    .addColorReference(colorImageData, weight: 0.5) // Color palette
+    .addLineArt(lineArtData, weight: 1.0)          // Line art
+    .build()
+```
+
+**Generic Hints:**
+
+For custom or less common hint types:
+
+```swift
+// Using HintType enum
+builder.addHint(type: .tile, imageData: tileData, weight: 1.0)
+builder.addHint(type: .seg, imageData: segmentationData, weight: 0.8)
+
+// Using custom string
+builder.addHint(type: "custom_type", imageData: imageData, weight: 1.0)
+```
+
+**HintType Enum:**
+
+All supported hint types:
+
+| Type | Description |
+|------|-------------|
+| `.shuffle` | Moodboard/reference images for style transfer |
+| `.depth` | Depth map for structural guidance |
+| `.pose` | Pose skeleton for character positioning |
+| `.canny` | Canny edge detection |
+| `.scribble` | Rough sketches for composition |
+| `.color` | Color palette reference |
+| `.lineart` | Line art for structural guidance |
+| `.softedge` | Soft edge detection |
+| `.seg` | Segmentation map |
+| `.inpaint` | Inpainting hint |
+| `.ip2p` | Image-to-image prompt |
+| `.mlsd` | MLSD line detection |
+| `.tile` | Tile-based generation |
+| `.blur` | Blur hint |
+| `.lowquality` | Low quality hint |
+| `.gray` | Grayscale hint |
+| `.custom` | Generic custom type |
+
+**Inline Builder Syntax:**
+
+GenerationJob supports an inline builder closure for convenience:
+
+```swift
+let job = try GenerationJob(
+    prompt: "A person wearing the dress from image 2",
+    configuration: config,
+    canvasImageData: personImage
+) { builder in
+    builder.addMoodboardImage(dressImage, weight: 1.0)
+    builder.addMoodboardImage(backgroundImage, weight: 0.5)
+}
+```
+
+**Builder Properties:**
+
+```swift
+let builder = HintBuilder()
+builder.count     // Number of hints added
+builder.isEmpty   // Whether any hints have been added
+builder.clear()   // Remove all hints and start fresh
 ```
 
 ### Model Types
@@ -627,10 +1140,11 @@ import DrawThingsKit
 
 struct GeneratorView: View {
     @EnvironmentObject var connectionManager: ConnectionManager
+    @EnvironmentObject var configurationManager: ConfigurationManager
     @EnvironmentObject var queue: JobQueue
 
-    @State private var prompt = ""
-    @State private var negativePrompt = ""
+    @State private var generatedImage: PlatformImage?
+    @State private var errorMessage: String?
 
     var body: some View {
         VStack {
@@ -638,8 +1152,16 @@ struct GeneratorView: View {
             ConnectionStatusBadge(connectionManager: connectionManager)
 
             // Prompt input
-            TextField("Prompt", text: $prompt)
-            TextField("Negative", text: $negativePrompt)
+            PromptSection(
+                prompt: $configurationManager.prompt,
+                negativePrompt: $configurationManager.negativePrompt
+            )
+
+            // Model selection
+            ModelSection(
+                configurationManager: configurationManager,
+                modelsManager: connectionManager.modelsManager
+            )
 
             // Generate button
             Button("Generate") {
@@ -650,28 +1172,61 @@ struct GeneratorView: View {
             // Queue progress
             QueueProgressView(queue: queue)
 
-            // Queue controls
-            QueueControlsView(queue: queue)
+            // Display result
+            if let image = generatedImage {
+                Image(platformImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+            }
+
+            // Error display
+            if let error = errorMessage {
+                Text(error)
+                    .foregroundColor(.red)
+            }
+        }
+        .onReceive(queue.events) { event in
+            handleJobEvent(event)
         }
     }
 
     func generate() {
-        var config = DrawThingsConfiguration()
-        config.width = 1024
-        config.height = 1024
-        config.steps = 30
-        config.model = connectionManager.modelsManager.checkpoints.first?.file ?? ""
+        configurationManager.syncModelsToConfiguration()
 
         do {
             let job = try GenerationJob(
-                prompt: prompt,
-                negativePrompt: negativePrompt,
-                configuration: config
+                prompt: configurationManager.prompt,
+                negativePrompt: configurationManager.negativePrompt,
+                configuration: configurationManager.activeConfiguration
             )
             queue.enqueue(job)
+            errorMessage = nil
         } catch {
-            print("Failed to create job: \(error)")
+            errorMessage = "Failed to create job: \(error.localizedDescription)"
         }
+    }
+
+    func handleJobEvent(_ event: JobEvent) {
+        switch event {
+        case .jobCompleted(_, let images):
+            // Images are native PlatformImage types - ready to display
+            generatedImage = images.first
+        case .jobFailed(_, let error):
+            errorMessage = error
+        default:
+            break
+        }
+    }
+}
+
+// Helper extension for cross-platform Image
+extension Image {
+    init(platformImage: PlatformImage) {
+        #if os(macOS)
+        self.init(nsImage: platformImage)
+        #else
+        self.init(uiImage: platformImage)
+        #endif
     }
 }
 ```
@@ -691,20 +1246,110 @@ DrawThingsKit supports both macOS and iOS:
 
 - **Views**: All SwiftUI views work on both platforms
 - **Images**: Use `PlatformImage` type alias (resolves to `NSImage` on macOS, `UIImage` on iOS)
-- **Image Conversion**: Use `PlatformImageHelpers` for DTTensor conversion on both platforms
+- **Image Conversion**: The Kit handles all DTTensor conversion internally - you work with native image types
 
 ```swift
 // Cross-platform image handling
-let image: PlatformImage = ...
+// Results and previews from JobQueue are already PlatformImage
+queue.events.sink { event in
+    switch event {
+    case .jobCompleted(_, let images):
+        // images is [PlatformImage] - ready to use
+        let firstImage: PlatformImage? = images.first
+    case .jobProgress(_, let progress):
+        // previewImage is PlatformImage? - ready to display
+        let preview: PlatformImage? = progress.previewImage
+    default:
+        break
+    }
+}
 
-// Convert to DTTensor for Draw Things
-let tensorData = try PlatformImageHelpers.imageToDTTensor(image)
-
-// Convert DTTensor back to image
-let resultImage = try PlatformImageHelpers.dtTensorToImage(tensorData)
+// For sending images TO Draw Things (canvas, hints), use PlatformImageHelpers
+let canvasData = try PlatformImageHelpers.imageToDTTensor(myImage)
 ```
 
 **Note**: The `ConfigurationEditorView` uses `NSPasteboard` and is only available on macOS. Other views work on both platforms.
+
+---
+
+## Logging
+
+DrawThingsKit includes a unified logging system using Apple's `os.log` for efficient, structured logging.
+
+### DTLogger
+
+```swift
+// Log messages at different levels
+DTLogger.debug("Starting connection", category: .connection)
+DTLogger.info("Job enqueued: \(job.id)", category: .queue)
+DTLogger.warning("Retrying failed job", category: .queue)
+DTLogger.error("Failed to parse config: \(error)", category: .configuration)
+DTLogger.fault("Critical failure", category: .general)
+
+// Log data payloads (debug builds only)
+DTLogger.logData(requestData, label: "gRPC Request", category: .grpc)
+
+// Log JSON configuration (debug builds only)
+DTLogger.logConfiguration(configJSON, label: "Generation Config", category: .configuration)
+
+// Scoped operation logging with timing
+let endOperation = DTLogger.startOperation("Image Generation", category: .generation)
+// ... do work ...
+endOperation()  // Logs "Image Generation completed in 2.34s"
+```
+
+**Log Categories:**
+| Category | Description |
+|----------|-------------|
+| `.connection` | Server connection lifecycle |
+| `.queue` | Job queue operations |
+| `.generation` | Image generation process |
+| `.grpc` | gRPC communication details |
+| `.models` | Model loading and selection |
+| `.configuration` | Configuration parsing and validation |
+| `.general` | General purpose logging |
+
+**Log Levels:**
+| Level | Use Case |
+|-------|----------|
+| `.debug` | Verbose development info |
+| `.info` | General information |
+| `.warning` | Potential issues |
+| `.error` | Recoverable errors |
+| `.fault` | Critical, unrecoverable errors |
+
+**Configuration:**
+
+```swift
+// Access shared logger
+let logger = DTLogger.shared
+
+// Set minimum log level
+logger.minimumLevel = .info  // Ignores debug messages
+
+// Enable/disable logging
+logger.isEnabled = false
+
+// Console output (default: true in DEBUG, false in RELEASE)
+logger.logToConsole = true
+
+// Include timestamps in console output
+logger.includeTimestamps = true
+```
+
+**Viewing Logs:**
+
+In Terminal:
+```bash
+log stream --predicate 'subsystem == "com.drawthings.kit"' --level debug
+```
+
+In Xcode console, logs appear with timestamps and category prefixes:
+```
+[12:34:56.789] [Generation] Job A1B2C3D4 prompt: "a beautiful sunset"
+[12:34:56.790] [gRPC] Sending generateImage request (prompt: 42 chars, config: 1024 bytes)
+[12:34:58.123] [Generation] Job A1B2C3D4 completed in 1340.00ms
+```
 
 ---
 

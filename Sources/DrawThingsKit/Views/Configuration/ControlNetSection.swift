@@ -127,13 +127,17 @@ public struct ControlNetRow: View {
                 .help("Remove ControlNet")
             }
 
-            // Weight slider
+            // Weight slider (no step to avoid tick marks, snaps on release)
             HStack {
                 Text("Weight:")
                     .font(.caption)
                     .foregroundColor(.secondary)
 
-                Slider(value: $config.weight, in: 0...2, step: 0.05)
+                Slider(value: $config.weight, in: 0...2) { editing in
+                    if !editing {
+                        config.weight = (config.weight / 0.05).rounded() * 0.05
+                    }
+                }
 
                 Text(String(format: "%.2f", config.weight))
                     .font(.caption)
@@ -141,7 +145,7 @@ public struct ControlNetRow: View {
                     .frame(width: 50, alignment: .trailing)
             }
 
-            // Guidance range
+            // Guidance range (no step to avoid tick marks, snaps on release)
             HStack {
                 Text("Guidance:")
                     .font(.caption)
@@ -152,8 +156,16 @@ public struct ControlNetRow: View {
                     .monospacedDigit()
                     .frame(width: 35)
 
-                Slider(value: $config.guidanceStart, in: 0...1, step: 0.05)
-                Slider(value: $config.guidanceEnd, in: 0...1, step: 0.05)
+                Slider(value: $config.guidanceStart, in: 0...1) { editing in
+                    if !editing {
+                        config.guidanceStart = (config.guidanceStart / 0.05).rounded() * 0.05
+                    }
+                }
+                Slider(value: $config.guidanceEnd, in: 0...1) { editing in
+                    if !editing {
+                        config.guidanceEnd = (config.guidanceEnd / 0.05).rounded() * 0.05
+                    }
+                }
 
                 Text(String(format: "%.0f%%", config.guidanceEnd * 100))
                     .font(.caption2)

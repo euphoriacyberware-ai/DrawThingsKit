@@ -21,6 +21,7 @@ import SwiftUI
 public struct ServerProfilesView: View {
     @ObservedObject var connectionManager: ConnectionManager
 
+    @State private var selectedProfileID: UUID?
     @State private var showAddSheet = false
     @State private var profileToEdit: ServerProfile?
     @State private var profileToDelete: ServerProfile?
@@ -33,85 +34,44 @@ public struct ServerProfilesView: View {
     public var body: some View {
         VStack(spacing: 0) {
             // Profile list
-            List {
+            List(selection: $selectedProfileID) {
                 ForEach(connectionManager.profiles) { profile in
                     ServerProfileRow(
                         profile: profile,
                         isActive: connectionManager.activeProfile?.id == profile.id,
                         isConnected: connectionManager.activeProfile?.id == profile.id &&
-                                     connectionManager.connectionState.isConnected
+                                     connectionManager.connectionState.isConnected,
+                        isSelected: selectedProfileID == profile.id
                     )
+                    .tag(profile.id)
                     .contextMenu {
                         profileContextMenu(for: profile)
                     }
                     .onTapGesture(count: 2) {
-                        Task {
-                            await connectionManager.connect(to: profile)
-                        }
+                        connectToProfile(profile)
+                    }
+                    .onTapGesture(count: 1) {
+                        selectedProfileID = profile.id
                     }
                 }
             }
+            #if os(macOS)
+            .listStyle(.inset(alternatesRowBackgrounds: true))
+            #else
             .listStyle(.inset)
+            #endif
 
             Divider()
 
             // Toolbar
-            HStack {
-                Button {
-                    showAddSheet = true
-                } label: {
-                    Image(systemName: "plus")
-                }
-                .help("Add Server")
-
-                Spacer()
-
-                if connectionManager.connectionState.isConnected {
-                    Button("Disconnect") {
-                        connectionManager.disconnect()
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                } else if let activeProfile = connectionManager.activeProfile,
-                          connectionManager.connectionState.isConnecting {
-                    HStack(spacing: 8) {
-                        ProgressView()
-                            .controlSize(.small)
-                        Text("Connecting to \(activeProfile.name)...")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                } else if let selected = selectedProfile {
-                    Button("Connect") {
-                        Task {
-                            await connectionManager.connect(to: selected)
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.small)
-                }
-            }
-            .padding(8)
-
-            // Error message
-            if let error = connectionManager.connectionState.errorMessage {
-                HStack {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.orange)
-                    Text(error)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Spacer()
-                }
-                .padding(.horizontal, 8)
-                .padding(.bottom, 8)
-            }
+            toolbarView
         }
         .sheet(isPresented: $showAddSheet) {
             ServerProfileEditorSheet(
                 profile: nil,
                 onSave: { profile in
                     connectionManager.addProfile(profile)
+                    selectedProfileID = profile.id
                     showAddSheet = false
                 },
                 onCancel: {
@@ -138,6 +98,9 @@ public struct ServerProfilesView: View {
             Button("Delete", role: .destructive) {
                 if let profile = profileToDelete {
                     connectionManager.deleteProfile(profile)
+                    if selectedProfileID == profile.id {
+                        selectedProfileID = nil
+                    }
                 }
                 profileToDelete = nil
             }
@@ -146,11 +109,121 @@ public struct ServerProfilesView: View {
                 Text("Are you sure you want to delete \"\(profile.name)\"? This action cannot be undone.")
             }
         }
+        .onAppear {
+            // Select the default or first profile on appear if nothing selected
+            if selectedProfileID == nil {
+                selectedProfileID = connectionManager.defaultProfile?.id ?? connectionManager.profiles.first?.id
+            }
+        }
     }
 
     private var selectedProfile: ServerProfile? {
-        // For now, use the first profile or the default
-        connectionManager.defaultProfile ?? connectionManager.profiles.first
+        guard let id = selectedProfileID else { return nil }
+        return connectionManager.profiles.first { $0.id == id }
+    }
+
+    private var toolbarView: some View {
+        VStack(spacing: 8) {
+            // Main toolbar row
+            HStack {
+                Button {
+                    showAddSheet = true
+                } label: {
+                    Image(systemName: "plus")
+                }
+                .help("Add Server")
+
+                Button {
+                    if let profile = selectedProfile {
+                        profileToEdit = profile
+                    }
+                } label: {
+                    Image(systemName: "pencil")
+                }
+                .help("Edit Server")
+                .disabled(selectedProfile == nil)
+
+                Button {
+                    if let profile = selectedProfile {
+                        profileToDelete = profile
+                        showDeleteConfirmation = true
+                    }
+                } label: {
+                    Image(systemName: "minus")
+                }
+                .help("Delete Server")
+                .disabled(selectedProfile == nil)
+
+                Divider()
+                    .frame(height: 16)
+
+                Button {
+                    if let profile = selectedProfile, !profile.isDefault {
+                        connectionManager.setDefault(profile)
+                    }
+                } label: {
+                    Image(systemName: "star")
+                }
+                .help("Set as Default")
+                .disabled(selectedProfile == nil || selectedProfile?.isDefault == true)
+
+                Spacer()
+
+                connectionButton
+            }
+            .padding(.horizontal, 8)
+            .padding(.top, 8)
+
+            // Error message
+            if let error = connectionManager.connectionState.errorMessage {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.orange)
+                    Text(error)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                }
+                .padding(.horizontal, 8)
+            }
+        }
+        .padding(.bottom, 8)
+    }
+
+    @ViewBuilder
+    private var connectionButton: some View {
+        if connectionManager.connectionState.isConnected {
+            Button("Disconnect") {
+                connectionManager.disconnect()
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+        } else if connectionManager.connectionState.isConnecting {
+            HStack(spacing: 8) {
+                ProgressView()
+                    .controlSize(.small)
+                Text("Connecting...")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        } else if let profile = selectedProfile {
+            Button("Connect") {
+                connectToProfile(profile)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+        } else {
+            Button("Connect") { }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+                .disabled(true)
+        }
+    }
+
+    private func connectToProfile(_ profile: ServerProfile) {
+        Task {
+            await connectionManager.connect(to: profile)
+        }
     }
 
     @ViewBuilder
@@ -162,9 +235,7 @@ public struct ServerProfilesView: View {
             }
         } else {
             Button("Connect") {
-                Task {
-                    await connectionManager.connect(to: profile)
-                }
+                connectToProfile(profile)
             }
         }
 
@@ -175,8 +246,10 @@ public struct ServerProfilesView: View {
         }
 
         if !profile.isDefault {
-            Button("Set as Default") {
+            Button {
                 connectionManager.setDefault(profile)
+            } label: {
+                Label("Set as Default", systemImage: "star")
             }
         }
 
@@ -209,6 +282,9 @@ public struct ServerProfilePicker: View {
                 } label: {
                     HStack {
                         Text(profile.name)
+                        if profile.isDefault {
+                            Image(systemName: "star.fill")
+                        }
                         if connectionManager.activeProfile?.id == profile.id &&
                            connectionManager.connectionState.isConnected {
                             Image(systemName: "checkmark")
@@ -232,6 +308,8 @@ public struct ServerProfilePicker: View {
                 if let profile = connectionManager.activeProfile,
                    connectionManager.connectionState.isConnected {
                     Text(profile.name)
+                } else if connectionManager.connectionState.isConnecting {
+                    Text("Connecting...")
                 } else {
                     Text("Connect...")
                 }

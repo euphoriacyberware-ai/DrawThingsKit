@@ -15,15 +15,18 @@ public struct ServerProfileRow: View {
     let profile: ServerProfile
     let isActive: Bool
     let isConnected: Bool
+    let isSelected: Bool
 
     public init(
         profile: ServerProfile,
         isActive: Bool = false,
-        isConnected: Bool = false
+        isConnected: Bool = false,
+        isSelected: Bool = false
     ) {
         self.profile = profile
         self.isActive = isActive
         self.isConnected = isConnected
+        self.isSelected = isSelected
     }
 
     public var body: some View {
@@ -37,7 +40,7 @@ public struct ServerProfileRow: View {
                 HStack(spacing: 4) {
                     Text(profile.name)
                         .font(.body)
-                        .fontWeight(isActive ? .semibold : .regular)
+                        .fontWeight(isActive || isSelected ? .semibold : .regular)
 
                     if profile.isDefault {
                         Image(systemName: "star.fill")
@@ -61,6 +64,10 @@ public struct ServerProfileRow: View {
 
             Spacer()
         }
+        .padding(.vertical, 4)
+        .padding(.horizontal, 8)
+        .background(isSelected ? Color.accentColor.opacity(0.15) : Color.clear)
+        .cornerRadius(6)
         .contentShape(Rectangle())
     }
 
