@@ -59,6 +59,12 @@ public struct CausalInferenceSection: View {
                 )
             }
         }
+        .onChange(of: causalInferenceEnabled) { _, enabled in
+            if !enabled {
+                causalInference = 0
+                causalInferencePad = 0
+            }
+        }
     }
 }
 
