@@ -532,7 +532,9 @@ config.steps = 30
 config.model = "sd_xl_base_1.0.safetensors"
 config.sampler = .dpmpp2mkarras
 config.guidanceScale = 7.0
-config.seed = 12345  // nil for random
+config.seed = 12345           // Int64? - nil for random seed
+config.refinerModel = "sd_xl_refiner_1.0.safetensors"  // String? - optional refiner
+config.refinerStart = 0.85    // Float - when to switch to refiner
 
 // LoRAs
 config.loras = [
@@ -1139,9 +1141,10 @@ import SwiftUI
 import DrawThingsKit
 
 struct GeneratorView: View {
-    @EnvironmentObject var connectionManager: ConnectionManager
-    @EnvironmentObject var configurationManager: ConfigurationManager
-    @EnvironmentObject var queue: JobQueue
+    // Note: Views require explicit parameters, not @EnvironmentObject
+    @ObservedObject var connectionManager: ConnectionManager
+    @ObservedObject var configurationManager: ConfigurationManager
+    @ObservedObject var queue: JobQueue
 
     @State private var generatedImage: PlatformImage?
     @State private var errorMessage: String?
@@ -1157,10 +1160,16 @@ struct GeneratorView: View {
                 negativePrompt: $configurationManager.negativePrompt
             )
 
-            // Model selection
+            // Model selection (full signature with all bindings)
             ModelSection(
-                configurationManager: configurationManager,
-                modelsManager: connectionManager.modelsManager
+                modelsManager: connectionManager.modelsManager,
+                selectedCheckpoint: $configurationManager.selectedCheckpoint,
+                selectedRefiner: $configurationManager.selectedRefiner,
+                refinerStart: $configurationManager.activeConfiguration.refinerStart,
+                sampler: $configurationManager.activeConfiguration.sampler,
+                modelName: $configurationManager.activeConfiguration.model,
+                refinerName: $configurationManager.activeConfiguration.refinerModel,
+                mixtureOfExperts: $configurationManager.mixtureOfExperts
             )
 
             // Generate button
