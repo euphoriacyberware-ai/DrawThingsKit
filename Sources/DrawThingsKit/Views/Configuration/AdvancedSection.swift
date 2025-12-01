@@ -31,10 +31,6 @@ public struct AdvancedSection: View {
     // Clip Skip
     @Binding var clipSkip: Int32
 
-    // CFG Zero Star
-    @Binding var cfgZeroStar: Bool
-    @Binding var cfgZeroInitSteps: Int32
-
     // Tiled Diffusion
     @Binding var tiledDiffusion: Bool
     @Binding var diffusionTileWidth: Int32
@@ -65,8 +61,6 @@ public struct AdvancedSection: View {
 
     public init(
         clipSkip: Binding<Int32>,
-        cfgZeroStar: Binding<Bool>,
-        cfgZeroInitSteps: Binding<Int32>,
         tiledDiffusion: Binding<Bool>,
         diffusionTileWidth: Binding<Int32>,
         diffusionTileHeight: Binding<Int32>,
@@ -87,8 +81,6 @@ public struct AdvancedSection: View {
         preserveOriginalAfterInpaint: Binding<Bool>
     ) {
         self._clipSkip = clipSkip
-        self._cfgZeroStar = cfgZeroStar
-        self._cfgZeroInitSteps = cfgZeroInitSteps
         self._tiledDiffusion = tiledDiffusion
         self._diffusionTileWidth = diffusionTileWidth
         self._diffusionTileHeight = diffusionTileHeight
@@ -121,14 +113,6 @@ public struct AdvancedSection: View {
                 range: 1...4,
                 step: 1,
                 format: "%.0f"
-            )
-
-            Divider()
-
-            // CFG Zero Star
-            CFGZeroStarSubSection(
-                cfgZeroStar: $cfgZeroStar,
-                cfgZeroInitSteps: $cfgZeroInitSteps
             )
 
             Divider()
@@ -183,36 +167,6 @@ public struct AdvancedSection: View {
 }
 
 // MARK: - Sub-Sections
-
-public struct CFGZeroStarSubSection: View {
-    @Binding var cfgZeroStar: Bool
-    @Binding var cfgZeroInitSteps: Int32
-
-    public init(
-        cfgZeroStar: Binding<Bool>,
-        cfgZeroInitSteps: Binding<Int32>
-    ) {
-        self._cfgZeroStar = cfgZeroStar
-        self._cfgZeroInitSteps = cfgZeroInitSteps
-    }
-
-    public var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Toggle("CFG Zero Star", isOn: $cfgZeroStar)
-                .help("Enable CFG Zero Star sampling for improved quality")
-
-            if cfgZeroStar {
-                ParameterSlider(
-                    label: "Init Steps",
-                    value: Binding(get: { Double(cfgZeroInitSteps) }, set: { cfgZeroInitSteps = Int32($0) }),
-                    range: 0...50,
-                    step: 1,
-                    format: "%.0f"
-                )
-            }
-        }
-    }
-}
 
 public struct TiledDiffusionSubSection: View {
     @Binding var tiledDiffusion: Bool
@@ -434,8 +388,6 @@ public struct InpaintSubSection: View {
     Form {
         AdvancedSection(
             clipSkip: .constant(1),
-            cfgZeroStar: .constant(false),
-            cfgZeroInitSteps: .constant(0),
             tiledDiffusion: .constant(false),
             diffusionTileWidth: .constant(16),
             diffusionTileHeight: .constant(16),

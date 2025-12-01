@@ -13,6 +13,7 @@ import DrawThingsClient
 /// Includes:
 /// - Steps
 /// - Guidance Scale (CFG)
+/// - CFG Zero Star (when showAdvanced is true)
 /// - Resolution Dependent Shift toggle
 /// - Shift (hidden when Resolution Dependent Shift is enabled)
 ///
@@ -21,26 +22,38 @@ import DrawThingsClient
 /// ParametersSection(
 ///     steps: $steps,
 ///     guidanceScale: $guidanceScale,
+///     cfgZeroStar: $cfgZeroStar,
+///     cfgZeroInitSteps: $cfgZeroInitSteps,
 ///     resolutionDependentShift: $resolutionDependentShift,
-///     shift: $shift
+///     shift: $shift,
+///     showAdvanced: showAdvanced
 /// )
 /// ```
 public struct ParametersSection: View {
     @Binding var steps: Int32
     @Binding var guidanceScale: Float
+    @Binding var cfgZeroStar: Bool
+    @Binding var cfgZeroInitSteps: Int32
     @Binding var resolutionDependentShift: Bool
     @Binding var shift: Float
+    var showAdvanced: Bool
 
     public init(
         steps: Binding<Int32>,
         guidanceScale: Binding<Float>,
+        cfgZeroStar: Binding<Bool>,
+        cfgZeroInitSteps: Binding<Int32>,
         resolutionDependentShift: Binding<Bool>,
-        shift: Binding<Float>
+        shift: Binding<Float>,
+        showAdvanced: Bool = false
     ) {
         self._steps = steps
         self._guidanceScale = guidanceScale
+        self._cfgZeroStar = cfgZeroStar
+        self._cfgZeroInitSteps = cfgZeroInitSteps
         self._resolutionDependentShift = resolutionDependentShift
         self._shift = shift
+        self.showAdvanced = showAdvanced
     }
 
     public var body: some View {
@@ -68,6 +81,25 @@ public struct ParametersSection: View {
                 step: 0.5,
                 format: "%.1f"
             )
+
+            // CFG Zero Star (advanced)
+            if showAdvanced {
+                Toggle("CFG Zero Star", isOn: $cfgZeroStar)
+                    .help("Enable CFG Zero Star sampling for improved quality")
+
+                if cfgZeroStar {
+                    ParameterSlider(
+                        label: "Init Steps",
+                        value: Binding(
+                            get: { Double(cfgZeroInitSteps) },
+                            set: { cfgZeroInitSteps = Int32($0) }
+                        ),
+                        range: 0...50,
+                        step: 1,
+                        format: "%.0f"
+                    )
+                }
+            }
 
             // Resolution Dependent Shift toggle
             Toggle("Resolution Dependent Shift", isOn: $resolutionDependentShift)
@@ -144,10 +176,13 @@ public struct ParameterSlider: View {
         ParametersSection(
             steps: .constant(28),
             guidanceScale: .constant(3.5),
-            resolutionDependentShift: .constant(true),
-            shift: .constant(1.0)
+            cfgZeroStar: .constant(true),
+            cfgZeroInitSteps: .constant(5),
+            resolutionDependentShift: .constant(false),
+            shift: .constant(1.0),
+            showAdvanced: true
         )
     }
     .formStyle(.grouped)
-    .frame(width: 400, height: 250)
+    .frame(width: 400, height: 350)
 }
