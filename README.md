@@ -631,7 +631,7 @@ QueueToolbar(queue: queue) {
 // Compact list (no progress section)
 QueueListView(queue: queue)
 
-// Sidebar-style layout
+// Sidebar-style layout (contains internal List - do not wrap in List or Section)
 QueueSidebarView(queue: queue)
 
 // Individual job rows
