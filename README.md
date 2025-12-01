@@ -692,45 +692,165 @@ PresetListView(
 
 ### Configuration Section Views
 
-Reusable form sections for building configuration UIs:
+Reusable SwiftUI form sections for building configuration UIs. Each section is a composable view that binds directly to `DrawThingsConfiguration` properties.
+
+**Standard Sections** (always visible):
 
 ```swift
-// Model selection with picker or text field (auto-switches based on connection)
-ModelSection(
-    configurationManager: configurationManager,
-    modelsManager: modelsManager
-)
-
 // Prompt input fields
 PromptSection(
     prompt: $configurationManager.prompt,
     negativePrompt: $configurationManager.negativePrompt
 )
 
-// Dimensions with presets
-DimensionsSection(configuration: $configurationManager.activeConfiguration)
+// Model selection - checkpoint, refiner, sampler, Mixture of Experts toggle
+ModelSection(
+    modelsManager: connectionManager.modelsManager,
+    selectedCheckpoint: $configurationManager.selectedCheckpoint,
+    selectedRefiner: $configurationManager.selectedRefiner,
+    refinerStart: $configurationManager.activeConfiguration.refinerStart,
+    sampler: $configurationManager.activeConfiguration.sampler,
+    modelName: $configurationManager.activeConfiguration.model,
+    refinerName: $configurationManager.activeConfiguration.refinerModel,
+    mixtureOfExperts: $configurationManager.mixtureOfExperts
+)
 
-// Steps, guidance, sampler, seed
-ParametersSection(configuration: $configurationManager.activeConfiguration)
-
-// Seed with randomize button
-SeedSection(configuration: $configurationManager.activeConfiguration)
-
-// LoRA management
+// LoRA management with weight sliders
+// When Mixture of Experts is enabled, shows mode selector (All/Base/Refiner)
 LoRASection(
-    configuration: $configurationManager.activeConfiguration,
-    modelsManager: modelsManager
+    modelsManager: connectionManager.modelsManager,
+    selectedLoRAs: $configurationManager.selectedLoRAs,
+    mixtureOfExperts: configurationManager.mixtureOfExperts
 )
 
-// ControlNet management
+// Core generation parameters
+// When showAdvanced is true, also shows CFG Zero Star toggle and Init Steps
+ParametersSection(
+    steps: $configurationManager.activeConfiguration.steps,
+    guidanceScale: $configurationManager.activeConfiguration.guidanceScale,
+    cfgZeroStar: $configurationManager.activeConfiguration.cfgZeroStar,
+    cfgZeroInitSteps: $configurationManager.activeConfiguration.cfgZeroInitSteps,
+    resolutionDependentShift: $configurationManager.activeConfiguration.resolutionDependentShift,
+    shift: $configurationManager.activeConfiguration.shift,
+    showAdvanced: showAdvanced
+)
+
+// Dimensions with presets and swap button
+DimensionsSection(
+    width: $configurationManager.activeConfiguration.width,
+    height: $configurationManager.activeConfiguration.height
+)
+
+// Seed with mode selector
+// When showAdvanced is true, shows additional seed modes
+SeedSection(
+    seed: $configurationManager.activeConfiguration.seed,
+    seedMode: $configurationManager.activeConfiguration.seedMode,
+    showAdvanced: showAdvanced
+)
+
+// Image-to-image strength
+StrengthSection(
+    strength: $configurationManager.activeConfiguration.strength
+)
+
+// Batch size (1-4 images per generation)
+BatchSection(
+    batchSize: $configurationManager.activeConfiguration.batchSize
+)
+
+// ControlNet model selection
 ControlNetSection(
-    configuration: $configurationManager.activeConfiguration,
-    modelsManager: modelsManager
+    modelsManager: connectionManager.modelsManager,
+    selectedControls: $configurationManager.selectedControls
 )
-
-// Advanced options (clip skip, refiner, etc.)
-AdvancedSection(configuration: $configurationManager.activeConfiguration)
 ```
+
+**Advanced Sections** (typically shown when an "Advanced" toggle is enabled):
+
+```swift
+if showAdvanced {
+    // Advanced generation settings
+    // Includes: Clip Skip, Tiled Diffusion/Decoding, HiRes Fix, Sharpness, Inpainting
+    AdvancedSection(
+        clipSkip: $config.clipSkip,
+        tiledDiffusion: $config.tiledDiffusion,
+        diffusionTileWidth: $config.diffusionTileWidth,
+        diffusionTileHeight: $config.diffusionTileHeight,
+        diffusionTileOverlap: $config.diffusionTileOverlap,
+        tiledDecoding: $config.tiledDecoding,
+        decodingTileWidth: $config.decodingTileWidth,
+        decodingTileHeight: $config.decodingTileHeight,
+        decodingTileOverlap: $config.decodingTileOverlap,
+        hiresFix: $config.hiresFix,
+        hiresFixWidth: $config.hiresFixWidth,
+        hiresFixHeight: $config.hiresFixHeight,
+        hiresFixStrength: $config.hiresFixStrength,
+        sharpness: $config.sharpness,
+        aestheticScore: $config.aestheticScore,
+        negativeAestheticScore: $config.negativeAestheticScore,
+        maskBlur: $config.maskBlur,
+        maskBlurOutset: $config.maskBlurOutset,
+        preserveOriginalAfterInpaint: $config.preserveOriginalAfterInpaint
+    )
+
+    // TEA Cache for faster generation
+    TeaCacheSection(
+        teaCache: $config.teaCache,
+        teaCacheStart: $config.teaCacheStart,
+        teaCacheEnd: $config.teaCacheEnd,
+        teaCacheThreshold: $config.teaCacheThreshold,
+        teaCacheMaxSkipSteps: $config.teaCacheMaxSkipSteps
+    )
+
+    // Video generation settings
+    VideoSection(
+        numFrames: $config.numFrames
+    )
+
+    // Causal inference for video models (CausVid)
+    CausalInferenceSection(
+        causalInferenceEnabled: $config.causalInferenceEnabled,
+        causalInference: $config.causalInference,
+        causalInferencePad: $config.causalInferencePad
+    )
+}
+```
+
+**Section Details:**
+
+| Section | Description |
+|---------|-------------|
+| `PromptSection` | Text fields for prompt and negative prompt |
+| `ModelSection` | Checkpoint/refiner pickers, sampler, Mixture of Experts toggle |
+| `LoRASection` | LoRA selection with weight sliders, optional mode selector |
+| `ParametersSection` | Steps, CFG Scale, CFG Zero Star (advanced), Resolution Dependent Shift, Shift |
+| `DimensionsSection` | Width/height sliders with presets and aspect ratio display |
+| `SeedSection` | Seed input with randomize, seed mode picker |
+| `StrengthSection` | Img2img strength slider |
+| `BatchSection` | Batch size slider |
+| `ControlNetSection` | ControlNet model selection with weight sliders |
+| `AdvancedSection` | Clip Skip, tiling, HiRes Fix, sharpness, inpainting settings |
+| `TeaCacheSection` | TEA Cache toggle and parameters for faster generation |
+| `VideoSection` | Number of frames for video generation |
+| `CausalInferenceSection` | CausVid settings for video models |
+
+**ParameterSlider:**
+
+All sections use the `ParameterSlider` component for numeric inputs:
+
+```swift
+// Reusable slider with label and value display
+ParameterSlider(
+    label: "Steps",
+    value: $stepsBinding,  // Binding<Double>
+    range: 1...150,
+    step: 1,
+    format: "%.0f"
+)
+```
+
+Sliders snap to step values when released, avoiding dense tick marks for large ranges.
 
 ---
 
