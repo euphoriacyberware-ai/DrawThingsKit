@@ -173,6 +173,21 @@ public struct ConfigurationJSON: Codable {
                 mode = 0
             }
         }
+
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(file, forKey: .file)
+            try container.encode(weight, forKey: .weight)
+            // Encode mode as string to match Draw Things format
+            let modeString: String
+            switch mode {
+            case 0: modeString = "all"
+            case 1: modeString = "base"
+            case 2: modeString = "refiner"
+            default: modeString = "all"
+            }
+            try container.encode(modeString, forKey: .mode)
+        }
     }
 
     public struct ControlJSON: Codable {
