@@ -62,7 +62,7 @@ public struct ModelSection: View {
     }
 
     public var body: some View {
-        Section("Models") {
+        VStack(alignment: .leading, spacing: 8) {
             // Bridge Mode toggle - on = cloud models, off = local models
             Toggle("Bridge Mode", isOn: $modelsManager.bridgeMode)
                 .help(modelsManager.bridgeMode
@@ -106,6 +106,7 @@ public struct ModelSection: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .onChange(of: modelsManager.baseModels) { _, newModels in
             // When models become available, try to match text field values to actual models
             if !newModels.isEmpty {
