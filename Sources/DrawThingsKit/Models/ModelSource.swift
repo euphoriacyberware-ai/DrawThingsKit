@@ -64,12 +64,14 @@ public struct ModelLabelView: View {
     }
 
     public var body: some View {
-        HStack(spacing: 6) {
-            if showSourceIcon && source != .local {
+        if showSourceIcon && source != .local {
+            Label {
+                Text(name)
+            } icon: {
                 Image(systemName: source.iconName)
                     .foregroundColor(source.iconColor)
-                    .font(.caption)
             }
+        } else {
             Text(name)
         }
     }
