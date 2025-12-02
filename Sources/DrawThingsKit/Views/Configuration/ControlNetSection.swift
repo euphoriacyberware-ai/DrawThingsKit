@@ -44,8 +44,10 @@ public struct ControlNetSection: View {
                                 .foregroundColor(.secondary)
                         } else {
                             ForEach(modelsManager.compatibleControlNets) { control in
-                                Button(control.name) {
+                                Button {
                                     addControlNet(control)
+                                } label: {
+                                    ModelLabelView(name: control.name, source: control.source)
                                 }
                                 .disabled(selectedControls.contains(where: { $0.controlNet.id == control.id }))
                             }
@@ -107,7 +109,7 @@ public struct ControlNetRow: View {
                     .labelsHidden()
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(config.controlNet.name)
+                    ModelLabelView(name: config.controlNet.name, source: config.controlNet.source)
                         .font(.body)
 
                     if let prefix = config.controlNet.prefix, !prefix.isEmpty {

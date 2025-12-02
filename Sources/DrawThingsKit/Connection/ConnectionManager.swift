@@ -249,7 +249,7 @@ public final class ConnectionManager: ObservableObject {
         service = nil
         activeProfile = nil
         connectionState = .disconnected
-        modelsManager.clear()
+        modelsManager.clearLocalModels()
     }
 
     /// Attempt to reconnect to the active profile.

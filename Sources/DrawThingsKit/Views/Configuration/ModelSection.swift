@@ -63,6 +63,12 @@ public struct ModelSection: View {
 
     public var body: some View {
         Section("Models") {
+            // Bridge Mode toggle - on = cloud models, off = local models
+            Toggle("Bridge Mode", isOn: $modelsManager.bridgeMode)
+                .help(modelsManager.bridgeMode
+                    ? "Using cloud models (official + community)"
+                    : "Using local models from connected server")
+
             if hasModels {
                 // Connected: show pickers
                 modelPicker
@@ -137,7 +143,8 @@ public struct ModelSection: View {
         Picker("Model", selection: $selectedCheckpoint) {
             Text("Select a model...").tag(nil as CheckpointModel?)
             ForEach(modelsManager.baseModels) { checkpoint in
-                Text(checkpoint.name).tag(checkpoint as CheckpointModel?)
+                ModelLabelView(name: checkpoint.name, source: checkpoint.source)
+                    .tag(checkpoint as CheckpointModel?)
             }
         }
         .onChange(of: selectedCheckpoint) { _, newValue in
@@ -153,7 +160,8 @@ public struct ModelSection: View {
             // Show either all base models or just refiners based on Mixture of Experts mode
             let availableRefiners = mixtureOfExperts ? modelsManager.baseModels : modelsManager.refinerModels
             ForEach(availableRefiners) { refiner in
-                Text(refiner.name).tag(refiner as CheckpointModel?)
+                ModelLabelView(name: refiner.name, source: refiner.source)
+                    .tag(refiner as CheckpointModel?)
             }
         }
         .help(mixtureOfExperts ? "Mixture of Experts: any model can be selected as refiner" : "Only refiner-flagged models available")
@@ -217,7 +225,8 @@ public struct ModelPicker: View {
         Picker(label, selection: $selectedCheckpoint) {
             Text("Select a model...").tag(nil as CheckpointModel?)
             ForEach(modelsManager.baseModels) { checkpoint in
-                Text(checkpoint.name).tag(checkpoint as CheckpointModel?)
+                ModelLabelView(name: checkpoint.name, source: checkpoint.source)
+                    .tag(checkpoint as CheckpointModel?)
             }
         }
         .onChange(of: selectedCheckpoint) { _, newValue in

@@ -1,0 +1,94 @@
+{
+  "checkpoints": [
+    {
+      "name": "Stable Diffusion v1.5",
+      "file": "sd_v1.5_f16.ckpt",
+      "version": "v1"
+    },
+    {
+      "name": "Stable Diffusion v2.1",
+      "file": "sd_v2.1_f16.ckpt",
+      "version": "v2"
+    },
+    {
+      "name": "SDXL Base 1.0",
+      "file": "sd_xl_base_1.0_f16.ckpt",
+      "version": "sdxlBase"
+    },
+    {
+      "name": "SDXL Refiner 1.0",
+      "file": "sd_xl_refiner_1.0_f16.ckpt",
+      "version": "sdxlRefiner"
+    },
+    {
+      "name": "FLUX.1 [schnell]",
+      "file": "flux_1_schnell_q8p.ckpt",
+      "version": "flux1"
+    },
+    {
+      "name": "FLUX.1 [dev]",
+      "file": "flux_1_dev_q8p.ckpt",
+      "version": "flux1"
+    },
+    {
+      "name": "AuraFlow v0.2",
+      "file": "auraflow_v0.2_q8p.ckpt",
+      "version": "auraflow"
+    },
+    {
+      "name": "PixArt Sigma XL 2",
+      "file": "pixart_sigma_xl_2_1024_ms_f16.ckpt",
+      "version": "pixartSigma"
+    },
+    {
+      "name": "Kandinsky 2.1",
+      "file": "kandinsky_2.1_f16.ckpt",
+      "version": "kandinsky21"
+    },
+    {
+      "name": "Stable Video Diffusion XT",
+      "file": "svd_i2v_xt_1.0_f16.ckpt",
+      "version": "svdI2v"
+    },
+    {
+      "name": "Wan 2.1 T2V 1.3B 480p",
+      "file": "wan_2.1_1.3b_t2v_480p_f16.ckpt",
+      "version": "wan21T2v"
+    },
+    {
+      "name": "Qwen Image 1.0",
+      "file": "qwen_image_1.0_q8p.ckpt",
+      "version": "qwenImage"
+    },
+    {
+      "name": "Stable Diffusion 3.5 Large",
+      "file": "sd3.5_large_q8p.ckpt",
+      "version": "sd3"
+    },
+    {
+      "name": "Stable Diffusion 3.5 Medium",
+      "file": "sd3.5_medium_q8p.ckpt",
+      "version": "sd3"
+    },
+    {
+      "name": "HiDream I1 Full",
+      "file": "hidream_i1_full_q8p.ckpt",
+      "version": "hidreamI1"
+    }
+  ],
+  "loras": [],
+  "controlNets": [],
+  "textualInversions": [],
+  "upscalers": [
+    {
+      "name": "RealESRGAN x4",
+      "file": "realesrgan_x4plus_f16.ckpt",
+      "scale_factor": 4
+    },
+    {
+      "name": "RealESRGAN x4 Anime",
+      "file": "realesrgan_x4plus_anime_f16.ckpt",
+      "scale_factor": 4
+    }
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "checkpoints": [
+    {
+      "name": "FLUX.1 [dev] (Exact)",
+      "file": "flux_1_dev_f16.ckpt",
+      "version": "flux1"
+    },
+    {
+      "name": "Ghibli Style v1",
+      "file": "ghibli_v1_q8p.ckpt",
+      "version": "flux1"
+    },
+    {
+      "name": "Cyberpunk Anime",
+      "file": "cyberpunk_anime_q8p.ckpt",
+      "version": "sdxlBase"
+    },
+    {
+      "name": "Disney Pixar Cartoon Type B",
+      "file": "disney_pixar_cartoon_type_b_q8p.ckpt",
+      "version": "flux1"
+    },
+    {
+      "name": "Spider-Verse v1",
+      "file": "spider_verse_v1_q8p.ckpt",
+      "version": "sdxlBase"
+    },
+    {
+      "name": "Hunyuan Video T2V 720p",
+      "file": "hunyuan_video_t2v_720p_q8p.ckpt",
+      "version": "hunyuanVideo"
+    },
+    {
+      "name": "Wan 2.1 14B T2V FusionX",
+      "file": "wan_2.1_14b_t2v_fusionx_q8p.ckpt",
+      "version": "wan21Large"
+    },
+    {
+      "name": "SkyReels v2 14B T2V 720p",
+      "file": "skyreels_v2_14b_t2v_720p_q8p.ckpt",
+      "version": "skyreelsV2"
+    },
+    {
+      "name": "FLUX.1 Fill [dev]",
+      "file": "flux_1_fill_dev_q8p.ckpt",
+      "version": "flux1",
+      "modifier": "inpainting"
+    },
+    {
+      "name": "FLUX.1 Depth [dev]",
+      "file": "flux_1_depth_dev_q8p.ckpt",
+      "version": "flux1"
+    },
+    {
+      "name": "Kwai Kolors Inpainting 1.0",
+      "file": "kwai_kolors_inpainting_1.0_q8p.ckpt",
+      "version": "kolors",
+      "modifier": "inpainting"
+    }
+  ],
+  "loras": [
+    {
+      "name": "Analog Diffusion v1.0",
+      "file": "analog_diffusion_v1_lora_f16.ckpt",
+      "version": "v1",
+      "prefix": "analog "
+    },
+    {
+      "name": "Anime Lineart Style v2.0",
+      "file": "anime_lineart_style_v2.0_lora_f16.ckpt",
+      "version": "sdxlBase"
+    },
+    {
+      "name": "Arcane Style",
+      "file": "arcane_style_lora_f16.ckpt",
+      "version": "v1"
+    },
+    {
+      "name": "LCM SSD-1B",
+      "file": "lcm_ssd_1b_lora_f16.ckpt",
+      "version": "ssd1b",
+      "is_consistency_model": true
+    },
+    {
+      "name": "Pixel Art XL v1.1",
+      "file": "pixel_art_xl_v1.1_lora_f16.ckpt",
+      "version": "sdxlBase"
+    },
+    {
+      "name": "OpenJourney v1.0",
+      "file": "openjourney_v1.0_lora_f16.ckpt",
+      "version": "v1",
+      "prefix": "mdjrny-v4 style "
+    }
+  ],
+  "controlNets": [],
+  "textualInversions": [],
+  "upscalers": []
+}
