@@ -126,11 +126,10 @@ public struct ConfigurationActionsView: View {
                 json: $editorJSON,
                 title: "Configuration JSON",
                 onDismiss: {
-                    if let config = try? DrawThingsConfiguration.fromJSON(editorJSON) {
-                        configurationManager.activeConfiguration = config
-                        if let manager = modelsManager {
-                            configurationManager.resolveModels(from: manager)
-                        }
+                    // Merge JSON into existing configuration (only updates fields present in JSON)
+                    try? configurationManager.activeConfiguration.mergeJSON(editorJSON)
+                    if let manager = modelsManager {
+                        configurationManager.resolveModels(from: manager)
                     }
                 }
             )
@@ -214,11 +213,10 @@ public struct ConfigurationActionsCompactView: View {
                 json: $editorJSON,
                 title: "Configuration JSON",
                 onDismiss: {
-                    if let config = try? DrawThingsConfiguration.fromJSON(editorJSON) {
-                        configurationManager.activeConfiguration = config
-                        if let manager = modelsManager {
-                            configurationManager.resolveModels(from: manager)
-                        }
+                    // Merge JSON into existing configuration (only updates fields present in JSON)
+                    try? configurationManager.activeConfiguration.mergeJSON(editorJSON)
+                    if let manager = modelsManager {
+                        configurationManager.resolveModels(from: manager)
                     }
                 }
             )
