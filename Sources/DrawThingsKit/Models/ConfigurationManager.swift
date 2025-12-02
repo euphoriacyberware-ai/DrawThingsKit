@@ -142,6 +142,7 @@ public final class ConfigurationManager: ObservableObject {
 
     /// Paste configuration from the system clipboard
     /// Returns true if successful, false if clipboard doesn't contain valid config
+    /// Only updates fields present in the JSON; other fields retain their current values.
     @discardableResult
     public func pasteFromClipboard() -> Bool {
         #if os(macOS)
@@ -155,8 +156,7 @@ public final class ConfigurationManager: ObservableObject {
         #endif
 
         do {
-            let config = try DrawThingsConfiguration.fromJSON(json)
-            activeConfiguration = config
+            try activeConfiguration.mergeJSON(json)
             return true
         } catch {
             print("Failed to paste configuration: \(error)")
@@ -165,10 +165,10 @@ public final class ConfigurationManager: ObservableObject {
     }
 
     /// Load a configuration from JSON string
+    /// Only updates fields present in the JSON; other fields retain their current values.
     public func loadFromJSON(_ json: String) -> Bool {
         do {
-            let config = try DrawThingsConfiguration.fromJSON(json)
-            activeConfiguration = config
+            try activeConfiguration.mergeJSON(json)
             return true
         } catch {
             print("Failed to load configuration: \(error)")

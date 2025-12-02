@@ -169,18 +169,18 @@ public struct ConfigurationEditorView: View {
     private var toolbar: some View {
         HStack(spacing: 12) {
             Button {
-                pasteFromClipboard()
-            } label: {
-                Label("Paste", systemImage: "doc.on.clipboard")
-            }
-            .help("Paste JSON from clipboard")
-
-            Button {
                 copyToClipboard()
             } label: {
                 Label("Copy", systemImage: "doc.on.doc")
             }
             .help("Copy JSON to clipboard")
+            
+            Button {
+                pasteFromClipboard()
+            } label: {
+                Label("Paste", systemImage: "doc.on.clipboard")
+            }
+            .help("Paste JSON from clipboard")
 
             Divider()
                 .frame(height: 20)

@@ -692,6 +692,226 @@ extension DrawThingsConfiguration {
             seedMode: configJSON.seedMode
         )
     }
+
+    /// Merge values from a JSON string into this configuration.
+    /// Only fields present in the JSON will be updated; other fields retain their current values.
+    ///
+    /// - Parameter json: The JSON string containing values to merge.
+    /// - Throws: ConfigurationCodableError if the JSON is invalid.
+    public mutating func mergeJSON(_ json: String) throws {
+        let trimmed = json.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Empty or default JSON means no changes
+        if trimmed.isEmpty || trimmed == "{}" {
+            return
+        }
+
+        guard let data = trimmed.data(using: .utf8) else {
+            throw ConfigurationCodableError.invalidJSON
+        }
+
+        guard let jsonDict = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw ConfigurationCodableError.invalidJSON
+        }
+
+        // Helper to check if key exists in JSON
+        func hasKey(_ key: String) -> Bool {
+            jsonDict[key] != nil
+        }
+
+        // Core parameters
+        if hasKey("width"), let v = jsonDict["width"] as? Int { width = Int32(v) }
+        if hasKey("height"), let v = jsonDict["height"] as? Int { height = Int32(v) }
+        if hasKey("steps"), let v = jsonDict["steps"] as? Int { steps = Int32(v) }
+        if hasKey("model"), let v = jsonDict["model"] as? String { model = v }
+        if hasKey("sampler"), let v = jsonDict["sampler"] as? Int { sampler = SamplerType(rawValue: Int8(v)) ?? sampler }
+        if hasKey("guidanceScale"), let v = jsonDict["guidanceScale"] as? Double { guidanceScale = Float(v) }
+        if hasKey("seed") {
+            if let v = jsonDict["seed"] as? Int64 { seed = v }
+            else if let v = jsonDict["seed"] as? Int { seed = Int64(v) }
+            else if jsonDict["seed"] is NSNull { seed = nil }
+        }
+        if hasKey("clipSkip"), let v = jsonDict["clipSkip"] as? Int { clipSkip = Int32(v) }
+        if hasKey("shift"), let v = jsonDict["shift"] as? Double { shift = Float(v) }
+
+        // Batch parameters
+        if hasKey("batchCount"), let v = jsonDict["batchCount"] as? Int { batchCount = Int32(v) }
+        if hasKey("batchSize"), let v = jsonDict["batchSize"] as? Int { batchSize = Int32(v) }
+        if hasKey("strength"), let v = jsonDict["strength"] as? Double { strength = Float(v) }
+
+        // Guidance parameters
+        if hasKey("imageGuidanceScale"), let v = jsonDict["imageGuidanceScale"] as? Double { imageGuidanceScale = Float(v) }
+        if hasKey("clipWeight"), let v = jsonDict["clipWeight"] as? Double { clipWeight = Float(v) }
+        if hasKey("guidanceEmbed"), let v = jsonDict["guidanceEmbed"] as? Double { guidanceEmbed = Float(v) }
+        if hasKey("speedUpWithGuidanceEmbed"), let v = jsonDict["speedUpWithGuidanceEmbed"] as? Bool { speedUpWithGuidanceEmbed = v }
+        if hasKey("cfgZeroStar"), let v = jsonDict["cfgZeroStar"] as? Bool { cfgZeroStar = v }
+        if hasKey("cfgZeroInitSteps"), let v = jsonDict["cfgZeroInitSteps"] as? Int { cfgZeroInitSteps = Int32(v) }
+
+        // Mask/Inpaint parameters
+        if hasKey("maskBlur"), let v = jsonDict["maskBlur"] as? Double { maskBlur = Float(v) }
+        if hasKey("maskBlurOutset"), let v = jsonDict["maskBlurOutset"] as? Int { maskBlurOutset = Int32(v) }
+        if hasKey("preserveOriginalAfterInpaint"), let v = jsonDict["preserveOriginalAfterInpaint"] as? Bool { preserveOriginalAfterInpaint = v }
+        if hasKey("enableInpainting"), let v = jsonDict["enableInpainting"] as? Bool { enableInpainting = v }
+
+        // Quality parameters
+        if hasKey("sharpness"), let v = jsonDict["sharpness"] as? Double { sharpness = Float(v) }
+        if hasKey("stochasticSamplingGamma"), let v = jsonDict["stochasticSamplingGamma"] as? Double { stochasticSamplingGamma = Float(v) }
+        if hasKey("aestheticScore"), let v = jsonDict["aestheticScore"] as? Double { aestheticScore = Float(v) }
+        if hasKey("negativeAestheticScore"), let v = jsonDict["negativeAestheticScore"] as? Double { negativeAestheticScore = Float(v) }
+
+        // Image prior parameters
+        if hasKey("negativePromptForImagePrior"), let v = jsonDict["negativePromptForImagePrior"] as? Bool { negativePromptForImagePrior = v }
+        if hasKey("imagePriorSteps"), let v = jsonDict["imagePriorSteps"] as? Int { imagePriorSteps = Int32(v) }
+
+        // Crop/Size parameters
+        if hasKey("cropTop"), let v = jsonDict["cropTop"] as? Int { cropTop = Int32(v) }
+        if hasKey("cropLeft"), let v = jsonDict["cropLeft"] as? Int { cropLeft = Int32(v) }
+        if hasKey("originalImageHeight"), let v = jsonDict["originalImageHeight"] as? Int { originalImageHeight = Int32(v) }
+        if hasKey("originalImageWidth"), let v = jsonDict["originalImageWidth"] as? Int { originalImageWidth = Int32(v) }
+        if hasKey("targetImageHeight"), let v = jsonDict["targetImageHeight"] as? Int { targetImageHeight = Int32(v) }
+        if hasKey("targetImageWidth"), let v = jsonDict["targetImageWidth"] as? Int { targetImageWidth = Int32(v) }
+        if hasKey("negativeOriginalImageHeight"), let v = jsonDict["negativeOriginalImageHeight"] as? Int { negativeOriginalImageHeight = Int32(v) }
+        if hasKey("negativeOriginalImageWidth"), let v = jsonDict["negativeOriginalImageWidth"] as? Int { negativeOriginalImageWidth = Int32(v) }
+
+        // Upscaler parameters
+        if hasKey("upscalerScaleFactor"), let v = jsonDict["upscalerScaleFactor"] as? Int { upscalerScaleFactor = Int32(v) }
+
+        // Text encoder parameters
+        if hasKey("resolutionDependentShift"), let v = jsonDict["resolutionDependentShift"] as? Bool { resolutionDependentShift = v }
+        if hasKey("t5TextEncoder"), let v = jsonDict["t5TextEncoder"] as? Bool { t5TextEncoder = v }
+        if hasKey("separateClipL"), let v = jsonDict["separateClipL"] as? Bool { separateClipL = v }
+        if hasKey("separateOpenClipG"), let v = jsonDict["separateOpenClipG"] as? Bool { separateOpenClipG = v }
+        if hasKey("separateT5"), let v = jsonDict["separateT5"] as? Bool { separateT5 = v }
+
+        // Tiled parameters
+        if hasKey("tiledDiffusion"), let v = jsonDict["tiledDiffusion"] as? Bool { tiledDiffusion = v }
+        if hasKey("diffusionTileWidth"), let v = jsonDict["diffusionTileWidth"] as? Int { diffusionTileWidth = Int32(v) }
+        if hasKey("diffusionTileHeight"), let v = jsonDict["diffusionTileHeight"] as? Int { diffusionTileHeight = Int32(v) }
+        if hasKey("diffusionTileOverlap"), let v = jsonDict["diffusionTileOverlap"] as? Int { diffusionTileOverlap = Int32(v) }
+        if hasKey("tiledDecoding"), let v = jsonDict["tiledDecoding"] as? Bool { tiledDecoding = v }
+        if hasKey("decodingTileWidth"), let v = jsonDict["decodingTileWidth"] as? Int { decodingTileWidth = Int32(v) }
+        if hasKey("decodingTileHeight"), let v = jsonDict["decodingTileHeight"] as? Int { decodingTileHeight = Int32(v) }
+        if hasKey("decodingTileOverlap"), let v = jsonDict["decodingTileOverlap"] as? Int { decodingTileOverlap = Int32(v) }
+
+        // HiRes Fix parameters
+        if hasKey("hiresFix"), let v = jsonDict["hiresFix"] as? Bool { hiresFix = v }
+        if hasKey("hiresFixWidth"), let v = jsonDict["hiresFixWidth"] as? Int { hiresFixWidth = Int32(v) }
+        if hasKey("hiresFixHeight"), let v = jsonDict["hiresFixHeight"] as? Int { hiresFixHeight = Int32(v) }
+        if hasKey("hiresFixStrength"), let v = jsonDict["hiresFixStrength"] as? Double { hiresFixStrength = Float(v) }
+
+        // Stage 2 parameters
+        if hasKey("stage2Steps"), let v = jsonDict["stage2Steps"] as? Int { stage2Steps = Int32(v) }
+        if hasKey("stage2Guidance"), let v = jsonDict["stage2Guidance"] as? Double { stage2Guidance = Float(v) }
+        if hasKey("stage2Shift"), let v = jsonDict["stage2Shift"] as? Double { stage2Shift = Float(v) }
+
+        // TEA Cache parameters
+        if hasKey("teaCache"), let v = jsonDict["teaCache"] as? Bool { teaCache = v }
+        if hasKey("teaCacheStart"), let v = jsonDict["teaCacheStart"] as? Int { teaCacheStart = Int32(v) }
+        if hasKey("teaCacheEnd"), let v = jsonDict["teaCacheEnd"] as? Int { teaCacheEnd = Int32(v) }
+        if hasKey("teaCacheThreshold"), let v = jsonDict["teaCacheThreshold"] as? Double { teaCacheThreshold = Float(v) }
+        if hasKey("teaCacheMaxSkipSteps"), let v = jsonDict["teaCacheMaxSkipSteps"] as? Int { teaCacheMaxSkipSteps = Int32(v) }
+
+        // Causal inference parameters
+        if hasKey("causalInference"), let v = jsonDict["causalInference"] as? Int {
+            causalInference = Int32(v)
+            causalInferenceEnabled = v > 0
+        }
+        if hasKey("causalInferencePad"), let v = jsonDict["causalInferencePad"] as? Int { causalInferencePad = Int32(v) }
+
+        // Video parameters
+        if hasKey("fps"), let v = jsonDict["fps"] as? Int { fps = Int32(v) }
+        if hasKey("motionScale"), let v = jsonDict["motionScale"] as? Int { motionScale = Int32(v) }
+        if hasKey("guidingFrameNoise"), let v = jsonDict["guidingFrameNoise"] as? Double { guidingFrameNoise = Float(v) }
+        if hasKey("startFrameGuidance"), let v = jsonDict["startFrameGuidance"] as? Double { startFrameGuidance = Float(v) }
+        if hasKey("numFrames"), let v = jsonDict["numFrames"] as? Int { numFrames = Int32(v) }
+
+        // Refiner parameters
+        if hasKey("refinerModel") {
+            if let v = jsonDict["refinerModel"] as? String, !v.isEmpty { refinerModel = v }
+            else { refinerModel = nil }
+        }
+        if hasKey("refinerStart"), let v = jsonDict["refinerStart"] as? Double { refinerStart = Float(v) }
+        if hasKey("zeroNegativePrompt"), let v = jsonDict["zeroNegativePrompt"] as? Bool { zeroNegativePrompt = v }
+
+        // Upscaler and face restoration
+        if hasKey("upscaler") {
+            if let v = jsonDict["upscaler"] as? String, !v.isEmpty { upscaler = v }
+            else { upscaler = nil }
+        }
+        if hasKey("faceRestoration") {
+            if let v = jsonDict["faceRestoration"] as? String, !v.isEmpty { faceRestoration = v }
+            else { faceRestoration = nil }
+        }
+
+        // Configuration name
+        if hasKey("name") {
+            if let v = jsonDict["name"] as? String { name = v }
+            else { name = nil }
+        }
+
+        // Separate text encoder prompts
+        if hasKey("clipLText") {
+            if let v = jsonDict["clipLText"] as? String { clipLText = v }
+            else { clipLText = nil }
+        }
+        if hasKey("openClipGText") {
+            if let v = jsonDict["openClipGText"] as? String { openClipGText = v }
+            else { openClipGText = nil }
+        }
+        if hasKey("t5Text") {
+            if let v = jsonDict["t5Text"] as? String { t5Text = v }
+            else { t5Text = nil }
+        }
+
+        // Seed mode
+        if hasKey("seedMode"), let v = jsonDict["seedMode"] as? Int { seedMode = Int32(v) }
+
+        // LoRAs - only update if present in JSON
+        if hasKey("loras"), let lorasArray = jsonDict["loras"] as? [[String: Any]] {
+            loras = lorasArray.compactMap { loraDict -> LoRAConfig? in
+                guard let file = loraDict["file"] as? String else { return nil }
+                let weight = Float(loraDict["weight"] as? Double ?? 1.0)
+                let mode: LoRAMode
+                if let modeInt = loraDict["mode"] as? Int {
+                    mode = LoRAMode(rawValue: Int8(modeInt)) ?? .all
+                } else if let modeString = loraDict["mode"] as? String {
+                    switch modeString.lowercased() {
+                    case "all": mode = .all
+                    case "base": mode = .base
+                    case "refiner": mode = .refiner
+                    default: mode = .all
+                    }
+                } else {
+                    mode = .all
+                }
+                return LoRAConfig(file: file, weight: weight, mode: mode)
+            }
+        }
+
+        // Controls - only update if present in JSON
+        if hasKey("controls"), let controlsArray = jsonDict["controls"] as? [[String: Any]] {
+            controls = controlsArray.compactMap { controlDict -> ControlConfig? in
+                guard let file = controlDict["file"] as? String else { return nil }
+                let weight = Float(controlDict["weight"] as? Double ?? 1.0)
+                let guidanceStart = Float(controlDict["guidanceStart"] as? Double ?? 0.0)
+                let guidanceEnd = Float(controlDict["guidanceEnd"] as? Double ?? 1.0)
+                let controlMode: ControlMode
+                if let modeInt = controlDict["controlMode"] as? Int {
+                    controlMode = ControlMode(rawValue: Int8(modeInt)) ?? .balanced
+                } else if let importance = controlDict["controlImportance"] as? String {
+                    switch importance.lowercased() {
+                    case "balanced": controlMode = .balanced
+                    case "prompt": controlMode = .prompt
+                    case "control": controlMode = .control
+                    default: controlMode = .balanced
+                    }
+                } else {
+                    controlMode = .balanced
+                }
+                return ControlConfig(file: file, weight: weight, guidanceStart: guidanceStart, guidanceEnd: guidanceEnd, controlMode: controlMode)
+            }
+        }
+    }
 }
 
 // MARK: - JSON Validation
