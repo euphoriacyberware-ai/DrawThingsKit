@@ -22,6 +22,9 @@ let package = Package(
             name: "DrawThingsKit",
             dependencies: [
                 .product(name: "DrawThingsClient", package: "DT-gRPC-Swift-Client"),
+            ],
+            resources: [
+                .process("Resources")
             ]
         ),
         .testTarget(

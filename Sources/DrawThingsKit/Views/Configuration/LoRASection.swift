@@ -51,8 +51,10 @@ public struct LoRASection: View {
                                 .foregroundColor(.secondary)
                         } else {
                             ForEach(modelsManager.compatibleLoRAs) { lora in
-                                Button(lora.name) {
+                                Button {
                                     addLoRA(lora)
+                                } label: {
+                                    ModelLabelView(name: lora.name, source: lora.source)
                                 }
                                 .disabled(selectedLoRAs.contains(where: { $0.lora.id == lora.id }))
                             }
@@ -123,7 +125,7 @@ public struct LoRARow: View {
                     .labelsHidden()
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(config.lora.name)
+                    ModelLabelView(name: config.lora.name, source: config.lora.source)
                         .font(.body)
 
                     if let prefix = config.lora.prefix, !prefix.isEmpty {
