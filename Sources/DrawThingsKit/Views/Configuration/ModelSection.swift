@@ -143,7 +143,7 @@ public struct ModelSection: View {
         Picker("Model", selection: $selectedCheckpoint) {
             Text("Select a model...").tag(nil as CheckpointModel?)
             ForEach(modelsManager.baseModels) { checkpoint in
-                ModelLabelView(name: checkpoint.name, source: checkpoint.source)
+                modelLabel(for: checkpoint)
                     .tag(checkpoint as CheckpointModel?)
             }
         }
@@ -160,13 +160,26 @@ public struct ModelSection: View {
             // Show either all base models or just refiners based on Mixture of Experts mode
             let availableRefiners = mixtureOfExperts ? modelsManager.baseModels : modelsManager.refinerModels
             ForEach(availableRefiners) { refiner in
-                ModelLabelView(name: refiner.name, source: refiner.source)
+                modelLabel(for: refiner)
                     .tag(refiner as CheckpointModel?)
             }
         }
         .help(mixtureOfExperts ? "Mixture of Experts: any model can be selected as refiner" : "Only refiner-flagged models available")
         .onChange(of: selectedRefiner) { _, newValue in
             refinerName = newValue?.file
+        }
+    }
+
+    /// Creates a label for a model, with source icon prefix for cloud models.
+    @ViewBuilder
+    private func modelLabel(for checkpoint: CheckpointModel) -> some View {
+        switch checkpoint.source {
+        case .official:
+            Text("\(Image(systemName: "checkmark.seal.fill")) \(checkpoint.name)")
+        case .community:
+            Text("\(Image(systemName: "person.2.fill")) \(checkpoint.name)")
+        case .local:
+            Text(checkpoint.name)
         }
     }
 
