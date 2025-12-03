@@ -291,6 +291,87 @@ public struct UpscalerModel: Identifiable, Codable, Hashable, Sendable {
     }
 }
 
+// MARK: - Version Normalization
+
+/// Normalizes model version strings to a canonical format.
+/// Handles the mapping between camelCase versions (from server) and underscore versions.
+///
+/// Based on Draw Things versionMap:
+/// - `sdxlBase` -> `sdxl_base_v0.9`
+/// - `sdxlRefiner` -> `sdxl_refiner_v0.9`
+/// - `kandinsky21` -> `kandinsky2.1`
+/// - `svdI2v` -> `svd_i2v`
+/// - `wan21_1_3b` -> `wan_v2.1_1.3b`
+/// - `wan21_14b` -> `wan_v2.1_14b`
+/// - `hiDreamI1` -> `hidream_i1`
+/// - `qwenImage` -> `qwen_image`
+/// - `wurstchenStageC` -> `wurstchen_v3.0_stage_c`
+/// - `wurstchenStageB` -> `wurstchen_v3.0_stage_b`
+/// - `ssd1b` -> `ssd_1b`
+public enum ModelVersionNormalizer {
+    /// Mapping from camelCase to canonical underscore format.
+    private static let versionMap: [String: String] = [
+        "sdxlBase": "sdxl_base_v0.9",
+        "sdxlRefiner": "sdxl_refiner_v0.9",
+        "kandinsky21": "kandinsky2.1",
+        "ssd1b": "ssd_1b",
+        "svdI2v": "svd_i2v",
+        "wurstchenStageC": "wurstchen_v3.0_stage_c",
+        "wurstchenStageB": "wurstchen_v3.0_stage_b",
+        "hiDreamI1": "hidream_i1",
+        "qwenImage": "qwen_image",
+        "wan21_1_3b": "wan_v2.1_1.3b",
+        "wan21_14b": "wan_v2.1_14b",
+        "wan22_5b": "wan_v2.2_5b",
+    ]
+
+    /// Reverse mapping from underscore to camelCase format.
+    private static let reverseMap: [String: String] = {
+        Dictionary(uniqueKeysWithValues: versionMap.map { ($1, $0) })
+    }()
+
+    /// Normalizes a version string to the canonical underscore format.
+    /// - Parameter version: The version string (either format)
+    /// - Returns: The normalized version string
+    public static func normalize(_ version: String) -> String {
+        // If it's a camelCase version, map it
+        if let mapped = versionMap[version] {
+            return mapped
+        }
+        // Already in canonical format or unknown
+        return version
+    }
+
+    /// Checks if two version strings are compatible (same model family).
+    /// - Parameters:
+    ///   - version1: First version string
+    ///   - version2: Second version string
+    /// - Returns: True if the versions are compatible
+    public static func areCompatible(_ version1: String?, _ version2: String?) -> Bool {
+        guard let v1 = version1, let v2 = version2 else {
+            // If either is nil, consider them compatible (show all)
+            return true
+        }
+        return normalize(v1) == normalize(v2)
+    }
+
+    /// Returns all version strings that are compatible with the given version.
+    /// Useful for filtering when you need to match against multiple formats.
+    /// - Parameter version: The version string
+    /// - Returns: Set of all compatible version strings (both formats)
+    public static func compatibleVersions(for version: String) -> Set<String> {
+        let normalized = normalize(version)
+        var versions: Set<String> = [version, normalized]
+
+        // Add reverse mapping if it exists
+        if let camelCase = reverseMap[normalized] {
+            versions.insert(camelCase)
+        }
+
+        return versions
+    }
+}
+
 // MARK: - Models Manager
 
 /// Manages model catalogs received from the Draw Things server.
@@ -357,30 +438,33 @@ public final class ModelsManager: ObservableObject {
     // MARK: - Compatibility Filtering
 
     /// LoRAs compatible with the currently selected checkpoint.
+    /// Uses version normalization to handle different version string formats.
     public var compatibleLoRAs: [LoRAModel] {
         guard let checkpoint = selectedCheckpoint,
               let checkpointVersion = checkpoint.version else {
             return loras
         }
-        return loras.filter { $0.version == checkpointVersion }
+        return loras.filter { ModelVersionNormalizer.areCompatible($0.version, checkpointVersion) }
     }
 
     /// ControlNets compatible with the currently selected checkpoint.
+    /// Uses version normalization to handle different version string formats.
     public var compatibleControlNets: [ControlNetModel] {
         guard let checkpoint = selectedCheckpoint,
               let checkpointVersion = checkpoint.version else {
             return controlNets
         }
-        return controlNets.filter { $0.version == checkpointVersion }
+        return controlNets.filter { ModelVersionNormalizer.areCompatible($0.version, checkpointVersion) }
     }
 
     /// Textual inversions compatible with the currently selected checkpoint.
+    /// Uses version normalization to handle different version string formats.
     public var compatibleTextualInversions: [TextualInversionModel] {
         guard let checkpoint = selectedCheckpoint,
               let checkpointVersion = checkpoint.version else {
             return textualInversions
         }
-        return textualInversions.filter { $0.version == checkpointVersion }
+        return textualInversions.filter { ModelVersionNormalizer.areCompatible($0.version, checkpointVersion) }
     }
 
     /// Checkpoint models that are refiners (version contains "refiner").
