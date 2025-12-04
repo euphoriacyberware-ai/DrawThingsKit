@@ -41,81 +41,79 @@ public struct LoRAMOESection: View {
     }
 
     public var body: some View {
-        Section {
-            DisclosureGroup("LoRAs (\(enabledCount)/\(selectedLoRAs.count))") {
-                VStack(spacing: 8) {
-                    // Add LoRA menu
-                    Menu {
-                        if modelsManager.compatibleLoRAs.isEmpty {
-                            Text("No compatible LoRAs")
-                                .foregroundColor(.secondary)
-                        } else {
-                            ForEach(modelsManager.compatibleLoRAs) { lora in
-                                Button {
-                                    addLoRA(lora)
-                                } label: {
-                                    ModelLabelView(name: lora.name, source: lora.source)
-                                }
-                                .disabled(selectedLoRAs.contains(where: { $0.lora.id == lora.id }))
-                            }
-                        }
-                    } label: {
-                        Label("Add LoRA", systemImage: "plus.circle")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .disabled(modelsManager.selectedCheckpoint == nil)
-                    .help(modelsManager.selectedCheckpoint == nil ? "Select a checkpoint first" : "Add a LoRA model")
-
-                    // Column headers
-                    HStack {
-                        Text("BASE")
-                            .font(.caption2)
-                            .fontWeight(.semibold)
+        Section("LoRAs (\(enabledCount)/\(selectedLoRAs.count))") {
+            VStack(spacing: 8) {
+                // Add LoRA menu
+                Menu {
+                    if modelsManager.compatibleLoRAs.isEmpty {
+                        Text("No compatible LoRAs")
                             .foregroundColor(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-
-                        Text("ALL")
-                            .font(.caption2)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.secondary)
-
-                        Text("REFINER")
-                            .font(.caption2)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                    }
-                    .padding(.horizontal, 4)
-
-                    Divider()
-
-                    // LoRA list with drag-to-change-mode
-                    if selectedLoRAs.isEmpty {
-                        Text("No LoRAs added")
-                            .foregroundColor(.secondary)
-                            .font(.caption)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
                     } else {
-                        ForEach($selectedLoRAs) { $loraConfig in
-                            DraggableLoRARow(config: $loraConfig) {
-                                removeLoRA(loraConfig)
+                        ForEach(modelsManager.compatibleLoRAs) { lora in
+                            Button {
+                                addLoRA(lora)
+                            } label: {
+                                ModelLabelView(name: lora.name, source: lora.source)
                             }
+                            .disabled(selectedLoRAs.contains(where: { $0.lora.id == lora.id }))
                         }
                     }
-
-                    // Legend
-                    HStack(spacing: 16) {
-                        legendItem(color: .blue, text: "Base")
-                        legendItem(color: .purple, text: "All")
-                        legendItem(color: .orange, text: "Refiner")
-                    }
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                    .padding(.top, 4)
+                } label: {
+                    Label("Add LoRA", systemImage: "plus.circle")
+                        .frame(maxWidth: .infinity)
                 }
-                .padding(.vertical, 8)
+                .disabled(modelsManager.selectedCheckpoint == nil)
+                .help(modelsManager.selectedCheckpoint == nil ? "Select a checkpoint first" : "Add a LoRA model")
+
+                // Column headers
+                HStack {
+                    Text("BASE")
+                        .font(.caption2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Text("ALL")
+                        .font(.caption2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.secondary)
+
+                    Text("REFINER")
+                        .font(.caption2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+                .padding(.horizontal, 4)
+
+                Divider()
+
+                // LoRA list with drag-to-change-mode
+                if selectedLoRAs.isEmpty {
+                    Text("No LoRAs added")
+                        .foregroundColor(.secondary)
+                        .font(.caption)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                } else {
+                    ForEach($selectedLoRAs) { $loraConfig in
+                        DraggableLoRARow(config: $loraConfig) {
+                            removeLoRA(loraConfig)
+                        }
+                    }
+                }
+
+                // Legend
+                HStack(spacing: 16) {
+                    legendItem(color: .blue, text: "Base")
+                    legendItem(color: .purple, text: "All")
+                    legendItem(color: .orange, text: "Refiner")
+                }
+                .font(.caption2)
+                .foregroundColor(.secondary)
+                .padding(.top, 4)
             }
+            .padding(.vertical, 8)
         }
     }
 
@@ -294,7 +292,7 @@ struct DraggableLoRARow: View {
                 .buttonStyle(.plain)
             }
 
-            // Weight slider
+            // Weight slider (snaps to 0.05 increments when released)
             HStack(spacing: 4) {
                 Text(String(format: "%.2f", config.weight))
                     .font(.caption2)
@@ -302,8 +300,12 @@ struct DraggableLoRARow: View {
                     .foregroundColor(.secondary)
                     .frame(width: 32)
 
-                Slider(value: $config.weight, in: -1.5...2.5)
-                    .controlSize(.mini)
+                Slider(value: $config.weight, in: -1.5...2.5) { editing in
+                    if !editing {
+                        config.weight = (config.weight / 0.05).rounded() * 0.05
+                    }
+                }
+                .controlSize(.mini)
             }
         }
         .padding(.horizontal, 8)

@@ -63,11 +63,16 @@ public struct ModelSection: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            
             // Bridge Mode toggle - on = cloud models, off = local models
             Toggle("Bridge Mode", isOn: $modelsManager.bridgeMode)
                 .help(modelsManager.bridgeMode
                     ? "Using cloud models (official + community)"
                     : "Using local models from connected server")
+            
+            // Toggle MOE mode
+            Toggle("Mixture of Experts", isOn: $mixtureOfExperts)
+                .help("Enable for Wan 2.2 workflows - allows any model to be selected as refiner")
 
             if hasModels {
                 // Connected: show pickers
@@ -95,9 +100,6 @@ public struct ModelSection: View {
                         .monospacedDigit()
                 }
             }
-
-            Toggle("Mixture of Experts", isOn: $mixtureOfExperts)
-                .help("Enable for Wan 2.2 workflows - allows any model to be selected as refiner")
 
             // Sampler Picker
             Picker("Sampler", selection: $sampler) {
