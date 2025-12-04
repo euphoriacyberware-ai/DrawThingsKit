@@ -14,8 +14,8 @@ import SwiftUI
 /// A composable section for editing prompts in a generation configuration.
 ///
 /// Provides editors for:
-/// - Positive prompt
-/// - Negative prompt (with toggle)
+/// - Positive prompt (with token count estimate)
+/// - Negative prompt (with toggle and token count)
 /// - Separate CLIP-L, OpenCLIP-G, and T5 prompts (optional, advanced)
 ///
 /// Example usage:
@@ -40,6 +40,8 @@ public struct PromptSection: View {
     @Binding var t5Text: String
 
     var showAdvanced: Bool
+    var showTokenCount: Bool
+    var tokenLimit: Int
 
     public init(
         prompt: Binding<String>,
@@ -51,7 +53,9 @@ public struct PromptSection: View {
         openClipGText: Binding<String> = .constant(""),
         separateT5: Binding<Bool> = .constant(false),
         t5Text: Binding<String> = .constant(""),
-        showAdvanced: Bool = false
+        showAdvanced: Bool = false,
+        showTokenCount: Bool = true,
+        tokenLimit: Int = 77
     ) {
         self._prompt = prompt
         self._negativePrompt = negativePrompt
@@ -63,16 +67,27 @@ public struct PromptSection: View {
         self._separateT5 = separateT5
         self._t5Text = t5Text
         self.showAdvanced = showAdvanced
+        self.showTokenCount = showTokenCount
+        self.tokenLimit = tokenLimit
     }
 
     public var body: some View {
         Section {
             // Positive Prompt
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Positive Prompt")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                promptEditor(text: $prompt, minHeight: 80)
+            if showTokenCount {
+                TokenCountingPromptEditor(
+                    text: $prompt,
+                    label: "Positive Prompt",
+                    tokenLimit: tokenLimit,
+                    minHeight: 80
+                )
+            } else {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Positive Prompt")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    promptEditor(text: $prompt, minHeight: 80)
+                }
             }
 
             // Negative Prompt Toggle and Editor
@@ -83,7 +98,17 @@ public struct PromptSection: View {
             .toggleStyle(.switch)
 
             if !zeroNegativePrompt {
-                promptEditor(text: $negativePrompt, minHeight: 60)
+                if showTokenCount {
+                    TokenCountingPromptEditor(
+                        text: $negativePrompt,
+                        label: nil,
+                        tokenLimit: tokenLimit,
+                        minHeight: 60,
+                        showLabel: false
+                    )
+                } else {
+                    promptEditor(text: $negativePrompt, minHeight: 60)
+                }
             }
 
             // Advanced: Separate encoder prompts
@@ -93,21 +118,52 @@ public struct PromptSection: View {
                     .toggleStyle(.switch)
 
                 if separateClipL {
-                    promptEditor(text: $clipLText, minHeight: 60)
+                    if showTokenCount {
+                        TokenCountingPromptEditor(
+                            text: $clipLText,
+                            label: nil,
+                            tokenLimit: tokenLimit,
+                            minHeight: 60,
+                            showLabel: false
+                        )
+                    } else {
+                        promptEditor(text: $clipLText, minHeight: 60)
+                    }
                 }
 
                 Toggle("Separate OpenCLIP-G Prompt", isOn: $separateOpenClipG)
                     .toggleStyle(.switch)
 
                 if separateOpenClipG {
-                    promptEditor(text: $openClipGText, minHeight: 60)
+                    if showTokenCount {
+                        TokenCountingPromptEditor(
+                            text: $openClipGText,
+                            label: nil,
+                            tokenLimit: tokenLimit,
+                            minHeight: 60,
+                            showLabel: false
+                        )
+                    } else {
+                        promptEditor(text: $openClipGText, minHeight: 60)
+                    }
                 }
 
                 Toggle("Separate T5 Prompt", isOn: $separateT5)
                     .toggleStyle(.switch)
 
                 if separateT5 {
-                    promptEditor(text: $t5Text, minHeight: 60)
+                    // T5 has a higher token limit (256)
+                    if showTokenCount {
+                        TokenCountingPromptEditor(
+                            text: $t5Text,
+                            label: nil,
+                            tokenLimit: 256,
+                            minHeight: 60,
+                            showLabel: false
+                        )
+                    } else {
+                        promptEditor(text: $t5Text, minHeight: 60)
+                    }
                 }
             }
         }
