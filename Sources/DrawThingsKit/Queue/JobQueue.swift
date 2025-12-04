@@ -174,24 +174,69 @@ public final class JobQueue: ObservableObject {
     // MARK: - Queue Operations
 
     /// Add a job to the queue.
+    ///
+    /// If the job's seed is nil or negative (random), a random seed will be generated
+    /// client-side so the seed value is known and can be displayed in results.
+    ///
     /// - Parameter job: The job to add.
     public func enqueue(_ job: GenerationJob) {
         var newJob = job
         newJob.status = .pending
+
+        // Generate random seed if needed
+        newJob = assignRandomSeedIfNeeded(newJob)
+
         jobs.append(newJob)
         saveJobs()
         events.send(.jobAdded(newJob))
     }
 
     /// Add multiple jobs to the queue.
+    ///
+    /// If any job's seed is nil or negative (random), a random seed will be generated
+    /// client-side so the seed value is known and can be displayed in results.
+    ///
     /// - Parameter newJobs: The jobs to add.
     public func enqueue(_ newJobs: [GenerationJob]) {
         for var job in newJobs {
             job.status = .pending
+            job = assignRandomSeedIfNeeded(job)
             jobs.append(job)
             events.send(.jobAdded(job))
         }
         saveJobs()
+    }
+
+    /// Assigns a random seed to a job if its current seed is nil or negative.
+    ///
+    /// Draw Things uses -1 (or nil) to indicate "server should generate random seed",
+    /// but this means we don't know what seed was used. By generating the seed
+    /// client-side, we can display it in the results and allow reproduction.
+    ///
+    /// - Parameter job: The job to check and potentially modify.
+    /// - Returns: The job with a random seed assigned if needed.
+    private func assignRandomSeedIfNeeded(_ job: GenerationJob) -> GenerationJob {
+        guard var config = try? job.configuration() else {
+            return job
+        }
+
+        // Check if seed needs to be randomized
+        // nil or negative values indicate "random"
+        if config.seed == nil || config.seed! < 0 {
+            // Generate a random seed (UInt32 range to match Draw Things)
+            let randomSeed = Int64(arc4random())
+            config.seed = randomSeed
+
+            // Update the job with the new configuration
+            if let updatedJSON = try? config.toJSON() {
+                var updatedJob = job
+                updatedJob.configurationJSON = updatedJSON
+                DTLogger.debug("Assigned random seed \(randomSeed) to job \(job.id)", category: .queue)
+                return updatedJob
+            }
+        }
+
+        return job
     }
 
     /// Remove a job from the queue.
