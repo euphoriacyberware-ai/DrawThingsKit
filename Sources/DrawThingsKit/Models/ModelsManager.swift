@@ -2,7 +2,11 @@
 //  ModelsManager.swift
 //  DrawThingsKit
 //
-//  Manages model catalogs received from the Draw Things server.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import Foundation

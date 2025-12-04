@@ -1,15 +1,6 @@
 {
   "pins" : [
     {
-      "identity" : "dt-grpc-swift-client",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/euphoriacyberware-ai/DT-gRPC-Swift-Client",
-      "state" : {
-        "revision" : "7c4fbccb231589a6022307592fd3a32d9d5f3468",
-        "version" : "1.2.1"
-      }
-    },
-    {
       "identity" : "flatbuffers",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/google/flatbuffers.git",

@@ -2,7 +2,11 @@
 //  LoRAMOESection.swift
 //  DrawThingsKit
 //
-//  Alternative LoRA UI for Mixture of Experts mode with drag-to-change-mode interface.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import SwiftUI

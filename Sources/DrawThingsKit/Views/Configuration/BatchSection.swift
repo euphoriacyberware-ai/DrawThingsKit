@@ -2,7 +2,11 @@
 //  BatchSection.swift
 //  DrawThingsKit
 //
-//  Composable batch section for configuration UI.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import SwiftUI
@@ -16,7 +20,7 @@ public struct BatchSection: View {
     }
 
     public var body: some View {
-        Section("Batch") {
+        Section {
             ParameterSlider(
                 label: "Batch Size",
                 value: Binding(

@@ -2,7 +2,11 @@
 //  ControlNetSection.swift
 //  DrawThingsKit
 //
-//  Composable ControlNet selection section for configuration UI.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import SwiftUI
@@ -35,7 +39,7 @@ public struct ControlNetSection: View {
 
     public var body: some View {
         Section {
-            DisclosureGroup("ControlNet (\(enabledCount)/\(selectedControls.count))") {
+            //DisclosureGroup("ControlNet (\(enabledCount)/\(selectedControls.count))") {
                 VStack(spacing: 12) {
                     // Add ControlNet menu
                     Menu {
@@ -75,7 +79,7 @@ public struct ControlNetSection: View {
                     }
                 }
                 .padding(.vertical, 8)
-            }
+            //}
         }
     }
 

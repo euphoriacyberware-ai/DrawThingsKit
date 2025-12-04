@@ -2,7 +2,11 @@
 //  ParametersSection.swift
 //  DrawThingsKit
 //
-//  Composable generation parameters section for configuration UI.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import SwiftUI
@@ -57,7 +61,7 @@ public struct ParametersSection: View {
     }
 
     public var body: some View {
-        Section("Parameters") {
+        Section {
             // Steps
             ParameterSlider(
                 label: "Steps",

@@ -2,7 +2,11 @@
 //  VideoSection.swift
 //  DrawThingsKit
 //
-//  Composable video configuration section for configuration UI.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import SwiftUI
@@ -21,7 +25,7 @@ public struct VideoSection: View {
     }
 
     public var body: some View {
-        Section("Video") {
+        Section {
             ParameterSlider(
                 label: "Num Frames",
                 value: Binding(
