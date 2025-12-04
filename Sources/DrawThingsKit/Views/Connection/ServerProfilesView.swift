@@ -153,7 +153,7 @@ public struct ServerProfilesView: View {
                         showDeleteConfirmation = true
                     }
                 } label: {
-                    Image(systemName: "minus")
+                    Image(systemName: "trash")
                 }
                 .help("Delete Server")
                 .disabled(selectedProfile == nil)

@@ -1,5 +1,5 @@
 //
-//  StrengthSection.swift
+//  Image2ImageSection.swift
 //  DrawThingsKit
 //
 //  Created by euphoriacyberware-ai.
@@ -12,7 +12,7 @@
 import SwiftUI
 
 /// A section for strength-related parameters (img2img).
-public struct StrengthSection: View {
+public struct Image2ImageSection: View {
     @Binding var strength: Float
 
     public init(strength: Binding<Float>) {
@@ -37,7 +37,7 @@ public struct StrengthSection: View {
 
 #Preview {
     Form {
-        StrengthSection(strength: .constant(0.75))
+        Image2ImageSection(strength: .constant(0.75))
     }
     .formStyle(.grouped)
     .frame(width: 400, height: 150)

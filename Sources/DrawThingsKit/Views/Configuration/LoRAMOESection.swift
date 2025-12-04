@@ -45,7 +45,7 @@ public struct LoRAMOESection: View {
     }
 
     public var body: some View {
-        Section("LoRAs (\(enabledCount)/\(selectedLoRAs.count))") {
+        Section {
             VStack(spacing: 8) {
                 // Add LoRA menu
                 Menu {
