@@ -296,30 +296,46 @@ public struct UpscalerModel: Identifiable, Codable, Hashable, Sendable {
 /// Normalizes model version strings to a canonical format.
 /// Handles the mapping between camelCase versions (from server) and underscore versions.
 ///
-/// Based on Draw Things versionMap:
-/// - `sdxlBase` -> `sdxl_base_v0.9`
-/// - `sdxlRefiner` -> `sdxl_refiner_v0.9`
-/// - `kandinsky21` -> `kandinsky2.1`
-/// - `svdI2v` -> `svd_i2v`
-/// - `wan21_1_3b` -> `wan_v2.1_1.3b`
-/// - `wan21_14b` -> `wan_v2.1_14b`
-/// - `hiDreamI1` -> `hidream_i1`
-/// - `qwenImage` -> `qwen_image`
-/// - `wurstchenStageC` -> `wurstchen_v3.0_stage_c`
-/// - `wurstchenStageB` -> `wurstchen_v3.0_stage_b`
-/// - `ssd1b` -> `ssd_1b`
+/// Based on Draw Things ModelZoo version mappings:
+/// - SDXL: `sdxlBase`, `sdxlRefiner`, `ssd1b`
+/// - SD3: `sd3`, `sd3Large`
+/// - Flux: `flux1`
+/// - Wan: `wan21_1_3b`, `wan21_14b`, `wan22_5b`
+/// - Video: `hunyuanVideo`, `svdI2v`
+/// - Cascade: `wurstchenStageC`, `wurstchenStageB`
+/// - Other: `kandinsky21`, `pixart`, `auraflow`, `hiDreamI1`, `qwenImage`, `zImage`
 public enum ModelVersionNormalizer {
     /// Mapping from camelCase to canonical underscore format.
     private static let versionMap: [String: String] = [
+        // SDXL family
         "sdxlBase": "sdxl_base_v0.9",
         "sdxlRefiner": "sdxl_refiner_v0.9",
-        "kandinsky21": "kandinsky2.1",
         "ssd1b": "ssd_1b",
+        // Stable Diffusion 3
+        "sd3": "sd3",
+        "sd3Large": "sd3_large",
+        // Kandinsky
+        "kandinsky21": "kandinsky2.1",
+        // Stable Video Diffusion
         "svdI2v": "svd_i2v",
+        // Stable Cascade (Würstchen)
         "wurstchenStageC": "wurstchen_v3.0_stage_c",
         "wurstchenStageB": "wurstchen_v3.0_stage_b",
+        // Flux
+        "flux1": "flux1",
+        // PixArt
+        "pixart": "pixart",
+        // AuraFlow
+        "auraflow": "auraflow",
+        // HiDream
         "hiDreamI1": "hidream_i1",
+        // Qwen Image
         "qwenImage": "qwen_image",
+        // Z Image
+        "zImage": "z_image",
+        // Hunyuan Video
+        "hunyuanVideo": "hunyuan_video",
+        // Wan models
         "wan21_1_3b": "wan_v2.1_1.3b",
         "wan21_14b": "wan_v2.1_14b",
         "wan22_5b": "wan_v2.2_5b",
