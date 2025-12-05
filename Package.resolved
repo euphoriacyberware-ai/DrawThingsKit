@@ -1,6 +1,19 @@
 {
   "pins" : [
     {
+      "identity" : "dt-grpc-swift-client",
+      "kind" : "remoteSourceControl",
+<<<<<<< Updated upstream
+      "location" : "https://github.com/euphoriacyberware-ai/DT-gRPC-Swift-Client",
+=======
+      "location" : "https://github.com/euphoriacyberware-ai/DT-gRPC-Swift-Client.git",
+>>>>>>> Stashed changes
+      "state" : {
+        "revision" : "80061f3080c29a2af58aff047fed666f4e4a352c",
+        "version" : "1.2.2"
+      }
+    },
+    {
       "identity" : "flatbuffers",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/google/flatbuffers.git",
@@ -104,8 +117,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-log.git",
       "state" : {
-        "revision" : "ca538143e2dc2b5996c34b9322a1ed9def1d7747",
-        "version" : "1.7.0"
+        "revision" : "b1fa4ef41fe21b13120c034854042d12c43f66b2",
+        "version" : "1.7.1"
       }
     },
     {
@@ -122,8 +135,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-extras.git",
       "state" : {
-        "revision" : "7ee281d816fa8e5f3967a2c294035a318ea551c7",
-        "version" : "1.31.0"
+        "revision" : "a46134557b0aec5e94e2de13a9dfc6474caf4c18",
+        "version" : "1.31.1"
       }
     },
     {
