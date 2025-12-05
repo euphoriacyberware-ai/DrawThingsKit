@@ -60,32 +60,60 @@ public struct TokenCountingPromptEditor: View {
 
                 Spacer()
 
-                // Token badge in its own view to isolate updates
-                TokenBadgeView(text: text, tokenLimit: tokenLimit)
+                // Token badge - computed inline, no state
+                tokenCountBadge
             }
 
-            // Text editor in its own view to prevent re-renders from token updates
-            PromptTextEditor(text: $text, minHeight: minHeight)
+            // Text editor
+            textEditor
         }
     }
-}
 
-/// Isolated token badge view - updates don't affect sibling views
-private struct TokenBadgeView: View {
-    let text: String
-    let tokenLimit: Int
+    // MARK: - Token Count Badge
 
     private var estimatedTokens: Int {
         TokenEstimator.estimateTokens(text)
     }
 
-    private var percentage: Double {
-        Double(estimatedTokens) / Double(tokenLimit)
-    }
+    private var tokenCountBadge: some View {
+        let percentage = Double(estimatedTokens) / Double(tokenLimit)
 
-    var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: tokenIcon)
+        let icon: String = {
+            if percentage > 1.0 {
+                return "exclamationmark.triangle.fill"
+            } else if percentage > 0.9 {
+                return "exclamationmark.circle.fill"
+            } else {
+                return "number"
+            }
+        }()
+
+        let bgColor: Color = {
+            if percentage > 1.0 {
+                return .red
+            } else if percentage > 0.9 {
+                return .orange
+            } else if percentage > 0.75 {
+                return .yellow
+            } else {
+                return .green
+            }
+        }()
+
+        let fgColor: Color = {
+            if percentage > 1.0 {
+                return .red
+            } else if percentage > 0.9 {
+                return .orange
+            } else if percentage > 0.75 {
+                return .yellow
+            } else {
+                return .secondary
+            }
+        }()
+
+        return HStack(spacing: 4) {
+            Image(systemName: icon)
                 .font(.caption2)
 
             Text("~\(estimatedTokens)/\(tokenLimit)")
@@ -93,59 +121,16 @@ private struct TokenBadgeView: View {
         }
         .padding(.horizontal, 6)
         .padding(.vertical, 2)
-        .background(tokenBackgroundColor.opacity(0.2))
-        .foregroundColor(tokenForegroundColor)
+        .background(bgColor.opacity(0.2))
+        .foregroundColor(fgColor)
         .cornerRadius(4)
         .help("Estimated token count (approximate)")
     }
 
-    private var tokenIcon: String {
-        if percentage > 1.0 {
-            return "exclamationmark.triangle.fill"
-        } else if percentage > 0.9 {
-            return "exclamationmark.circle.fill"
-        } else {
-            return "number"
-        }
-    }
+    // MARK: - Text Editor
 
-    private var tokenBackgroundColor: Color {
-        if percentage > 1.0 {
-            return .red
-        } else if percentage > 0.9 {
-            return .orange
-        } else if percentage > 0.75 {
-            return .yellow
-        } else {
-            return .green
-        }
-    }
-
-    private var tokenForegroundColor: Color {
-        if percentage > 1.0 {
-            return .red
-        } else if percentage > 0.9 {
-            return .orange
-        } else if percentage > 0.75 {
-            return .yellow
-        } else {
-            return .secondary
-        }
-    }
-}
-
-/// Isolated text editor view - uses Equatable conformance to minimize re-renders
-private struct PromptTextEditor: View, Equatable {
-    @Binding var text: String
-    let minHeight: CGFloat
-
-    static func == (lhs: PromptTextEditor, rhs: PromptTextEditor) -> Bool {
-        // Only re-render if minHeight changes, not text
-        // Text changes are handled internally by TextEditor
-        lhs.minHeight == rhs.minHeight
-    }
-
-    var body: some View {
+    @ViewBuilder
+    private var textEditor: some View {
         #if os(macOS)
         TextEditor(text: $text)
             .frame(minHeight: minHeight)
@@ -167,13 +152,6 @@ private struct PromptTextEditor: View, Equatable {
                     .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
             )
         #endif
-    }
-}
-
-extension PromptTextEditor {
-    // Use equatable rendering to prevent unnecessary re-renders
-    func _equatable() -> EquatableView<Self> {
-        return .init(content: self)
     }
 }
 
