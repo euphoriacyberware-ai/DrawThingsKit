@@ -34,7 +34,10 @@ public struct TokenCountingPromptEditor: View {
     var minHeight: CGFloat
     var showLabel: Bool
 
-    @State private var estimatedTokens: Int = 2
+    /// Computed token count - no state updates needed
+    private var estimatedTokens: Int {
+        TokenEstimator.estimateTokens(text)
+    }
 
     public init(
         text: Binding<String>,
@@ -67,12 +70,6 @@ public struct TokenCountingPromptEditor: View {
 
             // Text editor
             textEditor
-        }
-        .onChange(of: text) { _, newValue in
-            estimatedTokens = TokenEstimator.estimateTokens(newValue)
-        }
-        .onAppear {
-            estimatedTokens = TokenEstimator.estimateTokens(text)
         }
     }
 
