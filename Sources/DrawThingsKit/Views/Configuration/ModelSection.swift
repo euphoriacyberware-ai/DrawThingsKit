@@ -44,42 +44,6 @@ public struct ModelSection: View {
         !modelsManager.baseModels.isEmpty
     }
 
-    /// Automatically detect Mixture of Experts mode based on selected model
-    /// Wan 2.2 models use MOE workflow where any model can be used as refiner
-    private var isMixtureOfExperts: Bool {
-        // Check selected checkpoint first
-        if let checkpoint = selectedCheckpoint {
-            return isWan22Model(checkpoint)
-        }
-        // Fall back to model name string
-        return isWan22ModelName(modelName)
-    }
-
-    /// Check if a checkpoint model is a Wan 2.2 model
-    private func isWan22Model(_ model: CheckpointModel) -> Bool {
-        // Check version string
-        if let version = model.version {
-            if version.lowercased().contains("wan22") || version.lowercased().contains("wan_2.2") {
-                return true
-            }
-        }
-        // Check file name
-        if isWan22ModelName(model.file) {
-            return true
-        }
-        // Check display name
-        if model.name.lowercased().contains("wan 2.2") || model.name.lowercased().contains("wan2.2") {
-            return true
-        }
-        return false
-    }
-
-    /// Check if a model filename indicates Wan 2.2
-    private func isWan22ModelName(_ name: String) -> Bool {
-        let lower = name.lowercased()
-        return lower.contains("wan_v2.2") || lower.contains("wan_2.2") || lower.contains("wan22")
-    }
-
     public init(
         modelsManager: ModelsManager,
         selectedCheckpoint: Binding<CheckpointModel?>,
@@ -176,13 +140,11 @@ public struct ModelSection: View {
     // MARK: - Picker Views (when connected)
 
     private var modelPicker: some View {
-        Picker("Model", selection: $selectedCheckpoint) {
-            Text("Select a model...").tag(nil as CheckpointModel?)
-            ForEach(modelsManager.baseModels) { checkpoint in
-                modelLabel(for: checkpoint)
-                    .tag(checkpoint as CheckpointModel?)
-            }
-        }
+        SearchableModelPicker(
+            selection: $selectedCheckpoint,
+            models: modelsManager.baseModels,
+            label: "Model"
+        )
         .onChange(of: selectedCheckpoint) { _, newValue in
             modelsManager.selectedCheckpoint = newValue
             modelName = newValue?.file ?? ""
@@ -190,32 +152,15 @@ public struct ModelSection: View {
     }
 
     private var refinerPicker: some View {
-        Picker("Refiner", selection: $selectedRefiner) {
-            Text("None").tag(nil as CheckpointModel?)
-
-            // Show either all base models or just refiners based on Mixture of Experts mode
-            let availableRefiners = isMixtureOfExperts ? modelsManager.baseModels : modelsManager.refinerModels
-            ForEach(availableRefiners) { refiner in
-                modelLabel(for: refiner)
-                    .tag(refiner as CheckpointModel?)
-            }
-        }
-        .help(isMixtureOfExperts ? "Mixture of Experts: any model can be selected as refiner" : "Only refiner-flagged models available")
+        SearchableModelPicker(
+            selection: $selectedRefiner,
+            models: modelsManager.baseModels,
+            label: "Refiner",
+            placeholder: "None",
+            allowNone: true
+        )
         .onChange(of: selectedRefiner) { _, newValue in
             refinerName = newValue?.file
-        }
-    }
-
-    /// Creates a label for a model, with source icon prefix for cloud models.
-    @ViewBuilder
-    private func modelLabel(for checkpoint: CheckpointModel) -> some View {
-        switch checkpoint.source {
-        case .official:
-            Text("\(Image(systemName: "checkmark.seal.fill")) \(checkpoint.name)")
-        case .community:
-            Text("\(Image(systemName: "person.2.fill")) \(checkpoint.name)")
-        case .local:
-            Text(checkpoint.name)
         }
     }
 
@@ -271,13 +216,11 @@ public struct ModelPicker: View {
     }
 
     public var body: some View {
-        Picker(label, selection: $selectedCheckpoint) {
-            Text("Select a model...").tag(nil as CheckpointModel?)
-            ForEach(modelsManager.baseModels) { checkpoint in
-                ModelLabelView(name: checkpoint.name, source: checkpoint.source)
-                    .tag(checkpoint as CheckpointModel?)
-            }
-        }
+        SearchableModelPicker(
+            selection: $selectedCheckpoint,
+            models: modelsManager.baseModels,
+            label: label
+        )
         .onChange(of: selectedCheckpoint) { _, newValue in
             modelsManager.selectedCheckpoint = newValue
         }
@@ -364,8 +307,8 @@ public struct ModelPicker: View {
     .frame(width: 400, height: 400)
 }
 
-#Preview("Connected - Wan 2.2 MOE Mode") {
-    // Wan 2.2 model automatically enables MOE mode
+#Preview("Connected - Video Model") {
+    // Video models like Wan 2.2
     let wan22Model = CheckpointModel.mock(name: "Wan 2.2 14B I2V", file: "wan_v2.2_fun_14b_control_i2v.safetensors", version: "wan22")
     let manager = ModelsManager.preview(withCheckpoints: [
         wan22Model,
@@ -380,6 +323,42 @@ public struct ModelPicker: View {
             refinerStart: .constant(0.85),
             sampler: .constant(.dpmpp2mkarras),
             modelName: .constant("wan_v2.2_fun_14b_control_i2v.safetensors"),
+            refinerName: .constant(nil)
+        )
+    }
+    .formStyle(.grouped)
+    .frame(width: 400, height: 400)
+}
+
+#Preview("Searchable Picker - Many Models") {
+    // Test the searchable picker with a large list including all sources
+    let manager = ModelsManager.preview(withCheckpoints: [
+        // Local models
+        .mock(name: "SDXL Base 1.0", file: "sd_xl_base_1.0.safetensors", version: "sdxl", source: .local),
+        .mock(name: "SDXL Refiner 1.0", file: "sd_xl_refiner_1.0.safetensors", version: "sdxl-refiner", source: .local),
+        .mock(name: "Juggernaut XL v9", file: "juggernaut_xl_v9.safetensors", version: "sdxl", source: .local),
+        .mock(name: "RealVisXL V5", file: "realvisxl_v5.safetensors", version: "sdxl", source: .local),
+        .mock(name: "Wan 2.2 14B I2V", file: "wan_v2.2_fun_14b_control_i2v.safetensors", version: "wan22", source: .local),
+        // Official models
+        .mock(name: "Stable Diffusion 3.5 Large", file: "sd3.5_large.safetensors", version: "sd3", source: .official),
+        .mock(name: "Stable Diffusion 3.5 Medium", file: "sd3.5_medium.safetensors", version: "sd3", source: .official),
+        .mock(name: "FLUX.1 Dev", file: "flux1-dev.safetensors", version: "flux", source: .official),
+        .mock(name: "FLUX.1 Schnell", file: "flux1-schnell.safetensors", version: "flux", source: .official),
+        // Community models
+        .mock(name: "DreamShaper XL", file: "dreamshaper_xl.safetensors", version: "sdxl", source: .community),
+        .mock(name: "Proteus v0.5", file: "proteus_v0.5.safetensors", version: "sdxl", source: .community),
+        .mock(name: "NightVision XL", file: "nightvision_xl.safetensors", version: "sdxl", source: .community),
+        .mock(name: "Animagine XL 3.1", file: "animagine_xl_3.1.safetensors", version: "sdxl", source: .community),
+        .mock(name: "Pony Diffusion V6", file: "pony_v6.safetensors", version: "sdxl", source: .community),
+    ])
+    return Form {
+        ModelSection(
+            modelsManager: manager,
+            selectedCheckpoint: .constant(nil),
+            selectedRefiner: .constant(nil),
+            refinerStart: .constant(0.85),
+            sampler: .constant(.dpmpp2mkarras),
+            modelName: .constant(""),
             refinerName: .constant(nil)
         )
     }

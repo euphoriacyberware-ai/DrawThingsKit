@@ -108,7 +108,7 @@ public struct LoRASection: View {
     private var standardLayout: some View {
         Section {
             VStack(spacing: 8) {
-                addLoRAMenu
+                addLoRAPicker
 
                 // LoRA list
                 if selectedLoRAs.isEmpty {
@@ -134,7 +134,7 @@ public struct LoRASection: View {
     private var moeLayout: some View {
         Section {
             VStack(spacing: 8) {
-                addLoRAMenu
+                addLoRAPicker
 
                 // Column headers
                 HStack {
@@ -190,27 +190,14 @@ public struct LoRASection: View {
 
     // MARK: - Shared Components
 
-    private var addLoRAMenu: some View {
-        Menu {
-            if modelsManager.compatibleLoRAs.isEmpty {
-                Text("No compatible LoRAs")
-                    .foregroundColor(.secondary)
-            } else {
-                ForEach(modelsManager.compatibleLoRAs) { lora in
-                    Button {
-                        addLoRA(lora)
-                    } label: {
-                        ModelLabelView(name: lora.name, source: lora.source)
-                    }
-                    .disabled(selectedLoRAs.contains(where: { $0.lora.id == lora.id }))
-                }
-            }
-        } label: {
-            Label("Add LoRA", systemImage: "plus.circle")
-                .frame(maxWidth: .infinity)
-        }
-        .disabled(modelsManager.selectedCheckpoint == nil)
-        .help(modelsManager.selectedCheckpoint == nil ? "Select a checkpoint first" : "Add a LoRA model")
+    private var addLoRAPicker: some View {
+        SearchableLoRAPicker(
+            loras: modelsManager.compatibleLoRAs,
+            selectedLoRAIds: Set(selectedLoRAs.map { $0.lora.id }),
+            onSelect: { lora in addLoRA(lora) },
+            disabled: modelsManager.selectedCheckpoint == nil,
+            disabledReason: modelsManager.selectedCheckpoint == nil ? "Select a checkpoint first" : nil
+        )
     }
 
     @ViewBuilder

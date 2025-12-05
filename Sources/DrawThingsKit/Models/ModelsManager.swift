@@ -421,29 +421,118 @@ public final class ModelsManager: ObservableObject {
 
     // MARK: - Model Lists (Either cloud OR local)
 
-    /// Available checkpoints - cloud when bridgeMode is on, local when off.
+    /// Available checkpoints - when bridgeMode is on, shows cloud + local with deduplication.
+    /// When off, shows only local models.
+    /// Deduplication priority: Official > Community > Local
     public var checkpoints: [CheckpointModel] {
-        bridgeMode ? CloudModels.allCheckpoints : localCheckpoints
+        if bridgeMode {
+            return mergeModels(
+                cloud: CloudModels.allCheckpoints,
+                local: localCheckpoints,
+                getId: { $0.file }
+            )
+        } else {
+            return localCheckpoints
+        }
     }
 
-    /// Available LoRAs - cloud when bridgeMode is on, local when off.
+    /// Available LoRAs - when bridgeMode is on, shows cloud + local with deduplication.
+    /// When off, shows only local models.
+    /// Deduplication priority: Official > Community > Local
     public var loras: [LoRAModel] {
-        bridgeMode ? CloudModels.allLoRAs : localLoRAs
+        if bridgeMode {
+            return mergeModels(
+                cloud: CloudModels.allLoRAs,
+                local: localLoRAs,
+                getId: { $0.file }
+            )
+        } else {
+            return localLoRAs
+        }
     }
 
-    /// Available ControlNets - cloud when bridgeMode is on, local when off.
+    /// Available ControlNets - when bridgeMode is on, shows cloud + local with deduplication.
+    /// When off, shows only local models.
+    /// Deduplication priority: Official > Community > Local
     public var controlNets: [ControlNetModel] {
-        bridgeMode ? CloudModels.allControlNets : localControlNets
+        if bridgeMode {
+            return mergeModels(
+                cloud: CloudModels.allControlNets,
+                local: localControlNets,
+                getId: { $0.file }
+            )
+        } else {
+            return localControlNets
+        }
     }
 
-    /// Available textual inversions - cloud when bridgeMode is on, local when off.
+    /// Available textual inversions - when bridgeMode is on, shows cloud + local with deduplication.
+    /// When off, shows only local models.
     public var textualInversions: [TextualInversionModel] {
-        bridgeMode ? CloudModels.allTextualInversions : localTextualInversions
+        if bridgeMode {
+            return mergeModels(
+                cloud: CloudModels.allTextualInversions,
+                local: localTextualInversions,
+                getId: { $0.file }
+            )
+        } else {
+            return localTextualInversions
+        }
     }
 
-    /// Available upscalers - cloud when bridgeMode is on, local when off.
+    /// Available upscalers - when bridgeMode is on, shows cloud + local with deduplication.
+    /// When off, shows only local models.
     public var upscalers: [UpscalerModel] {
-        bridgeMode ? CloudModels.allUpscalers : localUpscalers
+        if bridgeMode {
+            return mergeModels(
+                cloud: CloudModels.allUpscalers,
+                local: localUpscalers,
+                getId: { $0.file }
+            )
+        } else {
+            return localUpscalers
+        }
+    }
+
+    // MARK: - Merging Logic
+
+    /// Merges cloud and local models with deduplication.
+    /// Priority: Official > Community > Local
+    /// - Parameters:
+    ///   - cloud: Cloud models (official + community)
+    ///   - local: Local models from connected server
+    ///   - getId: Function to extract the unique identifier (filename) from a model
+    /// - Returns: Merged list with duplicates resolved by priority
+    private func mergeModels<T>(
+        cloud: [T],
+        local: [T],
+        getId: (T) -> String
+    ) -> [T] where T: Any {
+        // Build a dictionary of cloud models by ID
+        // Since cloud models are already sorted by source (official first, then community),
+        // we can just use them as-is for the lookup
+        var seenIds = Set<String>()
+        var result: [T] = []
+
+        // Add cloud models first (they have priority)
+        for model in cloud {
+            let id = getId(model)
+            if !seenIds.contains(id) {
+                seenIds.insert(id)
+                result.append(model)
+            }
+        }
+
+        // Add local models that don't overlap with cloud
+        for model in local {
+            let id = getId(model)
+            if !seenIds.contains(id) {
+                seenIds.insert(id)
+                result.append(model)
+            }
+        }
+
+        return result
     }
 
     /// Whether any local models have been received from a server.
