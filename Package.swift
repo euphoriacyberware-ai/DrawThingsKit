@@ -16,7 +16,7 @@ let package = Package(
     ],
     dependencies: [
         // Use local path for development; switch to URL for releases:
-         .package(url: "https://github.com/euphoriacyberware-ai/DT-gRPC-Swift-Client.git", from: "1.2.1"),
+         .package(url: "https://github.com/euphoriacyberware-ai/DT-gRPC-Swift-Client.git", from: "1.2.2"),
         //.package(path: "../DT-gRPC-Swift-Client"),
     ],
     targets: [
