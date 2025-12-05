@@ -16,6 +16,7 @@ import DrawThingsClient
 ///
 /// Provides a simple list-based layout for adding and configuring LoRAs.
 /// Each LoRA can be enabled/disabled and has an adjustable weight slider.
+/// When a Wan 2.2 model is selected, shows mode selectors (All/Base/Refiner).
 ///
 /// Example usage:
 /// ```swift
@@ -34,6 +35,31 @@ public struct LoRASection: View {
     ) {
         self.modelsManager = modelsManager
         self._selectedLoRAs = selectedLoRAs
+    }
+
+    /// Whether Mixture of Experts mode is active (auto-detected from Wan 2.2 models).
+    private var isMixtureOfExperts: Bool {
+        guard let checkpoint = modelsManager.selectedCheckpoint else {
+            return false
+        }
+        return isWan22Model(checkpoint)
+    }
+
+    /// Check if a checkpoint model is a Wan 2.2 model
+    private func isWan22Model(_ model: CheckpointModel) -> Bool {
+        if let version = model.version {
+            if version.lowercased().contains("wan22") || version.lowercased().contains("wan_2.2") {
+                return true
+            }
+        }
+        let lower = model.file.lowercased()
+        if lower.contains("wan_v2.2") || lower.contains("wan_2.2") || lower.contains("wan22") {
+            return true
+        }
+        if model.name.lowercased().contains("wan 2.2") || model.name.lowercased().contains("wan2.2") {
+            return true
+        }
+        return false
     }
 
     private var enabledCount: Int {
@@ -61,7 +87,7 @@ public struct LoRASection: View {
                         .padding(.vertical, 8)
                 } else {
                     ForEach($selectedLoRAs) { $loraConfig in
-                        LoRARow(config: $loraConfig) {
+                        LoRARow(config: $loraConfig, showModeSelector: isMixtureOfExperts) {
                             removeLoRA(loraConfig)
                         }
                     }
@@ -86,13 +112,16 @@ public struct LoRASection: View {
 /// A row view for a single LoRA configuration.
 public struct LoRARow: View {
     @Binding var config: LoRAConfiguration
+    let showModeSelector: Bool
     let onDelete: () -> Void
 
     public init(
         config: Binding<LoRAConfiguration>,
+        showModeSelector: Bool = false,
         onDelete: @escaping () -> Void
     ) {
         self._config = config
+        self.showModeSelector = showModeSelector
         self.onDelete = onDelete
     }
 
@@ -141,6 +170,23 @@ public struct LoRARow: View {
                     .font(.caption)
                     .monospacedDigit()
                     .frame(width: 50, alignment: .trailing)
+            }
+
+            // Mode selector for Mixture of Experts workflows (Wan 2.2)
+            if showModeSelector {
+                HStack {
+                    Text("Mode:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    Picker("", selection: $config.mode) {
+                        Text("All").tag(LoRAMode.all)
+                        Text("Base").tag(LoRAMode.base)
+                        Text("Refiner").tag(LoRAMode.refiner)
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                }
             }
         }
         .padding(.vertical, 4)
