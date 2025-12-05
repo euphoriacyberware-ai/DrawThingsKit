@@ -34,11 +34,6 @@ public struct TokenCountingPromptEditor: View {
     var minHeight: CGFloat
     var showLabel: Bool
 
-    /// Computed token count - no state updates needed
-    private var estimatedTokens: Int {
-        TokenEstimator.estimateTokens(text)
-    }
-
     public init(
         text: Binding<String>,
         label: String? = nil,
@@ -65,6 +60,7 @@ public struct TokenCountingPromptEditor: View {
 
                 Spacer()
 
+                // Token badge - computed inline, no state
                 tokenCountBadge
             }
 
@@ -75,9 +71,49 @@ public struct TokenCountingPromptEditor: View {
 
     // MARK: - Token Count Badge
 
+    private var estimatedTokens: Int {
+        TokenEstimator.estimateTokens(text)
+    }
+
     private var tokenCountBadge: some View {
-        HStack(spacing: 4) {
-            Image(systemName: tokenIcon)
+        let percentage = Double(estimatedTokens) / Double(tokenLimit)
+
+        let icon: String = {
+            if percentage > 1.0 {
+                return "exclamationmark.triangle.fill"
+            } else if percentage > 0.9 {
+                return "exclamationmark.circle.fill"
+            } else {
+                return "number"
+            }
+        }()
+
+        let bgColor: Color = {
+            if percentage > 1.0 {
+                return .red
+            } else if percentage > 0.9 {
+                return .orange
+            } else if percentage > 0.75 {
+                return .yellow
+            } else {
+                return .green
+            }
+        }()
+
+        let fgColor: Color = {
+            if percentage > 1.0 {
+                return .red
+            } else if percentage > 0.9 {
+                return .orange
+            } else if percentage > 0.75 {
+                return .yellow
+            } else {
+                return .secondary
+            }
+        }()
+
+        return HStack(spacing: 4) {
+            Image(systemName: icon)
                 .font(.caption2)
 
             Text("~\(estimatedTokens)/\(tokenLimit)")
@@ -85,46 +121,10 @@ public struct TokenCountingPromptEditor: View {
         }
         .padding(.horizontal, 6)
         .padding(.vertical, 2)
-        .background(tokenBackgroundColor.opacity(0.2))
-        .foregroundColor(tokenForegroundColor)
+        .background(bgColor.opacity(0.2))
+        .foregroundColor(fgColor)
         .cornerRadius(4)
         .help("Estimated token count (approximate)")
-    }
-
-    private var tokenIcon: String {
-        if estimatedTokens > tokenLimit {
-            return "exclamationmark.triangle.fill"
-        } else if Double(estimatedTokens) > Double(tokenLimit) * 0.9 {
-            return "exclamationmark.circle.fill"
-        } else {
-            return "number"
-        }
-    }
-
-    private var tokenBackgroundColor: Color {
-        let percentage = Double(estimatedTokens) / Double(tokenLimit)
-        if percentage > 1.0 {
-            return .red
-        } else if percentage > 0.9 {
-            return .orange
-        } else if percentage > 0.75 {
-            return .yellow
-        } else {
-            return .green
-        }
-    }
-
-    private var tokenForegroundColor: Color {
-        let percentage = Double(estimatedTokens) / Double(tokenLimit)
-        if percentage > 1.0 {
-            return .red
-        } else if percentage > 0.9 {
-            return .orange
-        } else if percentage > 0.75 {
-            return .yellow
-        } else {
-            return .secondary
-        }
     }
 
     // MARK: - Text Editor
@@ -140,7 +140,7 @@ public struct TokenCountingPromptEditor: View {
             .cornerRadius(4)
             .overlay(
                 RoundedRectangle(cornerRadius: 4)
-                    .stroke(borderColor, lineWidth: 1)
+                    .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
             )
         #else
         TextEditor(text: $text)
@@ -149,17 +149,9 @@ public struct TokenCountingPromptEditor: View {
             .cornerRadius(4)
             .overlay(
                 RoundedRectangle(cornerRadius: 4)
-                    .stroke(borderColor, lineWidth: 1)
+                    .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
             )
         #endif
-    }
-
-    private var borderColor: Color {
-        if estimatedTokens > tokenLimit {
-            return .red.opacity(0.5)
-        } else {
-            return Color.secondary.opacity(0.2)
-        }
     }
 }
 
