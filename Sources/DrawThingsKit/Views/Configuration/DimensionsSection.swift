@@ -2,7 +2,11 @@
 //  DimensionsSection.swift
 //  DrawThingsKit
 //
-//  Composable dimensions section for configuration UI.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import SwiftUI
@@ -39,7 +43,7 @@ public struct DimensionsSection: View {
     }
 
     public var body: some View {
-        Section("Dimensions") {
+        Section {
             // Dimension display
             HStack {
                 Text("\(width) × \(height)")

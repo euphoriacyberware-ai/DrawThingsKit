@@ -709,7 +709,8 @@ PromptSection(
     negativePrompt: $configurationManager.negativePrompt
 )
 
-// Model selection - checkpoint, refiner, sampler, Mixture of Experts toggle
+// Model selection - checkpoint, refiner, sampler
+// Mixture of Experts mode is auto-detected for Wan 2.2 models
 ModelSection(
     modelsManager: connectionManager.modelsManager,
     selectedCheckpoint: $configurationManager.selectedCheckpoint,
@@ -717,17 +718,22 @@ ModelSection(
     refinerStart: $configurationManager.activeConfiguration.refinerStart,
     sampler: $configurationManager.activeConfiguration.sampler,
     modelName: $configurationManager.activeConfiguration.model,
-    refinerName: $configurationManager.activeConfiguration.refinerModel,
-    mixtureOfExperts: $configurationManager.mixtureOfExperts
+    refinerName: $configurationManager.activeConfiguration.refinerModel
 )
 
 // LoRA management with weight sliders
-// When Mixture of Experts is enabled, shows mode selector (All/Base/Refiner)
-LoRASection(
-    modelsManager: connectionManager.modelsManager,
-    selectedLoRAs: $configurationManager.selectedLoRAs,
-    mixtureOfExperts: configurationManager.mixtureOfExperts
-)
+// Use LoRAMOESection for Wan 2.2 models (auto-detected via configurationManager.mixtureOfExperts)
+if configurationManager.mixtureOfExperts {
+    LoRAMOESection(
+        modelsManager: connectionManager.modelsManager,
+        selectedLoRAs: $configurationManager.selectedLoRAs
+    )
+} else {
+    LoRASection(
+        modelsManager: connectionManager.modelsManager,
+        selectedLoRAs: $configurationManager.selectedLoRAs
+    )
+}
 
 // Core generation parameters
 // When showAdvanced is true, also shows CFG Zero Star toggle and Init Steps

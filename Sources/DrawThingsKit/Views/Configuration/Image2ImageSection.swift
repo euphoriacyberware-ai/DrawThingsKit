@@ -1,14 +1,18 @@
 //
-//  StrengthSection.swift
+//  Image2ImageSection.swift
 //  DrawThingsKit
 //
-//  Composable strength section for image-to-image configuration UI.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import SwiftUI
 
 /// A section for strength-related parameters (img2img).
-public struct StrengthSection: View {
+public struct Image2ImageSection: View {
     @Binding var strength: Float
 
     public init(strength: Binding<Float>) {
@@ -16,9 +20,9 @@ public struct StrengthSection: View {
     }
 
     public var body: some View {
-        Section("Image-to-Image") {
+        Section {
             ParameterSlider(
-                label: "Strength",
+                label: "Image-to-Image",
                 value: Binding(
                     get: { Double(strength) },
                     set: { strength = Float($0) }
@@ -33,7 +37,7 @@ public struct StrengthSection: View {
 
 #Preview {
     Form {
-        StrengthSection(strength: .constant(0.75))
+        Image2ImageSection(strength: .constant(0.75))
     }
     .formStyle(.grouped)
     .frame(width: 400, height: 150)

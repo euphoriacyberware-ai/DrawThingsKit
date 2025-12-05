@@ -2,7 +2,11 @@
 //  ServerProfilesView.swift
 //  DrawThingsKit
 //
-//  A view for managing server profiles and connections.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import SwiftUI
@@ -149,7 +153,7 @@ public struct ServerProfilesView: View {
                         showDeleteConfirmation = true
                     }
                 } label: {
-                    Image(systemName: "minus")
+                    Image(systemName: "trash")
                 }
                 .help("Delete Server")
                 .disabled(selectedProfile == nil)

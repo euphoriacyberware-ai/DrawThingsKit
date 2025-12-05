@@ -2,7 +2,11 @@
 //  ModelSection.swift
 //  DrawThingsKit
 //
-//  Composable model selection section for configuration UI.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import SwiftUI
@@ -34,11 +38,46 @@ public struct ModelSection: View {
     @Binding var sampler: SamplerType
     @Binding var modelName: String
     @Binding var refinerName: String?
-    @Binding var mixtureOfExperts: Bool
 
     /// Whether models are available from the server
     private var hasModels: Bool {
         !modelsManager.baseModels.isEmpty
+    }
+
+    /// Automatically detect Mixture of Experts mode based on selected model
+    /// Wan 2.2 models use MOE workflow where any model can be used as refiner
+    private var isMixtureOfExperts: Bool {
+        // Check selected checkpoint first
+        if let checkpoint = selectedCheckpoint {
+            return isWan22Model(checkpoint)
+        }
+        // Fall back to model name string
+        return isWan22ModelName(modelName)
+    }
+
+    /// Check if a checkpoint model is a Wan 2.2 model
+    private func isWan22Model(_ model: CheckpointModel) -> Bool {
+        // Check version string
+        if let version = model.version {
+            if version.lowercased().contains("wan22") || version.lowercased().contains("wan_2.2") {
+                return true
+            }
+        }
+        // Check file name
+        if isWan22ModelName(model.file) {
+            return true
+        }
+        // Check display name
+        if model.name.lowercased().contains("wan 2.2") || model.name.lowercased().contains("wan2.2") {
+            return true
+        }
+        return false
+    }
+
+    /// Check if a model filename indicates Wan 2.2
+    private func isWan22ModelName(_ name: String) -> Bool {
+        let lower = name.lowercased()
+        return lower.contains("wan_v2.2") || lower.contains("wan_2.2") || lower.contains("wan22")
     }
 
     public init(
@@ -48,8 +87,7 @@ public struct ModelSection: View {
         refinerStart: Binding<Float>,
         sampler: Binding<SamplerType>,
         modelName: Binding<String>,
-        refinerName: Binding<String?>,
-        mixtureOfExperts: Binding<Bool>
+        refinerName: Binding<String?>
     ) {
         self.modelsManager = modelsManager
         self._selectedCheckpoint = selectedCheckpoint
@@ -58,11 +96,11 @@ public struct ModelSection: View {
         self._sampler = sampler
         self._modelName = modelName
         self._refinerName = refinerName
-        self._mixtureOfExperts = mixtureOfExperts
     }
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+
             // Bridge Mode toggle - on = cloud models, off = local models
             Toggle("Bridge Mode", isOn: $modelsManager.bridgeMode)
                 .help(modelsManager.bridgeMode
@@ -95,9 +133,6 @@ public struct ModelSection: View {
                         .monospacedDigit()
                 }
             }
-
-            Toggle("Mixture of Experts", isOn: $mixtureOfExperts)
-                .help("Enable for Wan 2.2 workflows - allows any model to be selected as refiner")
 
             // Sampler Picker
             Picker("Sampler", selection: $sampler) {
@@ -159,13 +194,13 @@ public struct ModelSection: View {
             Text("None").tag(nil as CheckpointModel?)
 
             // Show either all base models or just refiners based on Mixture of Experts mode
-            let availableRefiners = mixtureOfExperts ? modelsManager.baseModels : modelsManager.refinerModels
+            let availableRefiners = isMixtureOfExperts ? modelsManager.baseModels : modelsManager.refinerModels
             ForEach(availableRefiners) { refiner in
                 modelLabel(for: refiner)
                     .tag(refiner as CheckpointModel?)
             }
         }
-        .help(mixtureOfExperts ? "Mixture of Experts: any model can be selected as refiner" : "Only refiner-flagged models available")
+        .help(isMixtureOfExperts ? "Mixture of Experts: any model can be selected as refiner" : "Only refiner-flagged models available")
         .onChange(of: selectedRefiner) { _, newValue in
             refinerName = newValue?.file
         }
@@ -259,8 +294,7 @@ public struct ModelPicker: View {
             refinerStart: .constant(0.85),
             sampler: .constant(.dpmpp2mkarras),
             modelName: .constant("sd_xl_base_1.0.safetensors"),
-            refinerName: .constant(nil),
-            mixtureOfExperts: .constant(false)
+            refinerName: .constant(nil)
         )
     }
     .formStyle(.grouped)
@@ -277,8 +311,7 @@ public struct ModelPicker: View {
             refinerStart: .constant(0.85),
             sampler: .constant(.dpmpp2mkarras),
             modelName: .constant("sd_xl_base_1.0.safetensors"),
-            refinerName: .constant("sd_xl_refiner_1.0.safetensors"),
-            mixtureOfExperts: .constant(false)
+            refinerName: .constant("sd_xl_refiner_1.0.safetensors")
         )
     }
     .formStyle(.grouped)
@@ -302,8 +335,7 @@ public struct ModelPicker: View {
             refinerStart: .constant(0.85),
             sampler: .constant(.dpmpp2mkarras),
             modelName: .constant(""),
-            refinerName: .constant(nil),
-            mixtureOfExperts: .constant(false)
+            refinerName: .constant(nil)
         )
     }
     .formStyle(.grouped)
@@ -325,8 +357,30 @@ public struct ModelPicker: View {
             refinerStart: .constant(0.85),
             sampler: .constant(.dpmpp2mkarras),
             modelName: .constant("sd_xl_base_1.0.safetensors"),
-            refinerName: .constant("sd_xl_refiner_1.0.safetensors"),
-            mixtureOfExperts: .constant(false)
+            refinerName: .constant("sd_xl_refiner_1.0.safetensors")
+        )
+    }
+    .formStyle(.grouped)
+    .frame(width: 400, height: 400)
+}
+
+#Preview("Connected - Wan 2.2 MOE Mode") {
+    // Wan 2.2 model automatically enables MOE mode
+    let wan22Model = CheckpointModel.mock(name: "Wan 2.2 14B I2V", file: "wan_v2.2_fun_14b_control_i2v.safetensors", version: "wan22")
+    let manager = ModelsManager.preview(withCheckpoints: [
+        wan22Model,
+        .mock(name: "Wan 2.2 1.3B T2V", file: "wan_v2.2_1.3b_t2v.safetensors", version: "wan22"),
+        .mock(name: "SDXL Base 1.0", file: "sd_xl_base_1.0.safetensors", version: "sdxl"),
+    ])
+    return Form {
+        ModelSection(
+            modelsManager: manager,
+            selectedCheckpoint: .constant(wan22Model),
+            selectedRefiner: .constant(nil),
+            refinerStart: .constant(0.85),
+            sampler: .constant(.dpmpp2mkarras),
+            modelName: .constant("wan_v2.2_fun_14b_control_i2v.safetensors"),
+            refinerName: .constant(nil)
         )
     }
     .formStyle(.grouped)

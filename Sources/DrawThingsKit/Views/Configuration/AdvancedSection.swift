@@ -2,7 +2,11 @@
 //  AdvancedSection.swift
 //  DrawThingsKit
 //
-//  Composable advanced settings section for configuration UI.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import SwiftUI
@@ -102,7 +106,7 @@ public struct AdvancedSection: View {
     }
 
     public var body: some View {
-        DisclosureGroup("Advanced") {
+        //DisclosureGroup("Advanced") {
             // Clip Skip
             ParameterSlider(
                 label: "Clip Skip",
@@ -115,8 +119,6 @@ public struct AdvancedSection: View {
                 format: "%.0f"
             )
 
-            Divider()
-
             // Tiled Diffusion
             TiledDiffusionSubSection(
                 tiledDiffusion: $tiledDiffusion,
@@ -124,8 +126,6 @@ public struct AdvancedSection: View {
                 tileHeight: $diffusionTileHeight,
                 tileOverlap: $diffusionTileOverlap
             )
-
-            Divider()
 
             // Tiled Decoding
             TiledDecodingSubSection(
@@ -135,8 +135,6 @@ public struct AdvancedSection: View {
                 tileOverlap: $decodingTileOverlap
             )
 
-            Divider()
-
             // HiRes Fix
             HiResFixSubSection(
                 hiresFix: $hiresFix,
@@ -145,16 +143,12 @@ public struct AdvancedSection: View {
                 hiresFixStrength: $hiresFixStrength
             )
 
-            Divider()
-
             // Quality
             QualitySubSection(
                 sharpness: $sharpness,
                 aestheticScore: $aestheticScore,
                 negativeAestheticScore: $negativeAestheticScore
             )
-
-            Divider()
 
             // Inpaint
             InpaintSubSection(
@@ -163,7 +157,7 @@ public struct AdvancedSection: View {
                 preserveOriginalAfterInpaint: $preserveOriginalAfterInpaint
             )
         }
-    }
+    //}
 }
 
 // MARK: - Sub-Sections

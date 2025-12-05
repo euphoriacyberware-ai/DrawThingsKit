@@ -1,5 +1,13 @@
-// DrawThingsKit
-// A Swift package providing UI components and utilities for Draw Things gRPC client applications.
+//
+//  DrawThingsKit.swift
+//  DrawThingsKit
+//
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
+//
 
 import Foundation
 import SwiftUI

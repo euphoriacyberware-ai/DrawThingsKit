@@ -2,7 +2,11 @@
 //  QueueProgressView.swift
 //  DrawThingsKit
 //
-//  View for displaying current job progress with preview.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import SwiftUI

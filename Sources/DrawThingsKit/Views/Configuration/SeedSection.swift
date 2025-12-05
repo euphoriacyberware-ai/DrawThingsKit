@@ -2,7 +2,11 @@
 //  SeedSection.swift
 //  DrawThingsKit
 //
-//  Composable seed editor section for configuration UI.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import SwiftUI
@@ -35,7 +39,7 @@ public struct SeedSection: View {
     }
 
     public var body: some View {
-        Section("Seed") {
+        Section{
             HStack {
                 #if os(macOS)
                 TextField("Seed", value: $seed, format: .number)

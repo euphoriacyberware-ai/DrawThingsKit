@@ -2,7 +2,11 @@
 //  LoRASection.swift
 //  DrawThingsKit
 //
-//  Composable LoRA selection section for configuration UI.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import SwiftUI
@@ -10,30 +14,25 @@ import DrawThingsClient
 
 /// A composable section for managing LoRA models.
 ///
+/// Uses a compact card-style layout matching the MOE section visual style.
+///
 /// Example usage:
 /// ```swift
 /// LoRASection(
 ///     modelsManager: modelsManager,
-///     selectedLoRAs: $selectedLoRAs,
-///     mixtureOfExperts: $mixtureOfExperts
+///     selectedLoRAs: $selectedLoRAs
 /// )
 /// ```
 public struct LoRASection: View {
     @ObservedObject var modelsManager: ModelsManager
     @Binding var selectedLoRAs: [LoRAConfiguration]
 
-    /// When true, shows the Base/Refiner mode picker for each LoRA.
-    /// This is only needed for Mixture of Experts workflows (e.g., Wan 2.2).
-    var showModeSelector: Bool
-
     public init(
         modelsManager: ModelsManager,
-        selectedLoRAs: Binding<[LoRAConfiguration]>,
-        mixtureOfExperts: Bool = false
+        selectedLoRAs: Binding<[LoRAConfiguration]>
     ) {
         self.modelsManager = modelsManager
         self._selectedLoRAs = selectedLoRAs
-        self.showModeSelector = mixtureOfExperts
     }
 
     private var enabledCount: Int {
@@ -42,50 +41,45 @@ public struct LoRASection: View {
 
     public var body: some View {
         Section {
-            DisclosureGroup("LoRAs (\(enabledCount)/\(selectedLoRAs.count))") {
-                VStack(spacing: 12) {
-                    // Add LoRA menu
-                    Menu {
-                        if modelsManager.compatibleLoRAs.isEmpty {
-                            Text("No compatible LoRAs")
-                                .foregroundColor(.secondary)
-                        } else {
-                            ForEach(modelsManager.compatibleLoRAs) { lora in
-                                Button {
-                                    addLoRA(lora)
-                                } label: {
-                                    ModelLabelView(name: lora.name, source: lora.source)
-                                }
-                                .disabled(selectedLoRAs.contains(where: { $0.lora.id == lora.id }))
-                            }
-                        }
-                    } label: {
-                        Label("Add LoRA", systemImage: "plus.circle")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .disabled(modelsManager.selectedCheckpoint == nil)
-                    .help(modelsManager.selectedCheckpoint == nil ? "Select a checkpoint first" : "Add a LoRA model")
-
-                    // LoRA list
-                    if selectedLoRAs.isEmpty {
-                        Text("No LoRAs added")
+            VStack(spacing: 8) {
+                // Add LoRA menu
+                Menu {
+                    if modelsManager.compatibleLoRAs.isEmpty {
+                        Text("No compatible LoRAs")
                             .foregroundColor(.secondary)
-                            .font(.caption)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
                     } else {
-                        ForEach($selectedLoRAs) { $loraConfig in
-                            LoRARow(
-                                config: $loraConfig,
-                                showModeSelector: showModeSelector
-                            ) {
-                                removeLoRA(loraConfig)
+                        ForEach(modelsManager.compatibleLoRAs) { lora in
+                            Button {
+                                addLoRA(lora)
+                            } label: {
+                                ModelLabelView(name: lora.name, source: lora.source)
                             }
+                            .disabled(selectedLoRAs.contains(where: { $0.lora.id == lora.id }))
+                        }
+                    }
+                } label: {
+                    Label("Add LoRA", systemImage: "plus.circle")
+                        .frame(maxWidth: .infinity)
+                }
+                .disabled(modelsManager.selectedCheckpoint == nil)
+                .help(modelsManager.selectedCheckpoint == nil ? "Select a checkpoint first" : "Add a LoRA model")
+
+                // LoRA list
+                if selectedLoRAs.isEmpty {
+                    Text("No LoRAs added")
+                        .foregroundColor(.secondary)
+                        .font(.caption)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                } else {
+                    ForEach($selectedLoRAs) { $loraConfig in
+                        LoRACardRow(config: $loraConfig) {
+                            removeLoRA(loraConfig)
                         }
                     }
                 }
-                .padding(.vertical, 8)
             }
+            .padding(.vertical, 8)
         }
     }
 
@@ -101,7 +95,66 @@ public struct LoRASection: View {
     }
 }
 
-/// A row view for a single LoRA configuration.
+/// A compact card-style row for a single LoRA configuration.
+/// Matches the visual style of `DraggableLoRARow` but without drag interaction.
+struct LoRACardRow: View {
+    @Binding var config: LoRAConfiguration
+    let onDelete: () -> Void
+
+    public var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            // Header with toggle, name, and delete
+            HStack {
+                Toggle("", isOn: $config.enabled)
+                    .labelsHidden()
+                    .scaleEffect(0.8)
+
+                Text(config.lora.name)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .lineLimit(1)
+
+                Spacer()
+
+                Button(action: onDelete) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+
+            // Weight slider (snaps to 0.05 increments when released)
+            HStack(spacing: 4) {
+                Text(String(format: "%.2f", config.weight))
+                    .font(.caption2)
+                    .monospacedDigit()
+                    .foregroundColor(.secondary)
+                    .frame(width: 32)
+
+                Slider(value: $config.weight, in: -1.5...2.5) { editing in
+                    if !editing {
+                        config.weight = (config.weight / 0.05).rounded() * 0.05
+                    }
+                }
+                .controlSize(.mini)
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.purple.opacity(0.1))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.purple.opacity(0.3), lineWidth: 1)
+                )
+        )
+        .opacity(config.enabled ? 1.0 : 0.5)
+        .frame(height: 70)
+    }
+}
+
+/// A row view for a single LoRA configuration (legacy style).
 public struct LoRARow: View {
     @Binding var config: LoRAConfiguration
     let showModeSelector: Bool

@@ -2,7 +2,11 @@
 //  CausalInferenceSection.swift
 //  DrawThingsKit
 //
-//  Composable causal inference section for configuration UI.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import SwiftUI
@@ -36,8 +40,8 @@ public struct CausalInferenceSection: View {
     }
 
     public var body: some View {
-        Section("Causal Inference") {
-            Toggle("Enable", isOn: $causalInferenceEnabled)
+        Section{
+            Toggle("Causal Inference", isOn: $causalInferenceEnabled)
                 .help("Generate frames using only preceding frames as context (CausVid)")
 
             if causalInferenceEnabled {

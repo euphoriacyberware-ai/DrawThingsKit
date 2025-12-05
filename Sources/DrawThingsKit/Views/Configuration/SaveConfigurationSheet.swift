@@ -2,7 +2,11 @@
 //  SaveConfigurationSheet.swift
 //  DrawThingsKit
 //
-//  Sheet for saving a configuration with name and tags.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import SwiftUI
