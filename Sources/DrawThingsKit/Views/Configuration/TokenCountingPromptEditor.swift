@@ -34,11 +34,6 @@ public struct TokenCountingPromptEditor: View {
     var minHeight: CGFloat
     var showLabel: Bool
 
-    /// Computed token count - no state updates needed
-    private var estimatedTokens: Int {
-        TokenEstimator.estimateTokens(text)
-    }
-
     public init(
         text: Binding<String>,
         label: String? = nil,
@@ -65,17 +60,30 @@ public struct TokenCountingPromptEditor: View {
 
                 Spacer()
 
-                tokenCountBadge
+                // Token badge in its own view to isolate updates
+                TokenBadgeView(text: text, tokenLimit: tokenLimit)
             }
 
-            // Text editor
-            textEditor
+            // Text editor in its own view to prevent re-renders from token updates
+            PromptTextEditor(text: $text, minHeight: minHeight)
         }
     }
+}
 
-    // MARK: - Token Count Badge
+/// Isolated token badge view - updates don't affect sibling views
+private struct TokenBadgeView: View {
+    let text: String
+    let tokenLimit: Int
 
-    private var tokenCountBadge: some View {
+    private var estimatedTokens: Int {
+        TokenEstimator.estimateTokens(text)
+    }
+
+    private var percentage: Double {
+        Double(estimatedTokens) / Double(tokenLimit)
+    }
+
+    var body: some View {
         HStack(spacing: 4) {
             Image(systemName: tokenIcon)
                 .font(.caption2)
@@ -92,9 +100,9 @@ public struct TokenCountingPromptEditor: View {
     }
 
     private var tokenIcon: String {
-        if estimatedTokens > tokenLimit {
+        if percentage > 1.0 {
             return "exclamationmark.triangle.fill"
-        } else if Double(estimatedTokens) > Double(tokenLimit) * 0.9 {
+        } else if percentage > 0.9 {
             return "exclamationmark.circle.fill"
         } else {
             return "number"
@@ -102,7 +110,6 @@ public struct TokenCountingPromptEditor: View {
     }
 
     private var tokenBackgroundColor: Color {
-        let percentage = Double(estimatedTokens) / Double(tokenLimit)
         if percentage > 1.0 {
             return .red
         } else if percentage > 0.9 {
@@ -115,7 +122,6 @@ public struct TokenCountingPromptEditor: View {
     }
 
     private var tokenForegroundColor: Color {
-        let percentage = Double(estimatedTokens) / Double(tokenLimit)
         if percentage > 1.0 {
             return .red
         } else if percentage > 0.9 {
@@ -126,11 +132,20 @@ public struct TokenCountingPromptEditor: View {
             return .secondary
         }
     }
+}
 
-    // MARK: - Text Editor
+/// Isolated text editor view - uses Equatable conformance to minimize re-renders
+private struct PromptTextEditor: View, Equatable {
+    @Binding var text: String
+    let minHeight: CGFloat
 
-    @ViewBuilder
-    private var textEditor: some View {
+    static func == (lhs: PromptTextEditor, rhs: PromptTextEditor) -> Bool {
+        // Only re-render if minHeight changes, not text
+        // Text changes are handled internally by TextEditor
+        lhs.minHeight == rhs.minHeight
+    }
+
+    var body: some View {
         #if os(macOS)
         TextEditor(text: $text)
             .frame(minHeight: minHeight)
@@ -140,7 +155,7 @@ public struct TokenCountingPromptEditor: View {
             .cornerRadius(4)
             .overlay(
                 RoundedRectangle(cornerRadius: 4)
-                    .stroke(borderColor, lineWidth: 1)
+                    .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
             )
         #else
         TextEditor(text: $text)
@@ -149,17 +164,16 @@ public struct TokenCountingPromptEditor: View {
             .cornerRadius(4)
             .overlay(
                 RoundedRectangle(cornerRadius: 4)
-                    .stroke(borderColor, lineWidth: 1)
+                    .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
             )
         #endif
     }
+}
 
-    private var borderColor: Color {
-        if estimatedTokens > tokenLimit {
-            return .red.opacity(0.5)
-        } else {
-            return Color.secondary.opacity(0.2)
-        }
+extension PromptTextEditor {
+    // Use equatable rendering to prevent unnecessary re-renders
+    func _equatable() -> EquatableView<Self> {
+        return .init(content: self)
     }
 }
 
