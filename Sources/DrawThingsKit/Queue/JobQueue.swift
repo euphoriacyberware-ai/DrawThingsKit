@@ -223,7 +223,7 @@ public final class JobQueue: ObservableObject {
         // Check if seed needs to be randomized
         // nil or negative values indicate "random"
         if config.seed == nil || config.seed! < 0 {
-            // Generate a random seed (UInt32 range to match Draw Things)
+            // Generate a random seed within UInt32 range to match Draw Things flatbuffer format
             let randomSeed = Int64(arc4random())
             config.seed = randomSeed
 
