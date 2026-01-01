@@ -12,7 +12,7 @@ Add to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/euphoriacyberware-ai/DrawThingsKit", from: "1.1.0")
+    .package(url: "https://github.com/euphoriacyberware-ai/DrawThingsKit", from: "latest")
 ]
 ```
 
@@ -38,9 +38,10 @@ struct MyApp: App {
                 .environmentObject(connectionManager)
                 .environmentObject(configurationManager)
                 .environmentObject(queue)
-        }
-        .task {
-            processor.startProcessing(queue: queue, connectionManager: connectionManager)
+                .environmentObject(processor)
+                .task {
+                    processor.startProcessing(queue: queue, connectionManager: connectionManager)
+                }
         }
     }
 }
