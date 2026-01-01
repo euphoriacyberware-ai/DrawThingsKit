@@ -12,7 +12,7 @@ Add to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/euphoriacyberware-ai/DrawThingsKit", from: "1.1.0")
+    .package(url: "https://github.com/euphoriacyberware-ai/DrawThingsKit", from: "latest")
 ]
 ```
 
@@ -38,9 +38,10 @@ struct MyApp: App {
                 .environmentObject(connectionManager)
                 .environmentObject(configurationManager)
                 .environmentObject(queue)
-        }
-        .task {
-            processor.startProcessing(queue: queue, connectionManager: connectionManager)
+                .environmentObject(processor)
+                .task {
+                    processor.startProcessing(queue: queue, connectionManager: connectionManager)
+                }
         }
     }
 }
@@ -709,7 +710,8 @@ PromptSection(
     negativePrompt: $configurationManager.negativePrompt
 )
 
-// Model selection - checkpoint, refiner, sampler, Mixture of Experts toggle
+// Model selection - checkpoint, refiner, sampler
+// Mixture of Experts mode is auto-detected for Wan 2.2 models
 ModelSection(
     modelsManager: connectionManager.modelsManager,
     selectedCheckpoint: $configurationManager.selectedCheckpoint,
@@ -717,17 +719,22 @@ ModelSection(
     refinerStart: $configurationManager.activeConfiguration.refinerStart,
     sampler: $configurationManager.activeConfiguration.sampler,
     modelName: $configurationManager.activeConfiguration.model,
-    refinerName: $configurationManager.activeConfiguration.refinerModel,
-    mixtureOfExperts: $configurationManager.mixtureOfExperts
+    refinerName: $configurationManager.activeConfiguration.refinerModel
 )
 
 // LoRA management with weight sliders
-// When Mixture of Experts is enabled, shows mode selector (All/Base/Refiner)
-LoRASection(
-    modelsManager: connectionManager.modelsManager,
-    selectedLoRAs: $configurationManager.selectedLoRAs,
-    mixtureOfExperts: configurationManager.mixtureOfExperts
-)
+// Use LoRAMOESection for Wan 2.2 models (auto-detected via configurationManager.mixtureOfExperts)
+if configurationManager.mixtureOfExperts {
+    LoRAMOESection(
+        modelsManager: connectionManager.modelsManager,
+        selectedLoRAs: $configurationManager.selectedLoRAs
+    )
+} else {
+    LoRASection(
+        modelsManager: connectionManager.modelsManager,
+        selectedLoRAs: $configurationManager.selectedLoRAs
+    )
+}
 
 // Core generation parameters
 // When showAdvanced is true, also shows CFG Zero Star toggle and Init Steps

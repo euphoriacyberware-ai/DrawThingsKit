@@ -1,2450 +1,1542 @@
 {
   "checkpoints": [
     {
-      "name": "3D Model (Redshift v1)",
-      "file": "redshift_v1_f16.ckpt",
-      "version": "v1",
-      "prefix": "redshift style "
-    },
-    {
-      "name": "3D Model 768 (Redshift 768)",
-      "file": "redshift_768_v_f16.ckpt",
-      "version": "v2",
-      "prefix": "redshift style "
-    },
-    {
-      "name": "AloeVera's SimpMaker 3K1",
-      "file": "aloeveras_simpmaker_3k1_f16.ckpt",
-      "version": "v1"
-    },
-    {
-      "name": "Analog (v1)",
-      "file": "analog_v1_f16.ckpt",
-      "version": "v1",
-      "prefix": "analog style "
-    },
-    {
-      "name": "Animagine XL v3.1",
-      "file": "animagine_xl_v3.1_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "Animagine XL v3.1 (8-bit)",
-      "file": "animagine_xl_v3.1_q6p_q8p.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "AnimateLCM SVD XT v1.1",
-      "file": "animatelcm_svd_xt_v1.1_f16.ckpt",
-      "version": "svd_i2v",
-      "modifier": "none"
-    },
-    {
-      "name": "AnimateLCM SVD XT v1.1 (8-bit)",
-      "file": "animatelcm_svd_xt_v1.1_q6p_q8p.ckpt",
-      "version": "svd_i2v",
-      "modifier": "none"
-    },
-    {
-      "name": "Anime (Anything v3)",
-      "file": "anything_v3_f16.ckpt",
-      "version": "v1"
-    },
-    {
-      "name": "Anime (Waifu Diffusion v1.3)",
-      "file": "wd_v1.3_f16.ckpt",
-      "version": "v1"
-    },
-    {
-      "name": "AniSora v2 I2V Wan 2.1 14B",
-      "file": "anisora_v2_i2v_wan_2.1_14b_q8p.ckpt",
-      "version": "wan_v2.1_14b",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "AniSora v2 I2V Wan 2.1 14B (6-bit, SVDQuant)",
-      "file": "anisora_v2_i2v_wan_2.1_14b_q6p_svd.ckpt",
-      "version": "wan_v2.1_14b",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "AniSora v3.1 I2V Wan 2.1 14B",
-      "file": "anisora_v3.1_i2v_wan_2.1_14b_q8p.ckpt",
-      "version": "wan_v2.1_14b",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "AniSora v3.1 I2V Wan 2.1 14B (6-bit, SVDQuant)",
-      "file": "anisora_v3.1_i2v_wan_2.1_14b_q6p_svd.ckpt",
-      "version": "wan_v2.1_14b",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "Arcane (v3)",
-      "file": "arcane_v3_f16.ckpt",
-      "version": "v1",
-      "prefix": "arcane style "
-    },
-    {
-      "name": "Artsy Vibe v1",
-      "file": "artsy_vibe_v1_q8p.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "Artsy Vibe v1 (5-bit, SVDQuant)",
-      "file": "artsy_vibe_v1_q5p_svd.ckpt",
-      "version": "flux1"
-    },
-    {
       "name": "AuraFlow v0.1",
       "file": "auraflow_v0.1_q8p.ckpt",
-      "version": "auraflow"
+      "prefix": "",
+      "version": "auraflow",
+      "default_scale": 16,
+      "text_encoder": "pile_t5_xl_encoder_q8p.ckpt",
+      "autoencoder": "sdxl_vae_v1.0_f16.ckpt",
+      "deprecated": true
     },
     {
       "name": "AuraFlow v0.1 (8-bit)",
       "file": "auraflow_v0.1_q5p.ckpt",
-      "version": "auraflow"
+      "prefix": "",
+      "version": "auraflow",
+      "default_scale": 16,
+      "text_encoder": "pile_t5_xl_encoder_q8p.ckpt",
+      "autoencoder": "sdxl_vae_v1.0_f16.ckpt",
+      "deprecated": true
     },
     {
       "name": "AuraFlow v0.2",
       "file": "auraflow_v0.2_q8p.ckpt",
-      "version": "auraflow"
+      "prefix": "",
+      "version": "auraflow",
+      "default_scale": 16,
+      "text_encoder": "pile_t5_xl_encoder_q8p.ckpt",
+      "autoencoder": "sdxl_vae_v1.0_f16.ckpt"
     },
     {
       "name": "AuraFlow v0.2 (8-bit)",
       "file": "auraflow_v0.2_q5p.ckpt",
-      "version": "auraflow"
-    },
-    {
-      "name": "Balloon Art (v1)",
-      "file": "balloonart_v1_f16.ckpt",
-      "version": "v1",
-      "prefix": "balloonart "
-    },
-    {
-      "name": "Chroma v47 Detail Calibrated",
-      "file": "chroma_v47_detail_calibrated_q8p.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "Chroma v47 Detail Calibrated (5-bit)",
-      "file": "chroma_v47_detail_calibrated_q5p.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "Chroma v48 Detail Calibrated",
-      "file": "chroma_v48_detail_calibrated_q8p.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "Chroma v48 Detail Calibrated (5-bit)",
-      "file": "chroma_v48_detail_calibrated_q5p.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "Chroma1 HD",
-      "file": "chroma_1_hd_r0.1_q8p.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "Chroma1 HD (5-bit)",
-      "file": "chroma_1_hd_r0.1_q5p.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "Classic Animation (v1)",
-      "file": "classicanim_v1_f16.ckpt",
-      "version": "v1",
-      "prefix": "classic disney style "
-    },
-    {
-      "name": "ColorfulXL v6.0",
-      "file": "colorfulxl_v6.0_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "ColorfulXL v6.0 (8-bit)",
-      "file": "colorfulxl_v6.0_q6p_q8p.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "Counterfeit v3.0",
-      "file": "counterfeit_v3.0_f16.ckpt",
-      "version": "v1",
-      "modifier": "none"
-    },
-    {
-      "name": "Counterfeit v3.0 (8-bit)",
-      "file": "counterfeit_v3.0_q6p_q8p.ckpt",
-      "version": "v1",
-      "modifier": "none"
-    },
-    {
-      "name": "Cyberpunk Anime",
-      "file": "cyberpunk_anime_f16.ckpt",
-      "version": "v1",
-      "prefix": "dgs illustration style "
-    },
-    {
-      "name": "Deliberate v2.0 (8-bit)",
-      "file": "deliberate_v2_q6p_q8p.ckpt",
-      "version": "v1"
-    },
-    {
-      "name": "devMODE v0.3 Turbo",
-      "file": "devmode_v0.3_turbo_q8p.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "devMODE v0.3 Turbo (5-bit, SVDQuant)",
-      "file": "devmode_v0.3_turbo_q5p_svd.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "Disney Pixar Cartoon Type B (8-bit)",
-      "file": "disney_pixar_cartoon_type_b_q6p_q8p.ckpt",
-      "version": "v1"
-    },
-    {
-      "name": "DnD Classes and Species",
-      "file": "dnd_classes_and_species_f16.ckpt",
-      "version": "v1"
-    },
-    {
-      "name": "DreamShaper v8",
-      "file": "dreamshaper_v8_f16.ckpt",
-      "version": "v1",
-      "modifier": "none"
-    },
-    {
-      "name": "DreamShaper v8 (8-bit)",
-      "file": "dreamshaper_v8_q6p_q8p.ckpt",
-      "version": "v1",
-      "modifier": "none"
-    },
-    {
-      "name": "DreamShaper XL v2.1 Turbo",
-      "file": "dreamshaper_xl_v2.1_turbo_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "DreamShaper XL v2.1 Turbo (8-bit)",
-      "file": "dreamshaper_xl_v2.1_turbo_q6p_q8p.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "Dungeons and Diffusion (30000)",
-      "file": "dnd_30000_f16.ckpt",
-      "version": "v1"
-    },
-    {
-      "name": "Elden Ring (v3)",
-      "file": "eldenring_v3_f16.ckpt",
-      "version": "v1",
-      "prefix": "elden ring style "
-    },
-    {
-      "name": "F222",
-      "file": "f222_f16.ckpt",
-      "version": "v1"
-    },
-    {
-      "name": "FLUX.1 [dev]",
-      "file": "flux_1_dev_q8p.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "FLUX.1 [dev] (5-bit)",
-      "file": "flux_1_dev_q5p.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "FLUX.1 [dev] (Exact)",
-      "file": "flux_1_dev_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "FLUX.1 [dev] De-distill",
-      "file": "flux_1_dev_de_distill_q8p.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "FLUX.1 [dev] De-distill (5-bit)",
-      "file": "flux_1_dev_de_distill_q5p.ckpt",
-      "version": "flux1"
+      "prefix": "",
+      "version": "auraflow",
+      "default_scale": 16,
+      "text_encoder": "pile_t5_xl_encoder_q8p.ckpt",
+      "autoencoder": "sdxl_vae_v1.0_f16.ckpt"
     },
     {
       "name": "FLUX.1 [schnell]",
       "file": "flux_1_schnell_q8p.ckpt",
-      "version": "flux1"
+      "prefix": "",
+      "version": "flux1",
+      "default_scale": 16,
+      "text_encoder": "t5_xxl_encoder_q6p.ckpt",
+      "autoencoder": "flux_1_vae_f16.ckpt",
+      "clip_encoder": "clip_vit_l14_f16.ckpt",
+      "high_precision_autoencoder": true,
+      "is_consistency_model": true,
+      "padded_text_encoding_length": 256,
+      "hires_fix_scale": 24
     },
     {
       "name": "FLUX.1 [schnell] (5-bit)",
       "file": "flux_1_schnell_q5p.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "FLUX.1 Canny [dev]",
-      "file": "flux_1_canny_dev_q8p.ckpt",
+      "prefix": "",
       "version": "flux1",
-      "modifier": "canny"
-    },
-    {
-      "name": "FLUX.1 Canny [dev] (5-bit)",
-      "file": "flux_1_canny_dev_q5p.ckpt",
-      "version": "flux1",
-      "modifier": "canny"
-    },
-    {
-      "name": "FLUX.1 Depth [dev]",
-      "file": "flux_1_depth_dev_q8p.ckpt",
-      "version": "flux1",
-      "modifier": "depth"
-    },
-    {
-      "name": "FLUX.1 Depth [dev] (5-bit)",
-      "file": "flux_1_depth_dev_q5p.ckpt",
-      "version": "flux1",
-      "modifier": "depth"
-    },
-    {
-      "name": "FLUX.1 Fill [dev]",
-      "file": "flux_1_fill_dev_q8p.ckpt",
-      "version": "flux1",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "FLUX.1 Fill [dev] (5-bit)",
-      "file": "flux_1_fill_dev_q5p.ckpt",
-      "version": "flux1",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "FLUX.1 Kontext [dev]",
-      "file": "flux_1_kontext_dev_q8p.ckpt",
-      "version": "flux1",
-      "modifier": "kontext"
-    },
-    {
-      "name": "FLUX.1 Kontext [dev] (5-bit)",
-      "file": "flux_1_kontext_dev_q5p.ckpt",
-      "version": "flux1",
-      "modifier": "kontext"
-    },
-    {
-      "name": "FLUX.1 Kontext [dev] (Exact)",
-      "file": "flux_1_kontext_dev_f16.ckpt",
-      "version": "flux1",
-      "modifier": "kontext"
-    },
-    {
-      "name": "FLUX.1 Krea [dev]",
-      "file": "flux_1_krea_dev_q8p.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "FLUX.1 Krea [dev] (5-bit)",
-      "file": "flux_1_krea_dev_q5p.ckpt",
-      "version": "flux1"
+      "default_scale": 16,
+      "text_encoder": "t5_xxl_encoder_q6p.ckpt",
+      "autoencoder": "flux_1_vae_f16.ckpt",
+      "clip_encoder": "clip_vit_l14_f16.ckpt",
+      "high_precision_autoencoder": true,
+      "is_consistency_model": true,
+      "padded_text_encoding_length": 256,
+      "hires_fix_scale": 24
     },
     {
       "name": "Fooocus Inpaint SDXL v2.6",
       "file": "fooocus_inpaint_sd_xl_v2.6_f16.ckpt",
-      "version": "sdxlBase",
-      "modifier": "inpainting"
+      "prefix": "",
+      "version": "sdxl_base_v0.9",
+      "default_scale": 16,
+      "text_encoder": "open_clip_vit_bigg14_f16.ckpt",
+      "autoencoder": "sdxl_vae_v1.0_f16.ckpt",
+      "modifier": "inpainting",
+      "clip_encoder": "clip_vit_l14_f16.ckpt"
     },
     {
       "name": "Fooocus Inpaint SDXL v2.6 (8-bit)",
       "file": "fooocus_inpaint_sd_xl_v2.6_q6p_q8p.ckpt",
-      "version": "sdxlBase",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "Ghibli (v1)",
-      "file": "ghibli_v1_f16.ckpt",
-      "version": "v1",
-      "prefix": "ghibli style "
-    },
-    {
-      "name": "H&A's 3DKX 1.1",
-      "file": "hna_3dkx_1.1_f16.ckpt",
-      "version": "v1",
-      "prefix": "a 3d render / cartoon of "
-    },
-    {
-      "name": "Hassanblend (v1.5.1.2)",
-      "file": "hassanblend_v1.5.1.2_f16.ckpt",
-      "version": "v1"
+      "prefix": "",
+      "version": "sdxl_base_v0.9",
+      "default_scale": 16,
+      "text_encoder": "open_clip_vit_bigg14_f16.ckpt",
+      "autoencoder": "sdxl_vae_v1.0_f16.ckpt",
+      "modifier": "inpainting",
+      "clip_encoder": "clip_vit_l14_f16.ckpt"
     },
     {
       "name": "HiDream E1 [full]",
       "file": "hidream_e1_full_q8p.ckpt",
-      "version": "hiDreamI1",
-      "modifier": "editing"
+      "prefix": "",
+      "version": "hidream_i1",
+      "default_scale": 12,
+      "text_encoder": "llama_3.1_8b_instruct_q8p.ckpt",
+      "autoencoder": "flux_1_vae_f16.ckpt",
+      "modifier": "editing",
+      "clip_encoder": "long_clip_vit_l14_f16.ckpt",
+      "additional_clip_encoders": [
+        "long_open_clip_vit_bigg14_f16.ckpt"
+      ],
+      "t5_encoder": "t5_xxl_encoder_q6p.ckpt",
+      "high_precision_autoencoder": true,
+      "padded_text_encoding_length": 128,
+      "hires_fix_scale": 24,
+      "note": "[HiDream-E1 [full]](https://huggingface.co/HiDream-ai/HiDream-E1-Full) is an image editing model built on HiDream-I1. It is MIT-licensed and commercially friendly. Trained at 768\u00d7768 resolution using a Flow Matching objective, the model performs best with trailing samplers and 30\u201350 sampling steps. For optimal results, ensure the width is set to 768 and use the following prompt format: Editing Instruction: {}. Target Image Description: {}."
     },
     {
       "name": "HiDream E1 [full] (5-bit)",
       "file": "hidream_e1_full_q5p.ckpt",
-      "version": "hiDreamI1",
-      "modifier": "editing"
+      "prefix": "",
+      "version": "hidream_i1",
+      "default_scale": 12,
+      "text_encoder": "llama_3.1_8b_instruct_q8p.ckpt",
+      "autoencoder": "flux_1_vae_f16.ckpt",
+      "modifier": "editing",
+      "clip_encoder": "long_clip_vit_l14_f16.ckpt",
+      "additional_clip_encoders": [
+        "long_open_clip_vit_bigg14_f16.ckpt"
+      ],
+      "t5_encoder": "t5_xxl_encoder_q6p.ckpt",
+      "high_precision_autoencoder": true,
+      "padded_text_encoding_length": 128,
+      "hires_fix_scale": 24,
+      "note": "[HiDream-E1 [full]](https://huggingface.co/HiDream-ai/HiDream-E1-Full) is an image editing model built on HiDream-I1. It is MIT-licensed and commercially friendly. Trained at 768\u00d7768 resolution using a Flow Matching objective, the model performs best with trailing samplers and 30\u201350 sampling steps. For optimal results, ensure the width is set to 768 and use the following prompt format: Editing Instruction: {}. Target Image Description: {}."
     },
     {
       "name": "HiDream E1-1",
       "file": "hidream_e1_1_q8p.ckpt",
-      "version": "hiDreamI1",
-      "modifier": "editing"
+      "prefix": "",
+      "version": "hidream_i1",
+      "default_scale": 16,
+      "text_encoder": "llama_3.1_8b_instruct_q8p.ckpt",
+      "autoencoder": "flux_1_vae_f16.ckpt",
+      "modifier": "editing",
+      "clip_encoder": "long_clip_vit_l14_f16.ckpt",
+      "additional_clip_encoders": [
+        "long_open_clip_vit_bigg14_f16.ckpt"
+      ],
+      "t5_encoder": "t5_xxl_encoder_q6p.ckpt",
+      "high_precision_autoencoder": true,
+      "padded_text_encoding_length": 128,
+      "hires_fix_scale": 24,
+      "note": "[HiDream-E1-1](https://huggingface.co/HiDream-ai/HiDream-E1-1) is an image editing model built on HiDream-I1. It is MIT-licensed and commercially friendly. Trained with dynamic resolutions (around 1MP) using a Flow Matching objective, the model performs best with trailing samplers and 30\u201350 sampling steps."
     },
     {
       "name": "HiDream E1-1 (5-bit)",
       "file": "hidream_e1_1_q5p.ckpt",
-      "version": "hiDreamI1",
-      "modifier": "editing"
-    },
-    {
-      "name": "HiDream E1-1 (Exact)",
-      "file": "hidream_e1_1_f16.ckpt",
+      "prefix": "",
       "version": "hidream_i1",
-      "modifier": "editing"
+      "default_scale": 16,
+      "text_encoder": "llama_3.1_8b_instruct_q8p.ckpt",
+      "autoencoder": "flux_1_vae_f16.ckpt",
+      "modifier": "editing",
+      "clip_encoder": "long_clip_vit_l14_f16.ckpt",
+      "additional_clip_encoders": [
+        "long_open_clip_vit_bigg14_f16.ckpt"
+      ],
+      "t5_encoder": "t5_xxl_encoder_q6p.ckpt",
+      "high_precision_autoencoder": true,
+      "padded_text_encoding_length": 128,
+      "hires_fix_scale": 24,
+      "note": "[HiDream-E1-1](https://huggingface.co/HiDream-ai/HiDream-E1-1) is an image editing model built on HiDream-I1. It is MIT-licensed and commercially friendly. Trained with dynamic resolutions (around 1MP) using a Flow Matching objective, the model performs best with trailing samplers and 30\u201350 sampling steps."
     },
     {
       "name": "HiDream I1 [dev]",
       "file": "hidream_i1_dev_q8p.ckpt",
-      "version": "hiDreamI1"
+      "prefix": "",
+      "version": "hidream_i1",
+      "default_scale": 16,
+      "text_encoder": "llama_3.1_8b_instruct_q8p.ckpt",
+      "autoencoder": "flux_1_vae_f16.ckpt",
+      "clip_encoder": "long_clip_vit_l14_f16.ckpt",
+      "additional_clip_encoders": [
+        "long_open_clip_vit_bigg14_f16.ckpt"
+      ],
+      "t5_encoder": "t5_xxl_encoder_q6p.ckpt",
+      "high_precision_autoencoder": true,
+      "guidance_embed": true,
+      "padded_text_encoding_length": 128,
+      "hires_fix_scale": 24,
+      "note": "[HiDream-I1 [dev]](https://huggingface.co/HiDream-ai/HiDream-I1-Dev) is a state-of-the-art open-source image generation model known for its strong prompt adherence across diverse styles, including photorealistic, cartoon, and artistic. It is MIT-licensed and commercially friendly. The model is trained at multiple resolutions using a Flow Matching objective; trailing samplers yield the best results, with 20\u201330 sampling steps recommended. Text guidance is not effective for this model."
     },
     {
       "name": "HiDream I1 [dev] (5-bit)",
       "file": "hidream_i1_dev_q5p.ckpt",
-      "version": "hiDreamI1"
-    },
-    {
-      "name": "HiDream I1 [dev] (Exact)",
-      "file": "hidream_i1_dev_f16.ckpt",
-      "version": "hidream_i1"
+      "prefix": "",
+      "version": "hidream_i1",
+      "default_scale": 16,
+      "text_encoder": "llama_3.1_8b_instruct_q8p.ckpt",
+      "autoencoder": "flux_1_vae_f16.ckpt",
+      "clip_encoder": "long_clip_vit_l14_f16.ckpt",
+      "additional_clip_encoders": [
+        "long_open_clip_vit_bigg14_f16.ckpt"
+      ],
+      "t5_encoder": "t5_xxl_encoder_q6p.ckpt",
+      "high_precision_autoencoder": true,
+      "guidance_embed": true,
+      "padded_text_encoding_length": 128,
+      "hires_fix_scale": 24,
+      "note": "[HiDream-I1 [dev]](https://huggingface.co/HiDream-ai/HiDream-I1-Dev) is a state-of-the-art open-source image generation model known for its strong prompt adherence across diverse styles, including photorealistic, cartoon, and artistic. It is MIT-licensed and commercially friendly. The model is trained at multiple resolutions using a Flow Matching objective; trailing samplers yield the best results, with 20\u201330 sampling steps recommended. Text guidance is not effective for this model."
     },
     {
       "name": "HiDream I1 [fast]",
       "file": "hidream_i1_fast_q8p.ckpt",
-      "version": "hiDreamI1"
+      "prefix": "",
+      "version": "hidream_i1",
+      "default_scale": 16,
+      "text_encoder": "llama_3.1_8b_instruct_q8p.ckpt",
+      "autoencoder": "flux_1_vae_f16.ckpt",
+      "clip_encoder": "long_clip_vit_l14_f16.ckpt",
+      "additional_clip_encoders": [
+        "long_open_clip_vit_bigg14_f16.ckpt"
+      ],
+      "t5_encoder": "t5_xxl_encoder_q6p.ckpt",
+      "high_precision_autoencoder": true,
+      "is_consistency_model": true,
+      "padded_text_encoding_length": 128,
+      "hires_fix_scale": 24,
+      "note": "[HiDream-I1 [fast]](https://huggingface.co/HiDream-ai/HiDream-I1-Fast) is a state-of-the-art open-source image generation model known for its strong prompt adherence across diverse styles, including photorealistic, cartoon, and artistic. It is MIT-licensed and commercially friendly. The model is trained at multiple resolutions using a Flow Matching objective; trailing samplers yield the best results, with 10\u201320 sampling steps recommended. Text guidance is not effective for this model."
     },
     {
       "name": "HiDream I1 [fast] (5-bit)",
       "file": "hidream_i1_fast_q5p.ckpt",
-      "version": "hiDreamI1"
-    },
-    {
-      "name": "HiDream I1 [fast] (Exact)",
-      "file": "hidream_i1_fast_f16.ckpt",
-      "version": "hidream_i1"
+      "prefix": "",
+      "version": "hidream_i1",
+      "default_scale": 16,
+      "text_encoder": "llama_3.1_8b_instruct_q8p.ckpt",
+      "autoencoder": "flux_1_vae_f16.ckpt",
+      "clip_encoder": "long_clip_vit_l14_f16.ckpt",
+      "additional_clip_encoders": [
+        "long_open_clip_vit_bigg14_f16.ckpt"
+      ],
+      "t5_encoder": "t5_xxl_encoder_q6p.ckpt",
+      "high_precision_autoencoder": true,
+      "is_consistency_model": true,
+      "padded_text_encoding_length": 128,
+      "hires_fix_scale": 24,
+      "note": "[HiDream-I1 [fast]](https://huggingface.co/HiDream-ai/HiDream-I1-Fast) is a state-of-the-art open-source image generation model known for its strong prompt adherence across diverse styles, including photorealistic, cartoon, and artistic. It is MIT-licensed and commercially friendly. The model is trained at multiple resolutions using a Flow Matching objective; trailing samplers yield the best results, with 10\u201320 sampling steps recommended. Text guidance is not effective for this model."
     },
     {
       "name": "HiDream I1 [full]",
       "file": "hidream_i1_full_q8p.ckpt",
-      "version": "hiDreamI1"
+      "prefix": "",
+      "version": "hidream_i1",
+      "default_scale": 16,
+      "text_encoder": "llama_3.1_8b_instruct_q8p.ckpt",
+      "autoencoder": "flux_1_vae_f16.ckpt",
+      "clip_encoder": "long_clip_vit_l14_f16.ckpt",
+      "additional_clip_encoders": [
+        "long_open_clip_vit_bigg14_f16.ckpt"
+      ],
+      "t5_encoder": "t5_xxl_encoder_q6p.ckpt",
+      "high_precision_autoencoder": true,
+      "padded_text_encoding_length": 128,
+      "hires_fix_scale": 24,
+      "note": "[HiDream-I1 [full]](https://huggingface.co/HiDream-ai/HiDream-I1-Full) is a state-of-the-art open-source image generation model known for its exceptional prompt adherence across a wide range of styles, including photorealistic, cartoon, and artistic. It is MIT-licensed and commercially friendly. The model is trained at multiple resolutions using a Flow Matching objective; trailing samplers yield the best results, with 30\u201350 sampling steps recommended."
     },
     {
       "name": "HiDream I1 [full] (5-bit)",
       "file": "hidream_i1_full_q5p.ckpt",
-      "version": "hiDreamI1"
-    },
-    {
-      "name": "HiDream I1 [full] (Exact)",
-      "file": "hidream_i1_full_f16.ckpt",
-      "version": "hidream_i1"
-    },
-    {
-      "name": "Hunyuan Video T2V 720p",
-      "file": "hunyuan_video_t2v_720p_q8p.ckpt",
-      "version": "hunyuan_video"
-    },
-    {
-      "name": "Hunyuan Video T2V 720p (5-bit, SVDQuant)",
-      "file": "hunyuan_video_t2v_720p_q5p_svd.ckpt",
-      "version": "hunyuan_video"
-    },
-    {
-      "name": "iCatcher Cartoon",
-      "file": "icatcher_cartoon_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "iCatcher Cartoon (8-bit)",
-      "file": "icatcher_cartoon_q6p_q8p.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "iCatcher Realistic",
-      "file": "icatcher_realistic_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "iCatcher Realistic (8-bit)",
-      "file": "icatcher_realistic_q6p_q8p.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "Inkpunk (v2)",
-      "file": "inkpunk_v2_f16.ckpt",
-      "version": "v1",
-      "prefix": "nvinkpunk "
+      "prefix": "",
+      "version": "hidream_i1",
+      "default_scale": 16,
+      "text_encoder": "llama_3.1_8b_instruct_q8p.ckpt",
+      "autoencoder": "flux_1_vae_f16.ckpt",
+      "clip_encoder": "long_clip_vit_l14_f16.ckpt",
+      "additional_clip_encoders": [
+        "long_open_clip_vit_bigg14_f16.ckpt"
+      ],
+      "t5_encoder": "t5_xxl_encoder_q6p.ckpt",
+      "high_precision_autoencoder": true,
+      "padded_text_encoding_length": 128,
+      "hires_fix_scale": 24,
+      "note": "[HiDream-I1 [full]](https://huggingface.co/HiDream-ai/HiDream-I1-Full) is a state-of-the-art open-source image generation model known for its exceptional prompt adherence across a wide range of styles, including photorealistic, cartoon, and artistic. It is MIT-licensed and commercially friendly. The model is trained at multiple resolutions using a Flow Matching objective; trailing samplers yield the best results, with 30\u201350 sampling steps recommended."
     },
     {
       "name": "Instruct Pix2Pix",
       "file": "instruct_pix2pix_22000_f16.ckpt",
+      "prefix": "",
       "version": "v1",
-      "modifier": "editing"
-    },
-    {
-      "name": "Juggernaut Reborn",
-      "file": "juggernaut_reborn_f16.ckpt",
-      "version": "v1",
-      "modifier": "none"
-    },
-    {
-      "name": "Juggernaut Reborn (8-bit)",
-      "file": "juggernaut_reborn_q6p_q8p.ckpt",
-      "version": "v1",
-      "modifier": "none"
-    },
-    {
-      "name": "Juggernaut XL Ragnarok",
-      "file": "juggernaut_xl_ragnarok_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "Juggernaut XL Ragnarok (8-bit)",
-      "file": "juggernaut_xl_ragnarok_q6p_q8p.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "Juggernaut XL v9",
-      "file": "juggernaut_xl_v9_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "Juggernaut XL v9 (8-bit)",
-      "file": "juggernaut_xl_v9_q6p_q8p.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "Juggernaut XL v9 Lightning",
-      "file": "juggernaut_xl_v9_lightning_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "Juggernaut XL v9 Lightning (8-bit)",
-      "file": "juggernaut_xl_v9_lightning_q6p_q8p.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "Juggernaut XL X",
-      "file": "juggernaut_xl_x_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "Juggernaut XL X (8-bit)",
-      "file": "juggernaut_xl_x_q6p_q8p.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
+      "default_scale": 8,
+      "modifier": "editing",
+      "deprecated": true
     },
     {
       "name": "Kandinsky v2.1",
       "file": "kandinsky_f16.ckpt",
-      "version": "kandinsky21"
-    },
-    {
-      "name": "Kwai Kolors 1.0",
-      "file": "kwai_kolors_1.0_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "Kwai Kolors 1.0 (8-bit)",
-      "file": "kwai_kolors_1.0_q6p_q8p.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "Kwai Kolors Inpainting 1.0",
-      "file": "kwai_kolors_inpainting_1.0_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "Kwai Kolors Inpainting 1.0 (8-bit)",
-      "file": "kwai_kolors_inpainting_1.0_q6p_q8p.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "MajicMIX Realistic v7",
-      "file": "majicmix_realistic_v7_f16.ckpt",
-      "version": "v1",
-      "modifier": "none"
-    },
-    {
-      "name": "MajicMIX Realistic v7 (8-bit)",
-      "file": "majicmix_realistic_v7_q6p_q8p.ckpt",
-      "version": "v1",
-      "modifier": "none"
+      "prefix": "",
+      "version": "kandinsky2.1",
+      "upcast_attention": false,
+      "default_scale": 12,
+      "text_encoder": "xlm_roberta_f16.ckpt",
+      "autoencoder": "kandinsky_movq_f16.ckpt",
+      "deprecated": true,
+      "image_encoder": "image_vit_l14_f16.ckpt",
+      "clip_encoder": "clip_vit_l14_f16.ckpt",
+      "diffusion_mapping": "kandinsky_diffusion_mapping_f16.ckpt"
     },
     {
       "name": "MiniSD v1.4",
       "file": "minisd_v1.4_f16.ckpt",
-      "version": "v1"
-    },
-    {
-      "name": "Modern Disney (v1)",
-      "file": "modi_v1_f16.ckpt",
+      "prefix": "",
       "version": "v1",
-      "prefix": "modern disney style "
-    },
-    {
-      "name": "Multi-Style (Nitro Diffusion v1)",
-      "file": "nitro_v1_f16.ckpt",
-      "version": "v1"
-    },
-    {
-      "name": "Openjourney",
-      "file": "mdjrny_v4_f16.ckpt",
-      "version": "v1",
-      "prefix": "mdjrny-v4 style "
-    },
-    {
-      "name": "Outfitting Fusion Virtual Try-on (Full-Body)",
-      "file": "ootd_vton_full_body_1.0_f16.ckpt",
-      "version": "v1",
-      "modifier": "double"
-    },
-    {
-      "name": "Outfitting Fusion Virtual Try-on (Upper-Body)",
-      "file": "ootd_vton_upper_body_1.0_f16.ckpt",
-      "version": "v1",
-      "modifier": "double"
-    },
-    {
-      "name": "Paper Cut (v1)",
-      "file": "papercut_v1_f16.ckpt",
-      "version": "v1",
-      "prefix": "papercut "
+      "default_scale": 4,
+      "deprecated": true
     },
     {
       "name": "PixArt Sigma XL 1K",
       "file": "pixart_sigma_xl_2_1024_ms_f16.ckpt",
-      "version": "pixart"
+      "prefix": "",
+      "version": "pixart",
+      "default_scale": 16,
+      "text_encoder": "t5_xxl_encoder_q6p.ckpt",
+      "autoencoder": "sdxl_vae_v1.0_f16.ckpt"
     },
     {
       "name": "PixArt Sigma XL 1K (8-bit)",
       "file": "pixart_sigma_xl_2_1024_ms_q8p.ckpt",
-      "version": "pixart"
+      "prefix": "",
+      "version": "pixart",
+      "default_scale": 16,
+      "text_encoder": "t5_xxl_encoder_q6p.ckpt",
+      "autoencoder": "sdxl_vae_v1.0_f16.ckpt"
     },
     {
       "name": "PixArt Sigma XL 512",
       "file": "pixart_sigma_xl_2_512_ms_f16.ckpt",
-      "version": "pixart"
+      "prefix": "",
+      "version": "pixart",
+      "default_scale": 8,
+      "text_encoder": "t5_xxl_encoder_q6p.ckpt",
+      "autoencoder": "sdxl_vae_v1.0_f16.ckpt"
     },
     {
       "name": "PixArt Sigma XL 512 (8-bit)",
       "file": "pixart_sigma_xl_2_512_ms_q8p.ckpt",
-      "version": "pixart"
-    },
-    {
-      "name": "PixelWave 10",
-      "file": "pixelwave_10_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "PixelWave 10 (8-bit)",
-      "file": "pixelwave_10_q6p_q8p.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "PixelWave FLUX.1 Schnell 04",
-      "file": "pixelwave_flux_1_schnell_04_q8p.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "PixelWave FLUX.1 Schnell 04 (5-bit, SVDQuant)",
-      "file": "pixelwave_flux_1_schnell_04_q5p_svd.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "PixelWave v9",
-      "file": "pixelwave_v9_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "PixelWave v9 (8-bit)",
-      "file": "pixelwave_v9_q6p_q8p.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "Playground v2",
-      "file": "playground_v2_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "Playground v2 (8-bit)",
-      "file": "playground_v2_q6p_q8p.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "Playground v2.5",
-      "file": "playground_v2.5_f16.ckpt",
-      "version": "sdxl_base_v0.9"
-    },
-    {
-      "name": "Playground v2.5 (8-bit)",
-      "file": "playground_v2.5_q6p_q8p.ckpt",
-      "version": "sdxl_base_v0.9"
-    },
-    {
-      "name": "Proteus v0.3",
-      "file": "proteus_v0.3_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "Proteus v0.3 (8-bit)",
-      "file": "proteus_v0.3_q6p_q8p.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
+      "prefix": "",
+      "version": "pixart",
+      "default_scale": 8,
+      "text_encoder": "t5_xxl_encoder_q6p.ckpt",
+      "autoencoder": "sdxl_vae_v1.0_f16.ckpt"
     },
     {
       "name": "Qwen Image 1.0",
       "file": "qwen_image_1.0_q8p.ckpt",
-      "version": "qwenImage"
+      "prefix": "",
+      "version": "qwen_image",
+      "default_scale": 16,
+      "text_encoder": "qwen_2.5_vl_7b_q8p.ckpt",
+      "autoencoder": "qwen_image_vae_f16.ckpt",
+      "hires_fix_scale": 24,
+      "note": "[Qwen Image](https://huggingface.co/Qwen/Qwen-Image) is a state-of-the-art open-source image generation model known for its exceptional text layout and prompt adherence across a wide range of styles, including photorealistic, cartoon, and artistic. It is Apache 2.0-licensed and commercially friendly. The model is trained at multiple resolutions using a Flow Matching objective; trailing samplers yield the best results, with 30\u201350 sampling steps recommended.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Qwen Image 1.0 (6-bit)",
       "file": "qwen_image_1.0_q6p.ckpt",
-      "version": "qwenImage"
+      "prefix": "",
+      "version": "qwen_image",
+      "default_scale": 16,
+      "text_encoder": "qwen_2.5_vl_7b_q8p.ckpt",
+      "autoencoder": "qwen_image_vae_f16.ckpt",
+      "hires_fix_scale": 24,
+      "note": "[Qwen Image](https://huggingface.co/Qwen/Qwen-Image) is a state-of-the-art open-source image generation model known for its exceptional text layout and prompt adherence across a wide range of styles, including photorealistic, cartoon, and artistic. It is Apache 2.0-licensed and commercially friendly. The model is trained at multiple resolutions using a Flow Matching objective; trailing samplers yield the best results, with 30\u201350 sampling steps recommended.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Qwen Image 1.0 (BF16, 6-bit)",
       "file": "qwen_image_1.0_bf16_q6p.ckpt",
-      "version": "qwenImage"
-    },
-    {
-      "name": "Qwen Image 1.0 (BF16, Exact)",
-      "file": "qwen_image_1.0_bf16.ckpt",
-      "version": "qwen_image"
+      "prefix": "",
+      "version": "qwen_image",
+      "default_scale": 16,
+      "text_encoder": "qwen_2.5_vl_7b_q8p.ckpt",
+      "autoencoder": "qwen_image_vae_f16.ckpt",
+      "hires_fix_scale": 24,
+      "is_bf16": true,
+      "note": "[Qwen Image](https://huggingface.co/Qwen/Qwen-Image) is a state-of-the-art open-source image generation model known for its exceptional text layout and prompt adherence across a wide range of styles, including photorealistic, cartoon, and artistic. It is Apache 2.0-licensed and commercially friendly. The model is trained at multiple resolutions using a Flow Matching objective; trailing samplers yield the best results, with 30\u201350 sampling steps recommended. The BF16 version is only compatible with macOS 15, iOS 18 and above.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Qwen Image 1.0 (BF16)",
       "file": "qwen_image_1.0_bf16_q8p.ckpt",
-      "version": "qwenImage"
+      "prefix": "",
+      "version": "qwen_image",
+      "default_scale": 16,
+      "text_encoder": "qwen_2.5_vl_7b_q8p.ckpt",
+      "autoencoder": "qwen_image_vae_f16.ckpt",
+      "hires_fix_scale": 24,
+      "is_bf16": true,
+      "note": "[Qwen Image](https://huggingface.co/Qwen/Qwen-Image) is a state-of-the-art open-source image generation model known for its exceptional text layout and prompt adherence across a wide range of styles, including photorealistic, cartoon, and artistic. It is Apache 2.0-licensed and commercially friendly. The model is trained at multiple resolutions using a Flow Matching objective; trailing samplers yield the best results, with 30\u201350 sampling steps recommended. The BF16 version is only compatible with macOS 15, iOS 18 and above.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
-      "name": "Qwen Image 1.0 (Exact)",
-      "file": "qwen_image_1.0_f16.ckpt",
-      "version": "qwen_image"
+      "name": "Qwen Image 2512 (BF16, 6-bit)",
+      "file": "qwen_image_2512_bf16_q6p.ckpt",
+      "prefix": "",
+      "version": "qwen_image",
+      "default_scale": 16,
+      "text_encoder": "qwen_2.5_vl_7b_q8p.ckpt",
+      "autoencoder": "qwen_image_vae_f16.ckpt",
+      "hires_fix_scale": 24,
+      "is_bf16": true,
+      "note": "[Qwen Image 2512](https://huggingface.co/Qwen/Qwen-Image-2512) is the december update of Qwen Image model with improvements on enhanced human realism, finer natural detail and improved text rendering. It is Apache 2.0-licensed and commercially friendly. The model is trained at multiple resolutions using a Flow Matching objective; trailing samplers yield the best results, with 30\u201350 sampling steps recommended. The BF16 version is only compatible with macOS 15, iOS 18 and above.",
+      "copyright": "\u00a9 2025 Alibaba"
+    },
+    {
+      "name": "Qwen Image 2512 (BF16)",
+      "file": "qwen_image_2512_bf16_q8p.ckpt",
+      "prefix": "",
+      "version": "qwen_image",
+      "default_scale": 16,
+      "text_encoder": "qwen_2.5_vl_7b_q8p.ckpt",
+      "autoencoder": "qwen_image_vae_f16.ckpt",
+      "hires_fix_scale": 24,
+      "is_bf16": true,
+      "note": "[Qwen Image 2512](https://huggingface.co/Qwen/Qwen-Image-2512) is the december update of Qwen Image model with improvements on enhanced human realism, finer natural detail and improved text rendering. It is Apache 2.0-licensed and commercially friendly. The model is trained at multiple resolutions using a Flow Matching objective; trailing samplers yield the best results, with 30\u201350 sampling steps recommended. The BF16 version is only compatible with macOS 15, iOS 18 and above.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Qwen Image Edit 1.0",
       "file": "qwen_image_edit_1.0_q8p.ckpt",
-      "version": "qwenImage",
-      "modifier": "kontext"
+      "prefix": "",
+      "version": "qwen_image",
+      "default_scale": 16,
+      "text_encoder": "qwen_2.5_vl_7b_q8p.ckpt",
+      "autoencoder": "qwen_image_vae_f16.ckpt",
+      "modifier": "kontext",
+      "clip_encoder": "qwen_2.5_vl_7b_vit_f16.ckpt",
+      "hires_fix_scale": 24,
+      "note": "[Qwen Image Edit](https://huggingface.co/Qwen/Qwen-Image-Edit) is a state-of-the-art open-source image edit model excels at image edit tasks such as background alternation, style transfer, object removal etc. It is Apache 2.0-licensed and commercially friendly. The model is trained at multiple resolutions using a Flow Matching objective; trailing samplers yield the best results, with 30\u201350 sampling steps recommended.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Qwen Image Edit 1.0 (6-bit)",
       "file": "qwen_image_edit_1.0_q6p.ckpt",
-      "version": "qwenImage",
-      "modifier": "kontext"
+      "prefix": "",
+      "version": "qwen_image",
+      "default_scale": 16,
+      "text_encoder": "qwen_2.5_vl_7b_q8p.ckpt",
+      "autoencoder": "qwen_image_vae_f16.ckpt",
+      "modifier": "kontext",
+      "clip_encoder": "qwen_2.5_vl_7b_vit_f16.ckpt",
+      "hires_fix_scale": 24,
+      "note": "[Qwen Image Edit](https://huggingface.co/Qwen/Qwen-Image-Edit) is a state-of-the-art open-source image edit model excels at image edit tasks such as background alternation, style transfer, object removal etc. It is Apache 2.0-licensed and commercially friendly. The model is trained at multiple resolutions using a Flow Matching objective; trailing samplers yield the best results, with 30\u201350 sampling steps recommended.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Qwen Image Edit 2509",
       "file": "qwen_image_edit_2509_q8p.ckpt",
-      "version": "qwenImage",
-      "modifier": "qwenimageEditPlus"
+      "prefix": "",
+      "version": "qwen_image",
+      "default_scale": 16,
+      "text_encoder": "qwen_2.5_vl_7b_q8p.ckpt",
+      "autoencoder": "qwen_image_vae_f16.ckpt",
+      "modifier": "qwenimageEditPlus",
+      "clip_encoder": "qwen_2.5_vl_7b_vit_f16.ckpt",
+      "hires_fix_scale": 24,
+      "note": "[Qwen Image Edit 2509](https://huggingface.co/Qwen/Qwen-Image-Edit-2509) is a state-of-the-art open-source image edit model excels at image edit tasks such as background alternation, style transfer, object removal etc. It is Apache 2.0-licensed and commercially friendly. The model is trained at multiple resolutions using a Flow Matching objective; trailing samplers yield the best results, with 30\u201350 sampling steps recommended. This is an update in Sep, 2025.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Qwen Image Edit 2509 (6-bit)",
       "file": "qwen_image_edit_2509_q6p.ckpt",
-      "version": "qwenImage",
-      "modifier": "qwenimageEditPlus"
+      "prefix": "",
+      "version": "qwen_image",
+      "default_scale": 16,
+      "text_encoder": "qwen_2.5_vl_7b_q8p.ckpt",
+      "autoencoder": "qwen_image_vae_f16.ckpt",
+      "modifier": "qwenimageEditPlus",
+      "clip_encoder": "qwen_2.5_vl_7b_vit_f16.ckpt",
+      "hires_fix_scale": 24,
+      "note": "[Qwen Image Edit 2509](https://huggingface.co/Qwen/Qwen-Image-2509) is a state-of-the-art open-source image edit model excels at image edit tasks such as background alternation, style transfer, object removal etc. It is Apache 2.0-licensed and commercially friendly. The model is trained at multiple resolutions using a Flow Matching objective; trailing samplers yield the best results, with 30\u201350 sampling steps recommended. This is an update in Sep, 2025.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Qwen Image Edit 2509 (BF16, 6-bit)",
       "file": "qwen_image_edit_2509_bf16_q6p.ckpt",
-      "version": "qwenImage",
-      "modifier": "qwenimageEditPlus"
-    },
-    {
-      "name": "Qwen Image Edit 2509 (BF16, Exact)",
-      "file": "qwen_image_edit_2509_bf16.ckpt",
+      "prefix": "",
       "version": "qwen_image",
-      "modifier": "qwenimage_edit_plus"
+      "default_scale": 16,
+      "text_encoder": "qwen_2.5_vl_7b_q8p.ckpt",
+      "autoencoder": "qwen_image_vae_f16.ckpt",
+      "modifier": "qwenimageEditPlus",
+      "clip_encoder": "qwen_2.5_vl_7b_vit_f16.ckpt",
+      "hires_fix_scale": 24,
+      "is_bf16": true,
+      "note": "[Qwen Image Edit 2509](https://huggingface.co/Qwen/Qwen-Image-2509) is a state-of-the-art open-source image edit model excels at image edit tasks such as background alternation, style transfer, object removal etc. It is Apache 2.0-licensed and commercially friendly. The model is trained at multiple resolutions using a Flow Matching objective; trailing samplers yield the best results, with 30\u201350 sampling steps recommended. This is an update in Sep, 2025. The BF16 version is only compatible with macOS 15, iOS 18 and above.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Qwen Image Edit 2509 (BF16)",
       "file": "qwen_image_edit_2509_bf16_q8p.ckpt",
-      "version": "qwenImage",
-      "modifier": "qwenimageEditPlus"
-    },
-    {
-      "name": "Qwen Image Edit 2509 (Exact)",
-      "file": "qwen_image_edit_2509_f16.ckpt",
+      "prefix": "",
       "version": "qwen_image",
-      "modifier": "qwenimage_edit_plus"
+      "default_scale": 16,
+      "text_encoder": "qwen_2.5_vl_7b_q8p.ckpt",
+      "autoencoder": "qwen_image_vae_f16.ckpt",
+      "modifier": "qwenimageEditPlus",
+      "clip_encoder": "qwen_2.5_vl_7b_vit_f16.ckpt",
+      "hires_fix_scale": 24,
+      "is_bf16": true,
+      "note": "[Qwen Image Edit 2509](https://huggingface.co/Qwen/Qwen-Image-Edit-2509) is a state-of-the-art open-source image edit model excels at image edit tasks such as background alternation, style transfer, object removal etc. It is Apache 2.0-licensed and commercially friendly. The model is trained at multiple resolutions using a Flow Matching objective; trailing samplers yield the best results, with 30\u201350 sampling steps recommended. This is an update in Sep, 2025. The BF16 version is only compatible with macOS 15, iOS 18 and above.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
-      "name": "RayFLUX v3.0",
-      "file": "rayflux_v3.0_aio_q8p.ckpt",
-      "version": "flux1"
+      "name": "Qwen Image Edit 2511",
+      "file": "qwen_image_edit_2511_q8p.ckpt",
+      "prefix": "",
+      "version": "qwen_image",
+      "default_scale": 16,
+      "text_encoder": "qwen_2.5_vl_7b_q8p.ckpt",
+      "autoencoder": "qwen_image_vae_f16.ckpt",
+      "modifier": "qwenimageEdit2511",
+      "clip_encoder": "qwen_2.5_vl_7b_vit_f16.ckpt",
+      "hires_fix_scale": 24,
+      "note": "[Qwen Image Edit 2511](https://huggingface.co/Qwen/Qwen-Image-Edit-2511) is an enhanced image editing model that significantly improves character consistency, mitigates image drift, and strengthens multi-person fusion capabilities compared to its predecessor (2509). It integrates popular LoRA features natively, enabling advanced lighting control and viewpoint generation without extra tuning, alongside specialized industrial design and geometric reasoning capabilities. It is Apache 2.0-licensed, with 40 inference steps recommended for optimal results.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
-      "name": "RayFLUX v3.0 (5-bit)",
-      "file": "rayflux_v3.0_aio_q5p.ckpt",
-      "version": "flux1"
+      "name": "Qwen Image Edit 2511 (6-bit)",
+      "file": "qwen_image_edit_2511_q6p.ckpt",
+      "prefix": "",
+      "version": "qwen_image",
+      "default_scale": 16,
+      "text_encoder": "qwen_2.5_vl_7b_q8p.ckpt",
+      "autoencoder": "qwen_image_vae_f16.ckpt",
+      "modifier": "qwenimageEdit2511",
+      "clip_encoder": "qwen_2.5_vl_7b_vit_f16.ckpt",
+      "hires_fix_scale": 24,
+      "note": "[Qwen Image Edit 2511](https://huggingface.co/Qwen/Qwen-Image-Edit-2511) is an enhanced image editing model that significantly improves character consistency, mitigates image drift, and strengthens multi-person fusion capabilities compared to its predecessor (2509). It integrates popular LoRA features natively, enabling advanced lighting control and viewpoint generation without extra tuning, alongside specialized industrial design and geometric reasoning capabilities. It is Apache 2.0-licensed, with 40 inference steps recommended for optimal results.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
-      "name": "Realistic Vision v5.1",
-      "file": "realistic_vision_v5.1_f16.ckpt",
-      "version": "v1",
-      "modifier": "none"
+      "name": "Qwen Image Edit 2511 (BF16, 6-bit)",
+      "file": "qwen_image_edit_2511_bf16_q6p.ckpt",
+      "prefix": "",
+      "version": "qwen_image",
+      "default_scale": 16,
+      "text_encoder": "qwen_2.5_vl_7b_q8p.ckpt",
+      "autoencoder": "qwen_image_vae_f16.ckpt",
+      "modifier": "qwenimageEdit2511",
+      "clip_encoder": "qwen_2.5_vl_7b_vit_f16.ckpt",
+      "hires_fix_scale": 24,
+      "is_bf16": true,
+      "note": "[Qwen Image Edit 2511](https://huggingface.co/Qwen/Qwen-Image-Edit-2511) is an enhanced image editing model that significantly improves character consistency, mitigates image drift, and strengthens multi-person fusion capabilities compared to its predecessor (2509). It integrates popular LoRA features natively, enabling advanced lighting control and viewpoint generation without extra tuning, alongside specialized industrial design and geometric reasoning capabilities. It is Apache 2.0-licensed, with 40 inference steps recommended for optimal results. The BF16 version is only compatible with macOS 15, iOS 18 and above.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
-      "name": "Realistic Vision v5.1 (8-bit)",
-      "file": "realistic_vision_v5.1_q6p_q8p.ckpt",
-      "version": "v1",
-      "modifier": "none"
+      "name": "Qwen Image Edit 2511 (BF16)",
+      "file": "qwen_image_edit_2511_bf16_q8p.ckpt",
+      "prefix": "",
+      "version": "qwen_image",
+      "default_scale": 16,
+      "text_encoder": "qwen_2.5_vl_7b_q8p.ckpt",
+      "autoencoder": "qwen_image_vae_f16.ckpt",
+      "modifier": "qwenimageEdit2511",
+      "clip_encoder": "qwen_2.5_vl_7b_vit_f16.ckpt",
+      "hires_fix_scale": 24,
+      "is_bf16": true,
+      "note": "[Qwen Image Edit 2511](https://huggingface.co/Qwen/Qwen-Image-Edit-2511) is an enhanced image editing model that significantly improves character consistency, mitigates image drift, and strengthens multi-person fusion capabilities compared to its predecessor (2509). It integrates popular LoRA features natively, enabling advanced lighting control and viewpoint generation without extra tuning, alongside specialized industrial design and geometric reasoning capabilities. It is Apache 2.0-licensed, with 40 inference steps recommended for optimal results. The BF16 version is only compatible with macOS 15, iOS 18 and above.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
-      "name": "RealVisXL v4.0",
-      "file": "realvisxl_v4.0_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
+      "name": "Qwen Image Layered 1.0 (BF16, 6-bit)",
+      "file": "qwen_image_layered_1.0_bf16_q6p.ckpt",
+      "prefix": "",
+      "version": "qwen_image",
+      "default_scale": 16,
+      "text_encoder": "qwen_2.5_vl_7b_q8p.ckpt",
+      "autoencoder": "qwen_image_layered_vae_f16.ckpt",
+      "modifier": "qwenimageLayered",
+      "hires_fix_scale": 24,
+      "is_bf16": true,
+      "note": "[Qwen Image Layered](https://huggingface.co/Qwen/Qwen-Image-Layered) is a specialized model capable of decomposing an image into multiple transparent RGBA layers to unlock inherent editability. By physically isolating semantic components, it enables high-fidelity operations such as resizing, repositioning, and recoloring without affecting the rest of the image. It is Apache 2.0-licensed and commercially friendly. The model supports flexible and recursive decomposition, allowing users to define specific layer counts (Batch Size), with a recommended resolution of 640px and 50 inference steps. The BF16 version is only compatible with macOS 15, iOS 18 and above.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
-      "name": "RealVisXL v4.0 (8-bit)",
-      "file": "realvisxl_v4.0_q6p_q8p.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "none"
-    },
-    {
-      "name": "Rev Animated v1.22",
-      "file": "rev_animated_v1.22_f16.ckpt",
-      "version": "v1",
-      "modifier": "none"
-    },
-    {
-      "name": "Rev Animated v1.22 (8-bit)",
-      "file": "rev_animated_v1.22_q6p_q8p.ckpt",
-      "version": "v1",
-      "modifier": "none"
-    },
-    {
-      "name": "SamDoesArt (v3)",
-      "file": "samdoesart_v3_f16.ckpt",
-      "version": "v1",
-      "prefix": "samdoesart "
-    },
-    {
-      "name": "schnellMODE v3.3",
-      "file": "schnellmode_v3.3_q8p.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "schnellMODE v3.3 (5-bit, SVDQuant)",
-      "file": "schnellmode_v3.3_q5p_svd.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "SD3 Large 3.5",
-      "file": "sd3_large_3.5_q8p.ckpt",
-      "version": "sd3_large"
-    },
-    {
-      "name": "SD3 Large 3.5 (6-bit)",
-      "file": "sd3_large_3.5_q6p.ckpt",
-      "version": "sd3_large"
-    },
-    {
-      "name": "SD3 Large 3.5 (Exact)",
-      "file": "sd3_large_3.5_f16.ckpt",
-      "version": "sd3_large"
-    },
-    {
-      "name": "SD3 Large Turbo 3.5",
-      "file": "sd3_large_turbo_3.5_q8p.ckpt",
-      "version": "sd3_large"
-    },
-    {
-      "name": "SD3 Large Turbo 3.5 (6-bit)",
-      "file": "sd3_large_turbo_3.5_q6p.ckpt",
-      "version": "sd3_large"
-    },
-    {
-      "name": "SD3 Medium",
-      "file": "sd3_medium_f16.ckpt",
-      "version": "sd3"
-    },
-    {
-      "name": "SD3 Medium (8-bit)",
-      "file": "sd3_medium_q8p.ckpt",
-      "version": "sd3"
-    },
-    {
-      "name": "SD3 Medium 3.5",
-      "file": "sd3_medium_3.5_f16.ckpt",
-      "version": "sd3"
-    },
-    {
-      "name": "SD3 Medium 3.5 (8-bit)",
-      "file": "sd3_medium_3.5_q8p.ckpt",
-      "version": "sd3"
+      "name": "Qwen Image Layered 1.0 (BF16)",
+      "file": "qwen_image_layered_1.0_bf16_q8p.ckpt",
+      "prefix": "",
+      "version": "qwen_image",
+      "default_scale": 16,
+      "text_encoder": "qwen_2.5_vl_7b_q8p.ckpt",
+      "autoencoder": "qwen_image_layered_vae_f16.ckpt",
+      "modifier": "qwenimageLayered",
+      "hires_fix_scale": 24,
+      "is_bf16": true,
+      "note": "[Qwen Image Layered](https://huggingface.co/Qwen/Qwen-Image-Layered) is a specialized model capable of decomposing an image into multiple transparent RGBA layers to unlock inherent editability. By physically isolating semantic components, it enables high-fidelity operations such as resizing, repositioning, and recoloring without affecting the rest of the image. It is Apache 2.0-licensed and commercially friendly. The model supports flexible and recursive decomposition, allowing users to define specific layer counts (Batch Size), with a recommended resolution of 640px and 50 inference steps. The BF16 version is only compatible with macOS 15, iOS 18 and above.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "SDXL Base (v0.9)",
       "file": "sd_xl_base_0.9_f16.ckpt",
-      "version": "sdxlBase"
+      "prefix": "",
+      "version": "sdxl_base_v0.9",
+      "default_scale": 16,
+      "text_encoder": "open_clip_vit_bigg14_f16.ckpt",
+      "autoencoder": "sdxl_vae_f16.ckpt",
+      "deprecated": true,
+      "clip_encoder": "clip_vit_l14_f16.ckpt"
     },
     {
       "name": "SDXL Base (v1.0)",
       "file": "sd_xl_base_1.0_f16.ckpt",
-      "version": "sdxlBase"
+      "prefix": "",
+      "version": "sdxl_base_v0.9",
+      "default_scale": 16,
+      "text_encoder": "open_clip_vit_bigg14_f16.ckpt",
+      "autoencoder": "sdxl_vae_v1.0_f16.ckpt",
+      "clip_encoder": "clip_vit_l14_f16.ckpt"
     },
     {
       "name": "SDXL Base v1.0 (8-bit)",
       "file": "sd_xl_base_1.0_q6p_q8p.ckpt",
-      "version": "sdxlBase"
+      "prefix": "",
+      "version": "sdxl_base_v0.9",
+      "default_scale": 16,
+      "text_encoder": "open_clip_vit_bigg14_f16.ckpt",
+      "autoencoder": "sdxl_vae_v1.0_f16.ckpt",
+      "clip_encoder": "clip_vit_l14_f16.ckpt"
     },
     {
       "name": "SDXL Refiner (v0.9)",
       "file": "sd_xl_refiner_0.9_f16.ckpt",
-      "version": "sdxlRefiner"
+      "prefix": "",
+      "version": "sdxl_refiner_v0.9",
+      "default_scale": 16,
+      "text_encoder": "open_clip_vit_bigg14_f16.ckpt",
+      "autoencoder": "sdxl_vae_f16.ckpt",
+      "deprecated": true,
+      "clip_encoder": "clip_vit_l14_f16.ckpt"
     },
     {
       "name": "SDXL Refiner (v1.0)",
       "file": "sd_xl_refiner_1.0_f16.ckpt",
-      "version": "sdxlRefiner"
+      "prefix": "",
+      "version": "sdxl_refiner_v0.9",
+      "default_scale": 16,
+      "text_encoder": "open_clip_vit_bigg14_f16.ckpt",
+      "autoencoder": "sdxl_vae_v1.0_f16.ckpt",
+      "clip_encoder": "clip_vit_l14_f16.ckpt"
     },
     {
       "name": "SDXL Refiner v1.0 (8-bit)",
       "file": "sd_xl_refiner_1.0_q6p_q8p.ckpt",
-      "version": "sdxlRefiner"
-    },
-    {
-      "name": "SDXL Turbo",
-      "file": "sd_xl_turbo_f16.ckpt",
-      "version": "sdxl_base_v0.9"
-    },
-    {
-      "name": "SDXL Turbo (8-bit)",
-      "file": "sd_xl_turbo_q6p_q8p.ckpt",
-      "version": "sdxl_base_v0.9"
-    },
-    {
-      "name": "seek.art MEGA (v1)",
-      "file": "seek_art_mega_v1_f16.ckpt",
-      "version": "v1"
-    },
-    {
-      "name": "Shuttle Jaguar",
-      "file": "shuttle_jaguar_q8p.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "Shuttle Jaguar (5-bit, SVDQuant)",
-      "file": "shuttle_jaguar_q5p_svd.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "Shuttle v3.1 Aesthetic",
-      "file": "shuttle_v3.1_aesthetic_q8p.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "Shuttle v3.1 Aesthetic (5-bit, SVDQuant)",
-      "file": "shuttle_v3.1_aesthetic_q5p_svd.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "SkyReels v1 Hunyuan I2V 544p",
-      "file": "skyreels_v1_hunyuan_i2v_q8p.ckpt",
-      "version": "hunyuan_video",
-      "prefix": "FPS-24, ",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "SkyReels v1 Hunyuan I2V 544p (5-bit, SVDQuant)",
-      "file": "skyreels_v1_hunyuan_i2v_q5p_svd.ckpt",
-      "version": "hunyuan_video",
-      "prefix": "FPS-24, ",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "SkyReels v1 Hunyuan T2V 544p",
-      "file": "skyreels_v1_hunyuan_t2v_q8p.ckpt",
-      "version": "hunyuan_video",
-      "prefix": "FPS-24, "
-    },
-    {
-      "name": "SkyReels v1 Hunyuan T2V 544p (5-bit, SVDQuant)",
-      "file": "skyreels_v1_hunyuan_t2v_q5p_svd.ckpt",
-      "version": "hunyuan_video",
-      "prefix": "FPS-24, "
-    },
-    {
-      "name": "SkyReels v2 I2V 1.3B 540p",
-      "file": "skyreels_v2_i2v_1.3b_540p_f16.ckpt",
-      "version": "wan_v2.1_1.3b",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "SkyReels v2 I2V 1.3B 540p (8-bit)",
-      "file": "skyreels_v2_i2v_1.3b_540p_q8p.ckpt",
-      "version": "wan_v2.1_1.3b",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "SkyReels v2 I2V 14B 540p",
-      "file": "skyreels_v2_i2v_14b_540p_q8p.ckpt",
-      "version": "wan_v2.1_14b",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "SkyReels v2 I2V 14B 540p (6-bit, SVDQuant)",
-      "file": "skyreels_v2_i2v_14b_540p_q6p_svd.ckpt",
-      "version": "wan_v2.1_14b",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "SkyReels v2 I2V 14B 720p",
-      "file": "skyreels_v2_i2v_14b_720p_q8p.ckpt",
-      "version": "wan_v2.1_14b",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "SkyReels v2 I2V 14B 720p (6-bit, SVDQuant)",
-      "file": "skyreels_v2_i2v_14b_720p_q6p_svd.ckpt",
-      "version": "wan_v2.1_14b",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "SkyReels v2 T2V 14B 540p",
-      "file": "skyreels_v2_t2v_14b_540p_q8p.ckpt",
-      "version": "wan_v2.1_14b"
-    },
-    {
-      "name": "SkyReels v2 T2V 14B 540p (6-bit, SVDQuant)",
-      "file": "skyreels_v2_t2v_14b_540p_q6p_svd.ckpt",
-      "version": "wan_v2.1_14b"
-    },
-    {
-      "name": "SkyReels v2 T2V 14B 720p",
-      "file": "skyreels_v2_t2v_14b_720p_q8p.ckpt",
-      "version": "wan_v2.1_14b"
-    },
-    {
-      "name": "SkyReels v2 T2V 14B 720p (6-bit, SVDQuant)",
-      "file": "skyreels_v2_t2v_14b_720p_q6p_svd.ckpt",
-      "version": "wan_v2.1_14b"
-    },
-    {
-      "name": "Spider-Verse (v1)",
-      "file": "spiderverse_v1_f16.ckpt",
-      "version": "v1",
-      "prefix": "spiderverse style "
-    },
-    {
-      "name": "SSD 1B (Segmind SDXL)",
-      "file": "ssd_1b_f16.ckpt",
-      "version": "ssd_1b"
-    },
-    {
-      "name": "SSD 1B (Segmind SDXL) (8-bit)",
-      "file": "ssd_1b_q6p_q8p.ckpt",
-      "version": "ssd_1b"
-    },
-    {
-      "name": "Stable Cascade (W\u00fcrstchen v3.0)",
-      "file": "wurstchen_3.0_stage_c_f32_f16.ckpt",
-      "version": "wurstchen_v3.0_stage_c"
-    },
-    {
-      "name": "Stable Cascade (W\u00fcrstchen v3.0) (8-bit)",
-      "file": "wurstchen_3.0_stage_c_f32_q6p_q8p.ckpt",
-      "version": "wurstchen_v3.0_stage_c"
+      "prefix": "",
+      "version": "sdxl_refiner_v0.9",
+      "default_scale": 16,
+      "text_encoder": "open_clip_vit_bigg14_f16.ckpt",
+      "autoencoder": "sdxl_vae_v1.0_f16.ckpt",
+      "clip_encoder": "clip_vit_l14_f16.ckpt"
     },
     {
       "name": "Stable Diffusion v1.4",
       "file": "sd_v1.4_f16.ckpt",
-      "version": "v1"
+      "prefix": "",
+      "version": "v1",
+      "deprecated": true
     },
     {
       "name": "Stable Diffusion v1.5",
       "file": "sd_v1.5_f16.ckpt",
+      "prefix": "",
       "version": "v1"
     },
     {
       "name": "Stable Diffusion v1.5 Inpainting",
       "file": "sd_v1.5_inpainting_f16.ckpt",
+      "prefix": "",
       "version": "v1",
       "modifier": "inpainting"
     },
     {
       "name": "Stable Diffusion v2.0",
       "file": "sd_v2.0_f16.ckpt",
-      "version": "v2"
+      "prefix": "",
+      "version": "v2",
+      "text_encoder": "open_clip_vit_h14_f16.ckpt",
+      "deprecated": true
     },
     {
       "name": "Stable Diffusion v2.0 768-v",
       "file": "sd_v2.0_768_v_f16.ckpt",
-      "version": "v2"
+      "prefix": "",
+      "version": "v2",
+      "default_scale": 12,
+      "text_encoder": "open_clip_vit_h14_f16.ckpt",
+      "deprecated": true
     },
     {
       "name": "Stable Diffusion v2.0 Depth",
       "file": "sd_v2.0_depth_f16.ckpt",
+      "prefix": "",
       "version": "v2",
+      "text_encoder": "open_clip_vit_h14_f16.ckpt",
       "modifier": "depth"
     },
     {
       "name": "Stable Diffusion v2.0 Inpainting",
       "file": "sd_v2.0_inpainting_f16.ckpt",
+      "prefix": "",
       "version": "v2",
+      "text_encoder": "open_clip_vit_h14_f16.ckpt",
       "modifier": "inpainting"
     },
     {
       "name": "Stable Diffusion v2.1",
       "file": "sd_v2.1_f16.ckpt",
-      "version": "v2"
+      "prefix": "",
+      "version": "v2",
+      "text_encoder": "open_clip_vit_h14_f16.ckpt"
     },
     {
       "name": "Stable Diffusion v2.1 768-v",
       "file": "sd_v2.1_768_v_f16.ckpt",
-      "version": "v2"
-    },
-    {
-      "name": "Stable Video Diffusion I2V v1.0",
-      "file": "svd_i2v_1.0_f16.ckpt",
-      "version": "svd_i2v",
-      "modifier": "none"
-    },
-    {
-      "name": "Stable Video Diffusion I2V v1.0 (8-bit)",
-      "file": "svd_i2v_1.0_q6p_q8p.ckpt",
-      "version": "svd_i2v",
-      "modifier": "none"
+      "prefix": "",
+      "version": "v2",
+      "upcast_attention": true,
+      "default_scale": 12,
+      "text_encoder": "open_clip_vit_h14_f16.ckpt"
     },
     {
       "name": "Stable Video Diffusion I2V XT 1.0 (8-bit)",
       "file": "svd_i2v_xt_1.0_q6p_q8p.ckpt",
-      "version": "svdI2v"
+      "prefix": "",
+      "version": "svd_i2v",
+      "default_scale": 8,
+      "text_encoder": "open_clip_vit_h14_vision_model_f16.ckpt",
+      "deprecated": true,
+      "clip_encoder": "svd_i2v_xt_1.0_q6p_q8p.ckpt"
     },
     {
       "name": "Stable Video Diffusion I2V XT v1.0",
       "file": "svd_i2v_xt_1.0_f16.ckpt",
-      "version": "svdI2v"
-    },
-    {
-      "name": "Stable Video Diffusion I2V XT v1.1",
-      "file": "svd_i2v_xt_1.1_f16.ckpt",
+      "prefix": "",
       "version": "svd_i2v",
-      "modifier": "none"
-    },
-    {
-      "name": "Stable Video Diffusion I2V XT v1.1 (8-bit)",
-      "file": "svd_i2v_xt_1.1_q6p_q8p.ckpt",
-      "version": "svd_i2v",
-      "modifier": "none"
-    },
-    {
-      "name": "Super Mario Nation (v2)",
-      "file": "supermarionation_v2_f16.ckpt",
-      "version": "v1",
-      "prefix": "supermarionation "
-    },
-    {
-      "name": "Tron Legacy",
-      "file": "trnlgcy_f16.ckpt",
-      "version": "v1",
-      "prefix": "trnlgcy style "
-    },
-    {
-      "name": "Van Gogh Style (Lvngvncnt v2)",
-      "file": "lvngvncnt_v2_f16.ckpt",
-      "version": "v1",
-      "prefix": "lvngvncnt "
-    },
-    {
-      "name": "VoxelArt (v1)",
-      "file": "voxelart_v1_f16.ckpt",
-      "version": "v1",
-      "prefix": "voxelart "
-    },
-    {
-      "name": "Wan 2.1 1.3B Fun InP",
-      "file": "wan_2.1_1.3b_fun_inp_f16.ckpt",
-      "version": "wan_v2.1_1.3b",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "Wan 2.1 1.3B Fun InP (8-bit)",
-      "file": "wan_2.1_1.3b_fun_inp_q8p.ckpt",
-      "version": "wan_v2.1_1.3b",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "Wan 2.1 1.3B v1.1 Fun InP",
-      "file": "wan_2.1_1.3b_v1.1_fun_inp_f16.ckpt",
-      "version": "wan_v2.1_1.3b",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "Wan 2.1 1.3B v1.1 Fun InP (8-bit)",
-      "file": "wan_2.1_1.3b_v1.1_fun_inp_q8p.ckpt",
-      "version": "wan_v2.1_1.3b",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "Wan 2.1 14B Fun InP",
-      "file": "wan_2.1_14b_fun_inp_q8p.ckpt",
-      "version": "wan_v2.1_14b",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "Wan 2.1 14B Fun InP (6-bit, SVDQuant)",
-      "file": "wan_2.1_14b_fun_inp_q6p_svd.ckpt",
-      "version": "wan_v2.1_14b",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "Wan 2.1 14B I2V FusionX",
-      "file": "wan_2.1_14b_i2v_fusionx_q8p.ckpt",
-      "version": "wan_v2.1_14b",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "Wan 2.1 14B I2V FusionX (6-bit, SVDQuant)",
-      "file": "wan_2.1_14b_i2v_fusionx_q6p_svd.ckpt",
-      "version": "wan_v2.1_14b",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "Wan 2.1 14B T2V FusionX",
-      "file": "wan_2.1_14b_t2v_fusionx_q8p.ckpt",
-      "version": "wan_v2.1_14b"
-    },
-    {
-      "name": "Wan 2.1 14B T2V FusionX (6-bit, SVDQuant)",
-      "file": "wan_2.1_14b_t2v_fusionx_q6p_svd.ckpt",
-      "version": "wan_v2.1_14b"
-    },
-    {
-      "name": "Wan 2.1 14B v1.1 Fun InP",
-      "file": "wan_2.1_14b_v1.1_fun_inp_q8p.ckpt",
-      "version": "wan_v2.1_14b",
-      "modifier": "inpainting"
-    },
-    {
-      "name": "Wan 2.1 14B v1.1 Fun InP (6-bit, SVDQuant)",
-      "file": "wan_2.1_14b_v1.1_fun_inp_q6p_svd.ckpt",
-      "version": "wan_v2.1_14b",
-      "modifier": "inpainting"
+      "default_scale": 8,
+      "text_encoder": "open_clip_vit_h14_vision_model_f16.ckpt",
+      "deprecated": true,
+      "clip_encoder": "svd_i2v_xt_1.0_f16.ckpt"
     },
     {
       "name": "Wan 2.1 I2V 14B 480p",
       "file": "wan_v2.1_14b_i2v_480p_q8p.ckpt",
-      "version": "wan21_14b",
-      "modifier": "inpainting"
+      "prefix": "",
+      "version": "wan_v2.1_14b",
+      "default_scale": 8,
+      "text_encoder": "umt5_xxl_encoder_q8p.ckpt",
+      "autoencoder": "wan_v2.1_video_vae_f16.ckpt",
+      "modifier": "inpainting",
+      "clip_encoder": "open_clip_xlm_roberta_large_vit_h14_f16.ckpt",
+      "hires_fix_scale": 12,
+      "tea_cache_coefficients": [
+        257151.496,
+        -35422.9917,
+        1402.86849,
+        -13.5890334,
+        0.132517977
+      ],
+      "frames_per_second": 16,
+      "note": "[Wan2.1 I2V 14B 480P](https://huggingface.co/Wan-AI/Wan2.1-I2V-14B-480P) is a state-of-the-art image-to-video model developed by Alibaba. It can generate video clips of up to 4 seconds in length from a given start frame. The recommended resolutions are 832\u00d7480. The model supports up to 81 frames, with a recommended shift value of 5.0.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Wan 2.1 I2V 14B 480p (6-bit, SVDQuant)",
       "file": "wan_v2.1_14b_i2v_480p_q6p_svd.ckpt",
-      "version": "wan21_14b",
-      "modifier": "inpainting"
+      "prefix": "",
+      "version": "wan_v2.1_14b",
+      "default_scale": 8,
+      "text_encoder": "umt5_xxl_encoder_q8p.ckpt",
+      "autoencoder": "wan_v2.1_video_vae_f16.ckpt",
+      "modifier": "inpainting",
+      "clip_encoder": "open_clip_xlm_roberta_large_vit_h14_f16.ckpt",
+      "hires_fix_scale": 12,
+      "builtin_lora": true,
+      "tea_cache_coefficients": [
+        257151.496,
+        -35422.9917,
+        1402.86849,
+        -13.5890334,
+        0.132517977
+      ],
+      "frames_per_second": 16,
+      "note": "[Wan2.1 I2V 14B 480P](https://huggingface.co/Wan-AI/Wan2.1-I2V-14B-480P) is a state-of-the-art image-to-video model developed by Alibaba. It can generate video clips of up to 4 seconds in length from a given start frame. The recommended resolutions are 832\u00d7480. The model supports up to 81 frames, with a recommended shift value of 5.0.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Wan 2.1 I2V 14B 720p",
       "file": "wan_v2.1_14b_i2v_720p_q8p.ckpt",
-      "version": "wan21_14b",
-      "modifier": "inpainting"
+      "prefix": "",
+      "version": "wan_v2.1_14b",
+      "default_scale": 12,
+      "text_encoder": "umt5_xxl_encoder_q8p.ckpt",
+      "autoencoder": "wan_v2.1_video_vae_f16.ckpt",
+      "modifier": "inpainting",
+      "clip_encoder": "open_clip_xlm_roberta_large_vit_h14_f16.ckpt",
+      "hires_fix_scale": 16,
+      "tea_cache_coefficients": [
+        8107.0546,
+        2133.93892,
+        -372.934672,
+        16.6203073,
+        -0.0417769401
+      ],
+      "frames_per_second": 16,
+      "note": "[Wan2.1 I2V 14B 720P](https://huggingface.co/Wan-AI/Wan2.1-I2V-14B-720P) is a state-of-the-art image-to-video model developed by Alibaba. It can generate video clips of up to 4 seconds in length from a given start frame. The recommended resolutions are 1280\u00d7720. The model supports up to 81 frames, with a recommended shift value of 5.0.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Wan 2.1 I2V 14B 720p (6-bit, SVDQuant)",
       "file": "wan_v2.1_14b_i2v_720p_q6p_svd.ckpt",
-      "version": "wan21_14b",
-      "modifier": "inpainting"
+      "prefix": "",
+      "version": "wan_v2.1_14b",
+      "default_scale": 12,
+      "text_encoder": "umt5_xxl_encoder_q8p.ckpt",
+      "autoencoder": "wan_v2.1_video_vae_f16.ckpt",
+      "modifier": "inpainting",
+      "clip_encoder": "open_clip_xlm_roberta_large_vit_h14_f16.ckpt",
+      "hires_fix_scale": 16,
+      "builtin_lora": true,
+      "tea_cache_coefficients": [
+        8107.0546,
+        2133.93892,
+        -372.934672,
+        16.6203073,
+        -0.0417769401
+      ],
+      "frames_per_second": 16,
+      "note": "[Wan2.1 I2V 14B 720P](https://huggingface.co/Wan-AI/Wan2.1-I2V-14B-720P) is a state-of-the-art image-to-video model developed by Alibaba. It can generate video clips of up to 4 seconds in length from a given start frame. The recommended resolutions are 1280\u00d7720. The model supports up to 81 frames, with a recommended shift value of 5.0.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Wan 2.1 T2V 1.3B",
       "file": "wan_v2.1_1.3b_480p_f16.ckpt",
-      "version": "wan21_1_3b"
+      "prefix": "",
+      "version": "wan_v2.1_1.3b",
+      "default_scale": 8,
+      "text_encoder": "umt5_xxl_encoder_q8p.ckpt",
+      "autoencoder": "wan_v2.1_video_vae_f16.ckpt",
+      "hires_fix_scale": 12,
+      "tea_cache_coefficients": [
+        -52186.2437,
+        9230.41404,
+        -528.275948,
+        13.6987616,
+        -0.0499875664
+      ],
+      "frames_per_second": 16,
+      "note": "[Wan2.1 T2V 1.3B](https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B) is a state-of-the-art text-to-video model developed by Alibaba. It can generate video clips of up to 4 seconds in length. The recommended resolutions are 832\u00d7480. The model supports up to 81 frames, with a recommended shift value of 6.0. For best results, set Text Guidance above 5.0. Wan2.1 is trained with a Flow Matching objective, and trailing samplers will produce the best outputs.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Wan 2.1 T2V 1.3B (8-bit)",
       "file": "wan_v2.1_1.3b_480p_q8p.ckpt",
-      "version": "wan21_1_3b"
+      "prefix": "",
+      "version": "wan_v2.1_1.3b",
+      "default_scale": 8,
+      "text_encoder": "umt5_xxl_encoder_q8p.ckpt",
+      "autoencoder": "wan_v2.1_video_vae_f16.ckpt",
+      "hires_fix_scale": 12,
+      "tea_cache_coefficients": [
+        -52186.2437,
+        9230.41404,
+        -528.275948,
+        13.6987616,
+        -0.0499875664
+      ],
+      "frames_per_second": 16,
+      "note": "[Wan2.1 T2V 1.3B](https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B) is a state-of-the-art text-to-video model developed by Alibaba. It can generate video clips of up to 4 seconds in length. The recommended resolutions are 832\u00d7480. The model supports up to 81 frames, with a recommended shift value of 6.0. For best results, set Text Guidance above 5.0. Wan2.1 is trained with a Flow Matching objective, and trailing samplers will produce the best outputs.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Wan 2.1 T2V 14B",
       "file": "wan_v2.1_14b_720p_q8p.ckpt",
-      "version": "wan21_14b"
+      "prefix": "",
+      "version": "wan_v2.1_14b",
+      "default_scale": 12,
+      "text_encoder": "umt5_xxl_encoder_q8p.ckpt",
+      "autoencoder": "wan_v2.1_video_vae_f16.ckpt",
+      "hires_fix_scale": 16,
+      "tea_cache_coefficients": [
+        -303318.725,
+        49053.7029,
+        -2655.30556,
+        58.7365115,
+        -0.315583525
+      ],
+      "frames_per_second": 16,
+      "note": "[Wan2.1 T2V 14B](https://huggingface.co/Wan-AI/Wan2.1-T2V-14B) is a state-of-the-art text-to-video model developed by Alibaba. It can generate video clips of up to 4 seconds in length. The recommended resolutions are 1280\u00d7720. The recommended resolutions are 832\u00d7480. The model supports up to 81 frames, with a recommended shift value of 5.0. For best results, set Text Guidance above 5.0. Wan2.1 is trained with a Flow Matching objective, and trailing samplers will produce the best outputs.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Wan 2.1 T2V 14B (5-bit, SVDQuant)",
       "file": "wan_v2.1_14b_720p_q5p_svd.ckpt",
-      "version": "wan21_14b"
+      "prefix": "",
+      "version": "wan_v2.1_14b",
+      "default_scale": 12,
+      "text_encoder": "umt5_xxl_encoder_q8p.ckpt",
+      "autoencoder": "wan_v2.1_video_vae_f16.ckpt",
+      "deprecated": true,
+      "hires_fix_scale": 16,
+      "builtin_lora": true,
+      "tea_cache_coefficients": [
+        -303318.725,
+        49053.7029,
+        -2655.30556,
+        58.7365115,
+        -0.315583525
+      ],
+      "frames_per_second": 16,
+      "note": "[Wan2.1 T2V 14B](https://huggingface.co/Wan-AI/Wan2.1-T2V-14B) is a state-of-the-art text-to-video model developed by Alibaba. It can generate video clips of up to 4 seconds in length. The recommended resolutions are 1280\u00d7720. The model supports up to 81 frames, with a recommended shift value of 5.0.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Wan 2.1 T2V 14B (6-bit, SVDQuant)",
       "file": "wan_v2.1_14b_720p_q6p_svd.ckpt",
-      "version": "wan21_14b"
+      "prefix": "",
+      "version": "wan_v2.1_14b",
+      "default_scale": 12,
+      "text_encoder": "umt5_xxl_encoder_q8p.ckpt",
+      "autoencoder": "wan_v2.1_video_vae_f16.ckpt",
+      "hires_fix_scale": 16,
+      "builtin_lora": true,
+      "tea_cache_coefficients": [
+        -303318.725,
+        49053.7029,
+        -2655.30556,
+        58.7365115,
+        -0.315583525
+      ],
+      "frames_per_second": 16,
+      "note": "[Wan2.1 T2V 14B](https://huggingface.co/Wan-AI/Wan2.1-T2V-14B) is a state-of-the-art text-to-video model developed by Alibaba. It can generate video clips of up to 4 seconds in length. The recommended resolutions are 1280\u00d7720. The model supports up to 81 frames, with a recommended shift value of 5.0.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Wan 2.2 High Noise Expert I2V A14B",
       "file": "wan_v2.2_a14b_hne_i2v_q8p.ckpt",
-      "version": "wan21_14b",
-      "modifier": "inpainting"
+      "prefix": "",
+      "version": "wan_v2.1_14b",
+      "default_scale": 12,
+      "text_encoder": "umt5_xxl_encoder_q8p.ckpt",
+      "autoencoder": "wan_v2.1_video_vae_f16.ckpt",
+      "modifier": "inpainting",
+      "hires_fix_scale": 16,
+      "tea_cache_coefficients": [
+        257151.496,
+        -35422.9917,
+        1402.86849,
+        -13.5890334,
+        0.132517977
+      ],
+      "frames_per_second": 16,
+      "note": "[Wan2.2 I2V A14B](https://huggingface.co/Wan-AI/Wan2.2-I2V-A14B) is a state-of-the-art image-to-video model developed by Alibaba. It can generate video clips of up to 4 seconds in length from a given start frame. The recommended resolutions are 1280\u00d7720. The model supports up to 81 frames, with a recommended shift value of 5.0.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Wan 2.2 High Noise Expert I2V A14B (6-bit, SVDQuant)",
       "file": "wan_v2.2_a14b_hne_i2v_q6p_svd.ckpt",
-      "version": "wan21_14b",
-      "modifier": "inpainting"
+      "prefix": "",
+      "version": "wan_v2.1_14b",
+      "default_scale": 12,
+      "text_encoder": "umt5_xxl_encoder_q8p.ckpt",
+      "autoencoder": "wan_v2.1_video_vae_f16.ckpt",
+      "modifier": "inpainting",
+      "hires_fix_scale": 16,
+      "builtin_lora": true,
+      "tea_cache_coefficients": [
+        257151.496,
+        -35422.9917,
+        1402.86849,
+        -13.5890334,
+        0.132517977
+      ],
+      "frames_per_second": 16,
+      "note": "[Wan2.2 I2V A14B](https://huggingface.co/Wan-AI/Wan2.2-I2V-A14B) is a state-of-the-art image-to-video model developed by Alibaba. It can generate video clips of up to 4 seconds in length from a given start frame. The recommended resolutions are 1280\u00d7720. The model supports up to 81 frames, with a recommended shift value of 5.0.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Wan 2.2 High Noise Expert T2V A14B",
       "file": "wan_v2.2_a14b_hne_t2v_q8p.ckpt",
-      "version": "wan21_14b"
+      "prefix": "",
+      "version": "wan_v2.1_14b",
+      "default_scale": 12,
+      "text_encoder": "umt5_xxl_encoder_q8p.ckpt",
+      "autoencoder": "wan_v2.1_video_vae_f16.ckpt",
+      "hires_fix_scale": 16,
+      "tea_cache_coefficients": [
+        -303318.725,
+        49053.7029,
+        -2655.30556,
+        58.7365115,
+        -0.315583525
+      ],
+      "frames_per_second": 16,
+      "note": "[Wan2.2 T2V A14B](https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B) is a state-of-the-art text-to-video model developed by Alibaba. It can generate video clips of up to 4 seconds in length. The recommended resolutions are 1280\u00d7720. The model supports up to 81 frames, with a recommended shift value of 5.0.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Wan 2.2 High Noise Expert T2V A14B (6-bit, SVDQuant)",
       "file": "wan_v2.2_a14b_hne_t2v_q6p_svd.ckpt",
-      "version": "wan21_14b"
+      "prefix": "",
+      "version": "wan_v2.1_14b",
+      "default_scale": 12,
+      "text_encoder": "umt5_xxl_encoder_q8p.ckpt",
+      "autoencoder": "wan_v2.1_video_vae_f16.ckpt",
+      "hires_fix_scale": 16,
+      "builtin_lora": true,
+      "tea_cache_coefficients": [
+        -303318.725,
+        49053.7029,
+        -2655.30556,
+        58.7365115,
+        -0.315583525
+      ],
+      "frames_per_second": 16,
+      "note": "[Wan2.2 T2V A14B](https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B) is a state-of-the-art text-to-video model developed by Alibaba. It can generate video clips of up to 4 seconds in length. The recommended resolutions are 1280\u00d7720. The model supports up to 81 frames, with a recommended shift value of 5.0.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Wan 2.2 Low Noise Expert I2V A14B",
       "file": "wan_v2.2_a14b_lne_i2v_q8p.ckpt",
-      "version": "wan21_14b",
-      "modifier": "inpainting"
+      "prefix": "",
+      "version": "wan_v2.1_14b",
+      "default_scale": 12,
+      "text_encoder": "umt5_xxl_encoder_q8p.ckpt",
+      "autoencoder": "wan_v2.1_video_vae_f16.ckpt",
+      "modifier": "inpainting",
+      "hires_fix_scale": 16,
+      "tea_cache_coefficients": [
+        257151.496,
+        -35422.9917,
+        1402.86849,
+        -13.5890334,
+        0.132517977
+      ],
+      "frames_per_second": 16,
+      "note": "[Wan2.2 I2V A14B](https://huggingface.co/Wan-AI/Wan2.2-I2V-A14B) is a state-of-the-art image-to-video model developed by Alibaba. It can generate video clips of up to 4 seconds in length from a given start frame. The recommended resolutions are 1280\u00d7720. The model supports up to 81 frames, with a recommended shift value of 5.0.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Wan 2.2 Low Noise Expert I2V A14B (6-bit, SVDQuant)",
       "file": "wan_v2.2_a14b_lne_i2v_q6p_svd.ckpt",
-      "version": "wan21_14b",
-      "modifier": "inpainting"
+      "prefix": "",
+      "version": "wan_v2.1_14b",
+      "default_scale": 12,
+      "text_encoder": "umt5_xxl_encoder_q8p.ckpt",
+      "autoencoder": "wan_v2.1_video_vae_f16.ckpt",
+      "modifier": "inpainting",
+      "hires_fix_scale": 16,
+      "builtin_lora": true,
+      "tea_cache_coefficients": [
+        257151.496,
+        -35422.9917,
+        1402.86849,
+        -13.5890334,
+        0.132517977
+      ],
+      "frames_per_second": 16,
+      "note": "[Wan2.2 I2V A14B](https://huggingface.co/Wan-AI/Wan2.2-I2V-A14B) is a state-of-the-art image-to-video model developed by Alibaba. It can generate video clips of up to 4 seconds in length from a given start frame. The recommended resolutions are 1280\u00d7720. The model supports up to 81 frames, with a recommended shift value of 5.0.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Wan 2.2 Low Noise Expert T2V A14B",
       "file": "wan_v2.2_a14b_lne_t2v_q8p.ckpt",
-      "version": "wan21_14b"
+      "prefix": "",
+      "version": "wan_v2.1_14b",
+      "default_scale": 12,
+      "text_encoder": "umt5_xxl_encoder_q8p.ckpt",
+      "autoencoder": "wan_v2.1_video_vae_f16.ckpt",
+      "hires_fix_scale": 16,
+      "tea_cache_coefficients": [
+        -303318.725,
+        49053.7029,
+        -2655.30556,
+        58.7365115,
+        -0.315583525
+      ],
+      "frames_per_second": 16,
+      "note": "[Wan2.2 T2V A14B](https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B) is a state-of-the-art text-to-video model developed by Alibaba. It can generate video clips of up to 4 seconds in length. The recommended resolutions are 1280\u00d7720. The model supports up to 81 frames, with a recommended shift value of 5.0.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Wan 2.2 Low Noise Expert T2V A14B (6-bit, SVDQuant)",
       "file": "wan_v2.2_a14b_lne_t2v_q6p_svd.ckpt",
-      "version": "wan21_14b"
+      "prefix": "",
+      "version": "wan_v2.1_14b",
+      "default_scale": 12,
+      "text_encoder": "umt5_xxl_encoder_q8p.ckpt",
+      "autoencoder": "wan_v2.1_video_vae_f16.ckpt",
+      "hires_fix_scale": 16,
+      "builtin_lora": true,
+      "tea_cache_coefficients": [
+        -303318.725,
+        49053.7029,
+        -2655.30556,
+        58.7365115,
+        -0.315583525
+      ],
+      "frames_per_second": 16,
+      "note": "[Wan2.2 T2V A14B](https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B) is a state-of-the-art text-to-video model developed by Alibaba. It can generate video clips of up to 4 seconds in length. The recommended resolutions are 1280\u00d7720. The model supports up to 81 frames, with a recommended shift value of 5.0.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Wan 2.2 TI2V 5B",
       "file": "wan_v2.2_5b_ti2v_f16.ckpt",
-      "version": "wan22_5b"
+      "prefix": "",
+      "version": "wan_v2.2_5b",
+      "default_scale": 12,
+      "text_encoder": "umt5_xxl_encoder_q8p.ckpt",
+      "autoencoder": "wan_v2.2_video_vae_f16.ckpt",
+      "hires_fix_scale": 16,
+      "tea_cache_coefficients": null,
+      "frames_per_second": 24,
+      "note": "[Wan2.2 TI2V 5B](https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B) is a state-of-the-art text-image-to-video model developed by Alibaba. It can generate video clips of up to 4 seconds in length. The recommended resolutions are 1280\u00d7720. The model supports up to 121 frames, with a recommended shift value of 5.0.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
       "name": "Wan 2.2 TI2V 5B (8-bit)",
       "file": "wan_v2.2_5b_ti2v_q8p.ckpt",
-      "version": "wan22_5b"
+      "prefix": "",
+      "version": "wan_v2.2_5b",
+      "default_scale": 12,
+      "text_encoder": "umt5_xxl_encoder_q8p.ckpt",
+      "autoencoder": "wan_v2.2_video_vae_f16.ckpt",
+      "hires_fix_scale": 16,
+      "tea_cache_coefficients": null,
+      "frames_per_second": 24,
+      "note": "[Wan2.2 TI2V 5B](https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B) is a state-of-the-art text-image-to-video model developed by Alibaba. It can generate video clips of up to 4 seconds in length. The recommended resolutions are 1280\u00d7720. The model supports up to 121 frames, with a recommended shift value of 5.0.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
-      "name": "Wan v2.2 High Noise Expert T2V A14B Lightning 250928",
-      "file": "wan_v2.2_a14b_hne_t2v_lightning_250928_q8p.ckpt",
-      "version": "wan_v2.1_14b"
+      "name": "Z Image Turbo 1.0",
+      "file": "z_image_turbo_1.0_q8p.ckpt",
+      "prefix": "",
+      "version": "zImage",
+      "default_scale": 16,
+      "text_encoder": "qwen_3_vl_4b_instruct_q8p.ckpt",
+      "autoencoder": "flux_1_vae_f16.ckpt",
+      "hires_fix_scale": 24,
+      "note": "[Z Image Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) is is a powerful and highly efficient image generation model with 6B parameters. It is Apache 2.0-licensed and commercially friendly. The model is trained at multiple resolutions using a Flow Matching objective; trailing samplers yield the best results, with 8 sampling steps recommended.",
+      "copyright": "\u00a9 2025 Alibaba"
     },
     {
-      "name": "Wan v2.2 High Noise Expert T2V A14B Lightning 250928 (6-bit, SVDQuant)",
-      "file": "wan_v2.2_a14b_hne_t2v_lightning_250928_q6p_svd.ckpt",
-      "version": "wan_v2.1_14b"
+      "name": "Z Image Turbo 1.0 (6-bit)",
+      "file": "z_image_turbo_1.0_q6p.ckpt",
+      "prefix": "",
+      "version": "zImage",
+      "default_scale": 16,
+      "text_encoder": "qwen_3_vl_4b_instruct_q8p.ckpt",
+      "autoencoder": "flux_1_vae_f16.ckpt",
+      "hires_fix_scale": 24,
+      "note": "[Z Image Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) is is a powerful and highly efficient image generation model with 6B parameters. It is Apache 2.0-licensed and commercially friendly. The model is trained at multiple resolutions using a Flow Matching objective; trailing samplers yield the best results, with 8 sampling steps recommended.",
+      "copyright": "\u00a9 2025 Alibaba"
     }
   ],
   "loras": [
     {
-      "name": "360 Degree [dev]",
-      "file": "360_degree__dev__lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "ACE++: Local Editing",
-      "file": "ace____local_editing_lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "ACE++: Portrait",
-      "file": "ace____portrait_lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "ACE++: Subject",
-      "file": "ace____subject_lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "Adam's Artwork Style v.1",
-      "file": "adams_artwork_style_v0.1_lora_f16.ckpt",
-      "version": "v1",
-      "prefix": "ajaws "
-    },
-    {
-      "name": "Add More Details (Detail Enhancer / Tweaker)",
-      "file": "add_more_details__detail_enhancer___tweaker__lora_f16.ckpt",
-      "version": "v1"
-    },
-    {
-      "name": "Age Slider",
-      "file": "age_slider_lora_f16.ckpt",
-      "version": "sdxl_base_v0.9"
-    },
-    {
-      "name": "Amateur Photography v3.5 [dev]",
-      "file": "amateur_photography_v3.5__dev__lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "Analog Diffusion v1.0",
-      "file": "analog_diffusion_v1_lora_f16.ckpt",
-      "version": "v1",
-      "prefix": "analog "
-    },
-    {
-      "name": "Anime LineArt Style v2.0",
-      "file": "anime_lineart_style_v2.0_lora_f16.ckpt",
-      "version": "v1"
-    },
-    {
-      "name": "AntiBlur v1.0 [dev]",
-      "file": "antiblur_v1.0__dev__lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "Arcane Style",
-      "file": "arcane_style_lora_f16.ckpt",
-      "version": "v1",
-      "prefix": "arcane style "
-    },
-    {
-      "name": "Boring Reality v2 [dev]",
-      "file": "boring_reality_v2_lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "CCXL-Mucha Art Style",
-      "file": "ccxl_mucha_art_style_lora_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "prefix": "ccxl-mucha "
-    },
-    {
-      "name": "Crazy Expressions",
-      "file": "crazy_expressions_lora_f16.ckpt",
-      "version": "v1",
-      "prefix": "crazy face "
-    },
-    {
-      "name": "Cyberpunk 2077 Nightcity v1.15",
-      "file": "cyberpunk_2007_concept_art_nightcity_v1.15_lora_f16.ckpt",
-      "version": "v1"
-    },
-    {
-      "name": "DMD2 SDXL 4-Step",
-      "file": "dmd2_sdxl_4_step_lora_f16.ckpt",
-      "version": "sdxl_base_v0.9"
-    },
-    {
-      "name": "Epi Noise Offset v2",
-      "file": "epi_noiseoffset_v2_lora_f16.ckpt",
-      "version": "v1"
-    },
-    {
-      "name": "Fix Hands Slider",
-      "file": "fix_hands_slider_lora_f16.ckpt",
-      "version": "sdxl_base_v0.9"
-    },
-    {
-      "name": "FLUX.1 [dev] to [schnell] 4-Step",
-      "file": "flux.1__dev__to__schnell__4_step_lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "FLUX.1 Canny [dev]",
-      "file": "flux_1_canny_dev_lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "FLUX.1 Depth [dev]",
-      "file": "flux_1_depth_dev_lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "FLUX.1 Turbo Alpha",
-      "file": "flux.1_turbo_alpha_lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
       "name": "Fooocus Inpaint v2.6",
       "file": "fooocus_inpaint_v2.6_lora_f16.ckpt",
-      "version": "sdxlBase"
+      "prefix": "",
+      "version": "sdxl_base_v0.9",
+      "modifier": "inpainting"
     },
     {
       "name": "Fooocus Inpaint v2.6 (8-bit)",
       "file": "fooocus_inpaint_v2.6_lora_q8p.ckpt",
-      "version": "sdxlBase"
+      "prefix": "",
+      "version": "sdxl_base_v0.9",
+      "modifier": "inpainting"
     },
     {
       "name": "Foreground to Blending",
       "file": "layer_xl_fg2ble_v1.0_lora_f16.ckpt",
-      "version": "sdxlBase"
-    },
-    {
-      "name": "Ghibli Cartoon Art",
-      "file": "ghibli_cartoon_art_lora_f16.ckpt",
-      "version": "flux1",
-      "prefix": "Ghibli Art"
-    },
-    {
-      "name": "Haute Couture or Gowns v1.0",
-      "file": "haute_couture_or_gowns_v1.0_lora_f16.ckpt",
-      "version": "v1",
-      "prefix": "hc_gown "
-    },
-    {
-      "name": "HiDream E1",
-      "file": "hidream_e1_full_lora_f16.ckpt",
-      "version": "hidream_i1"
-    },
-    {
-      "name": "Hipoly 3D Model",
-      "file": "hipoly_3d_model_lora_f16.ckpt",
-      "version": "v1",
-      "prefix": "hiqcgbody "
-    },
-    {
-      "name": "Hyper FLUX.1 [dev] 16-Step",
-      "file": "hyper_flux.1__dev__16_step_lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "Hyper FLUX.1 [dev] 8-Step",
-      "file": "hyper_flux.1__dev__8_step_lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "Hyper SD v1.x 4-Step",
-      "file": "hyper_sd_v1.x_4_step_lora_f16.ckpt",
-      "version": "v1"
-    },
-    {
-      "name": "Hyper SD v1.x 8-Step",
-      "file": "hyper_sd_v1.x_8_step_lora_f16.ckpt",
-      "version": "v1"
-    },
-    {
-      "name": "Hyper SD3 16-Step CFG",
-      "file": "hyper_sd3_16_step_cfg_lora_f16.ckpt",
-      "version": "sd3"
-    },
-    {
-      "name": "Hyper SD3 4-Step CFG",
-      "file": "hyper_sd3_4_step_cfg_lora_f16.ckpt",
-      "version": "sd3"
-    },
-    {
-      "name": "Hyper SD3 8-Step CFG",
-      "file": "hyper_sd3_8_step_cfg_lora_f16.ckpt",
-      "version": "sd3"
-    },
-    {
-      "name": "Hyper SDXL 4-Step",
-      "file": "hyper_sdxl_4_step_lora_f16.ckpt",
-      "version": "sdxl_base_v0.9"
-    },
-    {
-      "name": "Hyper SDXL 8-Step",
-      "file": "hyper_sdxl_8_step_lora_f16.ckpt",
-      "version": "sdxl_base_v0.9"
-    },
-    {
-      "name": "ICEdit Normal",
-      "file": "icedit_normal_lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "In-Context: Couple Profile",
-      "file": "in_context__couple_profile_lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "In-Context: Film Storyboard",
-      "file": "in_context__film_storyboard_lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "In-Context: Font Design",
-      "file": "in_context__font_design_lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "In-Context: Home Decoration",
-      "file": "in_context__home_decoration_lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "In-Context: Portrait Illustration",
-      "file": "in_context__portrait_illustration_lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "In-Context: Portrait Photography",
-      "file": "in_context__portrait_photography_lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "In-Context: PPT Templates",
-      "file": "in_context__ppt_templates_lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "In-Context: Visual Identity Design",
-      "file": "in_context__visual_identity_design_lora_f16.ckpt",
-      "version": "flux1"
+      "prefix": "",
+      "version": "sdxl_base_v0.9",
+      "modifier": "inpainting"
     },
     {
       "name": "LCM SDXL Base (1.0)",
       "file": "lcm_sd_xl_base_1.0_lora_f16.ckpt",
-      "version": "sdxlBase"
+      "prefix": "",
+      "version": "sdxl_base_v0.9",
+      "is_consistency_model": true
     },
     {
       "name": "LCM SDXL Refiner (1.0)",
       "file": "lcm_sd_xl_refiner_1.0_lora_f16.ckpt",
-      "version": "sdxlRefiner"
-    },
-    {
-      "name": "LCM SSD 1B (Segmind)",
-      "file": "lcm_ssd_1b_lora_f16.ckpt",
-      "version": "ssd_1b"
+      "prefix": "",
+      "version": "sdxl_refiner_v0.9",
+      "is_consistency_model": true
     },
     {
       "name": "LCM Stable Diffusion v1.5",
       "file": "lcm_sd_v1.5_lora_f16.ckpt",
-      "version": "v1"
-    },
-    {
-      "name": "Long Hair Slider",
-      "file": "long_hair_slider_lora_f16.ckpt",
-      "version": "sdxl_base_v0.9"
-    },
-    {
-      "name": "Mascular Slider",
-      "file": "mascular_slider_lora_f16.ckpt",
-      "version": "sdxl_base_v0.9"
-    },
-    {
-      "name": "Moxin Shukezouma v1.1",
-      "file": "moxin_shukezouma_v1.1_lora_f16.ckpt",
+      "prefix": "",
       "version": "v1",
-      "prefix": "shukezouma "
-    },
-    {
-      "name": "Moxin v1.0",
-      "file": "moxin_v1.0_lora_f16.ckpt",
-      "version": "v1",
-      "prefix": "shuimobysim "
-    },
-    {
-      "name": "Object Removal for FLUX.1 Fill v2",
-      "file": "object_removal_for_flux.1_fill_v2_lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "Openjourney v1.0",
-      "file": "openjourney_v1_lora_f16.ckpt",
-      "version": "v1",
-      "prefix": "mdjrny-v4 "
-    },
-    {
-      "name": "Papercut SDXL",
-      "file": "papercut_sdxl_lora_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "prefix": "papercut "
-    },
-    {
-      "name": "PCM SD3 4-Step",
-      "file": "pcm_sd3_4_step_lora_f16.ckpt",
-      "version": "sd3"
-    },
-    {
-      "name": "Pixel Art XL v1.1",
-      "file": "pixel_art_xl_v1.1_lora_f16.ckpt",
-      "version": "sdxl_base_v0.9"
-    },
-    {
-      "name": "Qwen Image 1.0 Lightning 4-Step v1.0",
-      "file": "qwen_image_1.0_lightning_4_step_v1.0_lora_f16.ckpt",
-      "version": "qwen_image"
-    },
-    {
-      "name": "Qwen Image 1.0 Lightning 4-Step v2.0",
-      "file": "qwen_image_1.0_lightning_4_step_v2.0_lora_f16.ckpt",
-      "version": "qwen_image"
-    },
-    {
-      "name": "Qwen Image 1.0 Lightning 8-Step v1.1",
-      "file": "qwen_image_1.0_lightning_8_step_v1.1_lora_f16.ckpt",
-      "version": "qwen_image"
-    },
-    {
-      "name": "Qwen Image 1.0 Lightning 8-Step v2.0",
-      "file": "qwen_image_1.0_lightning_8_step_v2.0_lora_f16.ckpt",
-      "version": "qwen_image"
-    },
-    {
-      "name": "Qwen Image Edit 1.0 Lightning 4-Step v1.0",
-      "file": "qwen_image_edit_1.0_lightning_4_step_v1.0_lora_f16.ckpt",
-      "version": "qwen_image"
-    },
-    {
-      "name": "Qwen Image Edit 1.0 Lightning 8-Step v1.0",
-      "file": "qwen_image_edit_1.0_lightning_8_step_v1.0_lora_f16.ckpt",
-      "version": "qwen_image"
-    },
-    {
-      "name": "Qwen Image Edit 2509 Lightning 4-Step v1.0",
-      "file": "qwen_image_edit_2509_lightning_4_step_v1.0_lora_f16.ckpt",
-      "version": "qwen_image"
-    },
-    {
-      "name": "Qwen Image Edit 2509 Lightning 8-Step v1.0",
-      "file": "qwen_image_edit_2509_lightning_8_step_v1.0_lora_f16.ckpt",
-      "version": "qwen_image"
-    },
-    {
-      "name": "SD3 Medium 3.5 Turbo 4-Step",
-      "file": "sd3_medium_3.5_turbo_4_step_lora_f16.ckpt",
-      "version": "sd3"
-    },
-    {
-      "name": "SD3 Medium 3.5 Turbo 8-Step",
-      "file": "sd3_medium_3.5_turbo_8_step_lora_f16.ckpt",
-      "version": "sd3"
-    },
-    {
-      "name": "SDXL Lightning 4-Step",
-      "file": "sdxl_lightning_4_step_lora_f16.ckpt",
-      "version": "sdxl_base_v0.9"
-    },
-    {
-      "name": "SDXL Lightning 8-Step",
-      "file": "sdxl_lightning_8_step_lora_f16.ckpt",
-      "version": "sdxl_base_v0.9"
+      "is_consistency_model": true
     },
     {
       "name": "SDXL Offset (1.0)",
       "file": "sdxl_offset_v1.0_lora_f16.ckpt",
-      "version": "sdxlBase"
-    },
-    {
-      "name": "SDXL Render v2.0",
-      "file": "sdxl_render_v2.0_lora_f16.ckpt",
-      "version": "v1"
-    },
-    {
-      "name": "Smiling Slider",
-      "file": "smiling_slider_lora_f16.ckpt",
-      "version": "sdxl_base_v0.9"
-    },
-    {
-      "name": "Surprised Look Slider",
-      "file": "surprised_look_slider_lora_f16.ckpt",
+      "prefix": "",
       "version": "sdxl_base_v0.9"
     },
     {
       "name": "TCD SDXL Base (1.0)",
       "file": "tcd_sd_xl_base_1.0_lora_f16.ckpt",
-      "version": "sdxlBase"
+      "prefix": "",
+      "version": "sdxl_base_v0.9",
+      "is_consistency_model": true
     },
     {
       "name": "TCD Stable Diffusion v1.5",
       "file": "tcd_sd_v1.5_lora_f16.ckpt",
-      "version": "v1"
-    },
-    {
-      "name": "Theovercomer8's Contrast Fix",
-      "file": "theovercomer8s_contrast_fix_lora_f16.ckpt",
+      "prefix": "",
       "version": "v1",
-      "prefix": "to8contrast style "
-    },
-    {
-      "name": "Theovercomer8's Contrast Fix",
-      "file": "theovercomer8s_contrast_fix_sd_v2.x_lora_f16.ckpt",
-      "version": "v2",
-      "prefix": "to8contrast style "
-    },
-    {
-      "name": "TO8's High Key",
-      "file": "to8s_high_key_lora_f16.ckpt",
-      "version": "v1",
-      "prefix": "to8highkey "
-    },
-    {
-      "name": "TO8's High Key",
-      "file": "to8s_high_key_sd_v2.x_lora_f16.ckpt",
-      "version": "v2",
-      "prefix": "to8highkey "
+      "is_consistency_model": true
     },
     {
       "name": "Transparent Image",
       "file": "layer_flux_1_transparent_lora_f16.ckpt",
-      "version": "flux1"
+      "prefix": "",
+      "version": "flux1",
+      "alternative_decoder": "flux_1_transparent_vae_decoder_f16.ckpt",
+      "alternative_decoder_version": "transparent"
     },
     {
       "name": "Transparent Image (Attention Injection)",
       "file": "layer_xl_transparent_attn_v1.0_lora_f16.ckpt",
-      "version": "sdxlBase"
-    },
-    {
-      "name": "Transparent Image FLUX.1 [dev]",
-      "file": "layer_flux_1_transparent_lora_f16.ckpt",
-      "version": "flux1"
-    },
-    {
-      "name": "Wan 2.1 1.3B CausVid T2V",
-      "file": "wan_2.1_1.3b_causvid_t2v_lora_f16.ckpt",
-      "version": "wan_v2.1_1.3b"
-    },
-    {
-      "name": "Wan 2.1 1.3B CFG Distill",
-      "file": "wan_2.1_1.3b_cfg_distill_lora_f16.ckpt",
-      "version": "wan_v2.1_1.3b"
-    },
-    {
-      "name": "Wan 2.1 14B 480p Self-Forcing I2V",
-      "file": "wan_2.1_14b_480p_self_forcing_i2v_lora_f16.ckpt",
-      "version": "wan_v2.1_14b"
-    },
-    {
-      "name": "Wan 2.1 14B CausVid T2V",
-      "file": "wan_2.1_14b_causvid_t2v_lora_f16.ckpt",
-      "version": "wan_v2.1_14b"
-    },
-    {
-      "name": "Wan 2.1 14B Self-Forcing T2V",
-      "file": "wan_2.1_14b_self_forcing_t2v_v2_lora_f16.ckpt",
-      "version": "wan_v2.1_14b"
-    },
-    {
-      "name": "Wan 2.2 A14B Lightning High Noise Expert I2V v1.0",
-      "file": "wan_v2.2_a14b_hne_i2v_lightning_v1.0_lora_f16.ckpt",
-      "version": "wan_v2.1_14b"
-    },
-    {
-      "name": "Wan 2.2 A14B Lightning High Noise Expert T2V v1.1",
-      "file": "wan_v2.2_a14b_hne_t2v_lightning_v1.1_lora_f16.ckpt",
-      "version": "wan_v2.1_14b"
-    },
-    {
-      "name": "Wan 2.2 A14B Lightning Low Noise Expert I2V v1.0",
-      "file": "wan_v2.2_a14b_lne_i2v_lightning_v1.0_lora_f16.ckpt",
-      "version": "wan_v2.1_14b"
-    },
-    {
-      "name": "Wan 2.2 A14B Lightning Low Noise Expert T2V 250928",
-      "file": "wan_v2.2_a14b_lne_t2v_lightning_250928_lora_f16.ckpt",
-      "version": "wan_v2.1_14b"
-    },
-    {
-      "name": "Wan 2.2 A14B Lightning Low Noise Expert T2V v1.1",
-      "file": "wan_v2.2_a14b_lne_t2v_lightning_v1.1_lora_f16.ckpt",
-      "version": "wan_v2.1_14b"
-    },
-    {
-      "name": "Weight Slider",
-      "file": "weight_slider_lora_f16.ckpt",
-      "version": "sdxl_base_v0.9"
+      "prefix": "",
+      "version": "sdxl_base_v0.9",
+      "alternative_decoder": "transparent_vae_decoder_v1.0_f16.ckpt",
+      "alternative_decoder_version": "transparent"
     }
   ],
   "controlNets": [
     {
-      "name": "Alimam Inpaint Beta (FLUX.1 [dev], ControlNet)",
-      "file": "controlnet_alimama_inpaint_flux_1_dev_beta_q8p.ckpt",
-      "version": "flux1",
-      "modifier": "inpaint",
-      "type": "controlnet"
-    },
-    {
-      "name": "Alimam Inpaint Beta (FLUX.1 [dev], ControlNet) (6-bit)",
-      "file": "controlnet_alimama_inpaint_flux_1_dev_beta_q6p.ckpt",
-      "version": "flux1",
-      "modifier": "inpaint",
-      "type": "controlnet"
-    },
-    {
-      "name": "Canny Edge Map (Kwai Kolors 1.0)",
-      "file": "controlnet_canny_kwai_kolors_1.0_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "canny",
-      "type": "controlnet"
-    },
-    {
-      "name": "Canny Edge Map (Kwai Kolors 1.0) (8-bit)",
-      "file": "controlnet_canny_kwai_kolors_1.0_q6p_q8p.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "canny",
-      "type": "controlnet"
-    },
-    {
       "name": "Canny Edge Map (SD v1.x, ControlNet 1.0)",
       "file": "controlnet_canny_1.x_f16.ckpt",
+      "modifier": "canny",
       "version": "v1",
-      "modifier": "canny"
+      "type": "controlnet",
+      "deprecated": true
     },
     {
       "name": "Canny Edge Map (SD v1.x, ControlNet 1.1)",
       "file": "controlnet_canny_1.x_v1.1_f16.ckpt",
+      "modifier": "canny",
       "version": "v1",
-      "modifier": "canny"
+      "type": "controlnet"
     },
     {
       "name": "Canny Edge Map (SD v1.x, T2I Adapter)",
       "file": "t2iadapter_canny_1.x_f16.ckpt",
+      "modifier": "canny",
       "version": "v1",
-      "modifier": "canny"
+      "type": "t2iadapter"
     },
     {
       "name": "Canny Edge Map (SD v2.x, ControlNet)",
       "file": "controlnet_canny_2.x_f16.ckpt",
+      "modifier": "canny",
       "version": "v2",
-      "modifier": "canny"
+      "type": "controlnet"
     },
     {
       "name": "Canny Edge Map (SDXL, ControlNet, Diffusers 1.0 Mid)",
       "file": "controlnet_canny_sdxl_v1.0_mid_f16.ckpt",
-      "version": "sdxlBase",
-      "modifier": "canny"
+      "modifier": "canny",
+      "version": "sdxl_base_v0.9",
+      "type": "controlnet",
+      "transformer_blocks": [
+        0,
+        0,
+        1,
+        1
+      ]
     },
     {
       "name": "Color Palette (SD v1.x, T2I Adapter)",
       "file": "t2iadapter_color_1.x_f16.ckpt",
+      "modifier": "color",
       "version": "v1",
-      "modifier": "color"
-    },
-    {
-      "name": "Depth Map (Kwai Kolors 1.0)",
-      "file": "controlnet_depth_kwai_kolors_1.0_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "depth",
-      "type": "controlnet"
-    },
-    {
-      "name": "Depth Map (Kwai Kolors 1.0) (8-bit)",
-      "file": "controlnet_depth_kwai_kolors_1.0_q6p_q8p.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "depth",
-      "type": "controlnet"
+      "type": "t2iadapter"
     },
     {
       "name": "Depth Map (SD v1.x, ControlNet 1.0)",
       "file": "controlnet_depth_1.x_f16.ckpt",
+      "modifier": "depth",
       "version": "v1",
-      "modifier": "depth"
+      "type": "controlnet",
+      "deprecated": true
     },
     {
       "name": "Depth Map (SD v1.x, ControlNet 1.1)",
       "file": "controlnet_depth_1.x_v1.1_f16.ckpt",
+      "modifier": "depth",
       "version": "v1",
-      "modifier": "depth"
+      "type": "controlnet"
     },
     {
       "name": "Depth Map (SD v1.x, T2I Adapter)",
       "file": "t2iadapter_depth_1.x_f16.ckpt",
+      "modifier": "depth",
       "version": "v1",
-      "modifier": "depth"
+      "type": "t2iadapter"
     },
     {
       "name": "Depth Map (SD v2.x, ControlNet)",
       "file": "controlnet_depth_2.x_f16.ckpt",
+      "modifier": "depth",
       "version": "v2",
-      "modifier": "depth"
+      "type": "controlnet"
     },
     {
       "name": "Depth Map (SDXL, ControlNet, Diffusers 1.0 Mid)",
       "file": "controlnet_depth_sdxl_v1.0_mid_f16.ckpt",
-      "version": "sdxlBase",
-      "modifier": "depth"
-    },
-    {
-      "name": "FLEX.1 Redux SigLIP2 512 (FLUX.1)",
-      "file": "flex_1_redux_siglip2_512_f16.ckpt",
-      "version": "flux1",
-      "modifier": "shuffle",
-      "type": "redux"
-    },
-    {
-      "name": "FLUX.1 Redux (FLUX.1)",
-      "file": "flux_1_redux_f16.ckpt",
-      "version": "flux1",
-      "modifier": "shuffle",
-      "type": "redux"
-    },
-    {
-      "name": "Garment UNet (Full-Body, Outfitting Fusion)",
-      "file": "ootd_garm_full_body_1.0_f16.ckpt",
-      "version": "v1",
-      "modifier": "shuffle",
-      "type": "inject_kv"
-    },
-    {
-      "name": "Garment UNet (Upper-Body, Outfitting Fusion)",
-      "file": "ootd_garm_upper_body_1.0_f16.ckpt",
-      "version": "v1",
-      "modifier": "shuffle",
-      "type": "inject_kv"
+      "modifier": "depth",
+      "version": "sdxl_base_v0.9",
+      "type": "controlnet",
+      "transformer_blocks": [
+        0,
+        0,
+        1,
+        1
+      ]
     },
     {
       "name": "Inpainting (SD v1.x, ControlNet 1.1)",
       "file": "controlnet_inpaint_1.x_v1.1_f16.ckpt",
+      "modifier": "inpaint",
       "version": "v1",
-      "modifier": "inpaint"
+      "type": "controlnet"
     },
     {
       "name": "Instruct Pix2Pix (SD v1.x, ControlNet 1.1)",
       "file": "controlnet_ip2p_1.x_v1.1_f16.ckpt",
+      "modifier": "ip2p",
       "version": "v1",
-      "modifier": "ip2p"
-    },
-    {
-      "name": "IP Adapter FaceID Plus (Kwai Kolors 1.0)",
-      "file": "ip_adapter_faceid_plus_kwai_kolors_1.0_clip_l14_336_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "shuffle",
-      "type": "ipadapterfaceidplus"
-    },
-    {
-      "name": "IP Adapter FaceID Plus (Kwai Kolors 1.0) (8-bit)",
-      "file": "ip_adapter_faceid_plus_kwai_kolors_1.0_clip_l14_336_q8p.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "shuffle",
-      "type": "ipadapterfaceidplus"
+      "type": "controlnet"
     },
     {
       "name": "IP Adapter Full Face (SD v1.x)",
       "file": "ip_adapter_full_face_sd_v1.x_open_clip_h14_f16.ckpt",
-      "version": "v1",
-      "modifier": "shuffle"
-    },
-    {
-      "name": "IP Adapter Plus (Kwai Kolors 1.0)",
-      "file": "ip_adapter_plus_kwai_kolors_1.0_clip_l14_336_f16.ckpt",
-      "version": "sdxl_base_v0.9",
       "modifier": "shuffle",
-      "type": "ipadapterplus"
+      "version": "v1",
+      "type": "ipadapterfull",
+      "image_encoder": "open_clip_vit_h14_vision_model_f16.ckpt"
     },
     {
       "name": "IP Adapter Plus (SD v1.x)",
       "file": "ip_adapter_plus_sd_v1.x_open_clip_h14_f16.ckpt",
+      "modifier": "shuffle",
       "version": "v1",
-      "modifier": "shuffle"
+      "type": "ipadapterplus",
+      "image_encoder": "open_clip_vit_h14_vision_model_f16.ckpt"
     },
     {
       "name": "IP Adapter Plus (SDXL Base)",
       "file": "ip_adapter_plus_xl_base_open_clip_h14_f16.ckpt",
-      "version": "sdxlBase",
-      "modifier": "shuffle"
+      "modifier": "shuffle",
+      "version": "sdxl_base_v0.9",
+      "type": "ipadapterplus",
+      "image_encoder": "open_clip_vit_h14_vision_model_f16.ckpt"
     },
     {
       "name": "IP Adapter Plus Face (SD v1.x)",
       "file": "ip_adapter_plus_face_sd_v1.x_open_clip_h14_f16.ckpt",
+      "modifier": "shuffle",
       "version": "v1",
-      "modifier": "shuffle"
+      "type": "ipadapterplus",
+      "image_encoder": "open_clip_vit_h14_vision_model_f16.ckpt"
     },
     {
       "name": "IP Adapter Plus Face (SDXL Base)",
       "file": "ip_adapter_plus_face_xl_base_open_clip_h14_f16.ckpt",
-      "version": "sdxlBase",
-      "modifier": "shuffle"
-    },
-    {
-      "name": "Jasper AI Upscaler (FLUX.1 [dev], ControlNet)",
-      "file": "controlnet_jasper_ai_upscaler_flux_1_dev_1.0_f16.ckpt",
-      "version": "flux1",
-      "modifier": "tile",
-      "type": "controlnet"
+      "modifier": "shuffle",
+      "version": "sdxl_base_v0.9",
+      "type": "ipadapterplus",
+      "image_encoder": "open_clip_vit_h14_vision_model_f16.ckpt"
     },
     {
       "name": "LineArt (SD v1.x, ControlNet 1.1)",
       "file": "controlnet_lineart_1.x_v1.1_f16.ckpt",
+      "modifier": "lineart",
       "version": "v1",
-      "modifier": "lineart"
+      "type": "controlnet"
     },
     {
       "name": "LineArt Anime (SD v1.x, ControlNet 1.1)",
       "file": "controlnet_lineart_anime_1.x_v1.1_f16.ckpt",
+      "modifier": "lineart",
       "version": "v1",
-      "modifier": "lineart"
-    },
-    {
-      "name": "LLaVA Image Prompt (Hunyuan Video)",
-      "file": "llava_llama_3_8b_v1.1_multi_modal_projector_f16.ckpt",
-      "version": "hunyuan_video",
-      "modifier": "shuffle",
-      "type": "llava"
+      "type": "controlnet"
     },
     {
       "name": "MLSD Hough Map (SD v1.x, ControlNet 1.1)",
       "file": "controlnet_mlsd_1.x_v1.1_f16.ckpt",
+      "modifier": "mlsd",
       "version": "v1",
-      "modifier": "mlsd"
+      "type": "controlnet"
     },
     {
       "name": "Normal Map (SD v1.x, ControlNet 1.1)",
       "file": "controlnet_normalbae_1.x_v1.1_f16.ckpt",
+      "modifier": "normalbae",
       "version": "v1",
-      "modifier": "normalbae"
-    },
-    {
-      "name": "Pose (Kwai Kolors 1.0)",
-      "file": "controlnet_pose_kwai_kolors_1.0_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "pose",
-      "type": "controlnet"
-    },
-    {
-      "name": "Pose (Kwai Kolors 1.0) (8-bit)",
-      "file": "controlnet_pose_kwai_kolors_1.0_q6p_q8p.ckpt",
-      "version": "sdxl_base_v0.9",
-      "modifier": "pose",
       "type": "controlnet"
     },
     {
       "name": "Pose (SD v1.x, ControlNet 1.0)",
       "file": "controlnet_openpose_1.x_f16.ckpt",
+      "modifier": "pose",
       "version": "v1",
-      "modifier": "pose"
+      "type": "controlnet",
+      "deprecated": true
     },
     {
       "name": "Pose (SD v1.x, ControlNet 1.1)",
       "file": "controlnet_openpose_1.x_v1.1_f16.ckpt",
+      "modifier": "pose",
       "version": "v1",
-      "modifier": "pose"
+      "type": "controlnet"
     },
     {
       "name": "Pose (SD v1.x, T2I Adapter)",
       "file": "t2iadapter_openpose_1.x_f16.ckpt",
+      "modifier": "pose",
       "version": "v1",
-      "modifier": "pose"
+      "type": "t2iadapter"
     },
     {
       "name": "Pose (SD v2.x, ControlNet)",
       "file": "controlnet_openpose_2.x_f16.ckpt",
+      "modifier": "pose",
       "version": "v2",
-      "modifier": "pose"
-    },
-    {
-      "name": "PuLID 0.9.1 (FLUX.1 [dev])",
-      "file": "pulid_0.9.1_eva02_clip_l14_336_f16.ckpt",
-      "version": "flux1",
-      "modifier": "shuffle",
-      "type": "pulid"
+      "type": "controlnet"
     },
     {
       "name": "QR Code (SD v1.x, ControlNet Monster 2.0)",
       "file": "controlnet_qr_code_monster_1.x_v2.0_f16.ckpt",
+      "modifier": "scribble",
       "version": "v1",
-      "modifier": "scribble"
+      "type": "controlnet"
     },
     {
       "name": "Scribble (SD v1.x, ControlNet 1.0)",
       "file": "controlnet_scribble_1.x_f16.ckpt",
+      "modifier": "scribble",
       "version": "v1",
-      "modifier": "scribble"
+      "type": "controlnet",
+      "preprocessor": "hed_f16.ckpt",
+      "deprecated": true
     },
     {
       "name": "Scribble (SD v1.x, ControlNet 1.1)",
       "file": "controlnet_scribble_1.x_v1.1_f16.ckpt",
+      "modifier": "scribble",
       "version": "v1",
-      "modifier": "scribble"
+      "type": "controlnet",
+      "preprocessor": "hed_f16.ckpt"
     },
     {
       "name": "Scribble (SD v1.x, T2I Adapter)",
       "file": "t2iadapter_sketch_1.x_f16.ckpt",
+      "modifier": "scribble",
       "version": "v1",
-      "modifier": "scribble"
+      "type": "t2iadapter"
     },
     {
       "name": "Scribble (SD v2.x, ControlNet)",
       "file": "controlnet_scribble_2.x_f16.ckpt",
+      "modifier": "scribble",
       "version": "v2",
-      "modifier": "scribble"
+      "type": "controlnet",
+      "preprocessor": "hed_f16.ckpt"
     },
     {
       "name": "Segmentation (SD v1.x, ControlNet 1.1)",
       "file": "controlnet_seg_1.x_v1.1_f16.ckpt",
+      "modifier": "seg",
       "version": "v1",
-      "modifier": "seg"
+      "type": "controlnet"
     },
     {
       "name": "Shuffle (SD v1.x, ControlNet 1.1)",
       "file": "controlnet_shuffle_1.x_v1.1_f16.ckpt",
+      "modifier": "shuffle",
       "version": "v1",
-      "modifier": "shuffle"
+      "type": "controlnet",
+      "global_average_pooling": true
     },
     {
       "name": "Soft Edge (SD v1.x, ControlNet 1.1)",
       "file": "controlnet_softedge_1.x_v1.1_f16.ckpt",
+      "modifier": "softedge",
       "version": "v1",
-      "modifier": "softedge"
+      "type": "controlnet",
+      "preprocessor": "hed_f16.ckpt"
     },
     {
       "name": "Tile (SD v1.x, ControlNet 1.1)",
       "file": "controlnet_tile_1.x_v1.1_f16.ckpt",
+      "modifier": "tile",
       "version": "v1",
-      "modifier": "tile"
-    },
-    {
-      "name": "Union Pro (FLUX.1 [dev], ControlNet)",
-      "file": "controlnet_union_pro_flux_1_dev_1.0_q8p.ckpt",
-      "version": "flux1",
-      "type": "controlnetunion"
-    },
-    {
-      "name": "Union Pro (FLUX.1 [dev], ControlNet) (5-bit)",
-      "file": "controlnet_union_pro_flux_1_dev_1.0_q5p.ckpt",
-      "version": "flux1",
-      "type": "controlnetunion"
-    },
-    {
-      "name": "Union Pro 2.0 (FLUX.1 [dev], ControlNet)",
-      "file": "controlnet_union_pro_flux_1_dev_2.0_q8p.ckpt",
-      "version": "flux1",
-      "type": "controlnet"
-    },
-    {
-      "name": "Union Pro 2.0 (FLUX.1 [dev], ControlNet) (5-bit)",
-      "file": "controlnet_union_pro_flux_1_dev_2.0_q5p.ckpt",
-      "version": "flux1",
       "type": "controlnet"
     },
     {
       "name": "VACE (Wan 2.1, 1.3B)",
       "file": "wan_v2.1_1.3b_vace_480p_f16.ckpt",
-      "version": "wan21_1_3b",
-      "modifier": "shuffle"
+      "modifier": "shuffle",
+      "version": "wan_v2.1_1.3b",
+      "type": "controlnet"
     },
     {
       "name": "VACE (Wan 2.1, 1.3B) (8-bit)",
       "file": "wan_v2.1_1.3b_vace_480p_q8p.ckpt",
-      "version": "wan21_1_3b",
-      "modifier": "shuffle"
+      "modifier": "shuffle",
+      "version": "wan_v2.1_1.3b",
+      "type": "controlnet"
     },
     {
       "name": "VACE (Wan 2.1, 14B)",
       "file": "wan_v2.1_14b_vace_720p_f16.ckpt",
-      "version": "wan21_14b",
-      "modifier": "shuffle"
+      "modifier": "shuffle",
+      "version": "wan_v2.1_14b",
+      "type": "controlnet"
     },
     {
       "name": "VACE (Wan 2.1, 14B) (8-bit)",
       "file": "wan_v2.1_14b_vace_720p_q8p.ckpt",
-      "version": "wan21_14b",
-      "modifier": "shuffle"
-    },
-    {
-      "name": "Xinsir Union ProMax (SDXL, ControlNet)",
-      "file": "controlnet_xinsir_union_promax_sdxl_1.0_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "type": "controlnetunion"
+      "modifier": "shuffle",
+      "version": "wan_v2.1_14b",
+      "type": "controlnet"
     }
   ],
-  "textualInversions": [
-    {
-      "name": "Action Helper",
-      "file": "actionhelper_ti_f16.ckpt",
-      "version": "v2",
-      "keyword": "actionhelper"
-    },
-    {
-      "name": "Anime ScreenCap",
-      "file": "animescreencap_ti_f16.ckpt",
-      "version": "v2",
-      "keyword": "animescreencap"
-    },
-    {
-      "name": "Bad Prompt (v2)",
-      "file": "bad_prompt_v2_ti_f16.ckpt",
-      "version": "v1",
-      "keyword": "bad_prompt"
-    },
-    {
-      "name": "Birb Style",
-      "file": "birb_style_ti_f16.ckpt",
-      "version": "v1",
-      "keyword": "birb_style"
-    },
-    {
-      "name": "Car Helper",
-      "file": "carhelper_ti_f16.ckpt",
-      "version": "v2",
-      "keyword": "carhelper"
-    },
-    {
-      "name": "Character Turner v2",
-      "file": "charturner_v2_ti_f16.ckpt",
-      "version": "v1",
-      "keyword": "charturnerv2"
-    },
-    {
-      "name": "Cinema Helper",
-      "file": "cinemahelper_ti_f16.ckpt",
-      "version": "v2",
-      "keyword": "cinemahelper"
-    },
-    {
-      "name": "Classipeint",
-      "file": "classipeint_ti_f16.ckpt",
-      "version": "v2",
-      "keyword": "classipeint"
-    },
-    {
-      "name": "Cloudport v1.0",
-      "file": "cloudport_v1.0_ti_f16.ckpt",
-      "version": "v1",
-      "keyword": "cloudport"
-    },
-    {
-      "name": "Doctor Diffusion's \"Point E\" Negative Embedding",
-      "file": "drd_point_e_768_v_ti_f16.ckpt",
-      "version": "v2",
-      "keyword": "drd_pnte768"
-    },
-    {
-      "name": "Double Exposure",
-      "file": "double_exposure_ti_f16.ckpt",
-      "version": "v2",
-      "keyword": "double_exposure"
-    },
-    {
-      "name": "EasyNegative",
-      "file": "easynegative_ti_f16.ckpt",
-      "version": "v1",
-      "keyword": "easynegative"
-    },
-    {
-      "name": "Fast Negative",
-      "file": "fast_negative_ti_f16.ckpt",
-      "version": "v1",
-      "keyword": "fastnegativev2"
-    },
-    {
-      "name": "Knollingcase (v4)",
-      "file": "knollingcase_v4_kc16_5000_ti_f16.ckpt",
-      "version": "v2",
-      "keyword": "kc16_5000"
-    },
-    {
-      "name": "Laxpeint (v2)",
-      "file": "laxpeint_v2_ti_f16.ckpt",
-      "version": "v2",
-      "keyword": "laxpeintv2"
-    },
-    {
-      "name": "NegativeXL",
-      "file": "negativexl_ti_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "keyword": "negativexl_d"
-    },
-    {
-      "name": "ParchArt",
-      "file": "parchart_ti_f16.ckpt",
-      "version": "v2",
-      "keyword": "parchart"
-    },
-    {
-      "name": "Photo Helper",
-      "file": "photohelper_ti_f16.ckpt",
-      "version": "v2",
-      "keyword": "photohelper"
-    },
-    {
-      "name": "Pure Eros Face",
-      "file": "pure_eros_ti_f16.ckpt",
-      "version": "v1",
-      "keyword": "pure_eros"
-    },
-    {
-      "name": "SD2 Papercut",
-      "file": "sd2_papercut_ti_f16.ckpt",
-      "version": "v2",
-      "keyword": "sd2_papercut"
-    },
-    {
-      "name": "UnaestheticXL Alb2",
-      "file": "unaestheticxl_alb2_ti_f16.ckpt",
-      "version": "sdxl_base_v0.9",
-      "keyword": "unaestheticxl_alb2"
-    },
-    {
-      "name": "V2 Dreamink",
-      "file": "v2_dreamink_ti_f16.ckpt",
-      "version": "v2",
-      "keyword": "v2_dreamink"
-    },
-    {
-      "name": "Vintage Helper",
-      "file": "vintagehelper_ti_f16.ckpt",
-      "version": "v2",
-      "keyword": "vintagehelper"
-    }
-  ],
-  "upscalers": [
-    {
-      "name": "Real-ESRGAN X2+",
-      "file": "realesrgan_x2plus_f16.ckpt",
-      "scaleFactor": 2
-    },
-    {
-      "name": "Real-ESRGAN X4+",
-      "file": "realesrgan_x4plus_f16.ckpt",
-      "scaleFactor": 4
-    },
-    {
-      "name": "Real-ESRGAN X4+ Anime",
-      "file": "realesrgan_x4plus_anime_6b_f16.ckpt",
-      "scaleFactor": 4
-    },
-    {
-      "name": "UniversalUpscaler V2 Sharp",
-      "file": "esrgan_4x_universal_upscaler_v2_sharp_f16.ckpt",
-      "scaleFactor": 4
-    },
-    {
-      "name": "Remacri",
-      "file": "remacri_4x_f16.ckpt",
-      "scaleFactor": 4
-    },
-    {
-      "name": "4x UltraSharp",
-      "file": "4x_ultrasharp_f16.ckpt",
-      "scaleFactor": 4
-    }
-  ]
+  "textualInversions": [],
+  "upscalers": []
 }

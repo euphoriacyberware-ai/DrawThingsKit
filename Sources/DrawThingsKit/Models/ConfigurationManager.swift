@@ -2,7 +2,11 @@
 //  ConfigurationManager.swift
 //  DrawThingsKit
 //
-//  Manages the active DrawThingsConfiguration for the app.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import Foundation
@@ -54,8 +58,40 @@ public final class ConfigurationManager: ObservableObject {
     /// Selected ControlNet configurations
     @Published public var selectedControls: [ControlNetConfiguration] = []
 
-    /// Mixture of Experts mode - enables Wan 2.2 style workflows where any model can be used as refiner
-    @Published public var mixtureOfExperts: Bool = false
+    /// Mixture of Experts mode - automatically enabled for Wan 2.2 models
+    /// When enabled, any model can be used as refiner and LoRAs use MOE-style weights
+    public var mixtureOfExperts: Bool {
+        guard let checkpoint = selectedCheckpoint else {
+            // Fall back to checking the model filename string
+            return isWan22ModelName(activeConfiguration.model)
+        }
+        return isWan22Model(checkpoint)
+    }
+
+    /// Check if a checkpoint model is a Wan 2.2 model
+    private func isWan22Model(_ model: CheckpointModel) -> Bool {
+        // Check version string
+        if let version = model.version {
+            if version.lowercased().contains("wan22") || version.lowercased().contains("wan_2.2") {
+                return true
+            }
+        }
+        // Check file name
+        if isWan22ModelName(model.file) {
+            return true
+        }
+        // Check display name
+        if model.name.lowercased().contains("wan 2.2") || model.name.lowercased().contains("wan2.2") {
+            return true
+        }
+        return false
+    }
+
+    /// Check if a model filename indicates Wan 2.2
+    private func isWan22ModelName(_ name: String) -> Bool {
+        let lower = name.lowercased()
+        return lower.contains("wan_v2.2") || lower.contains("wan_2.2") || lower.contains("wan22")
+    }
 
     public init() {}
 

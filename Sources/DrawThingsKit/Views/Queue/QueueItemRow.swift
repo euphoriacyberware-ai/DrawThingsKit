@@ -2,7 +2,11 @@
 //  QueueItemRow.swift
 //  DrawThingsKit
 //
-//  Row view for displaying a job in the queue list.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import SwiftUI

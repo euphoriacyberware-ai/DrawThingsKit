@@ -2,7 +2,11 @@
 //  TeaCacheSection.swift
 //  DrawThingsKit
 //
-//  Composable TEA Cache section for configuration UI.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import SwiftUI
@@ -44,7 +48,7 @@ public struct TeaCacheSection: View {
     }
 
     public var body: some View {
-        Section("TEA Cache") {
+        Section {
             Toggle("Enable TEA Cache", isOn: $teaCache)
                 .help("Enable TEA Cache for faster generation")
 

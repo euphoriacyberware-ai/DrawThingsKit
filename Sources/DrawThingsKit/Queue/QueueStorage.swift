@@ -2,7 +2,11 @@
 //  QueueStorage.swift
 //  DrawThingsKit
 //
-//  JSON file persistence for the job queue.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import Foundation

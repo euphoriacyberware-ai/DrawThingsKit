@@ -2,7 +2,11 @@
 //  ConfigurationEditorView.swift
 //  DrawThingsKit
 //
-//  A reusable JSON configuration editor for Draw Things configurations.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import SwiftUI

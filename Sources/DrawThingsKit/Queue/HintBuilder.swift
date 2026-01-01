@@ -2,20 +2,11 @@
 //  HintBuilder.swift
 //  DrawThingsKit
 //
-//  Helper for constructing hints for image generation.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
 //
-//  Hints are used to provide reference images that influence generation.
-//  Different hint types serve different purposes:
-//
-//  - "shuffle" (Moodboard): Reference images for style/content transfer
-//    Used with models like Qwen Image Edit to reference "image 2", "image 3", etc.
-//
-//  - "depth": Depth map for structural guidance
-//  - "pose": Pose skeleton for character positioning
-//  - "canny": Edge detection for structural guidance
-//  - "scribble": Rough sketches for composition
-//  - "color": Color palette reference
-//  - "custom": Generic hint type
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import Foundation

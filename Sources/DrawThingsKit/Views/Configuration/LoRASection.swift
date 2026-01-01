@@ -2,38 +2,64 @@
 //  LoRASection.swift
 //  DrawThingsKit
 //
-//  Composable LoRA selection section for configuration UI.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import SwiftUI
 import DrawThingsClient
 
-/// A composable section for managing LoRA models.
+/// A composable section for managing LoRA models with a searchable picker.
+///
+/// Provides a simple list-based layout for adding and configuring LoRAs.
+/// Each LoRA can be enabled/disabled and has an adjustable weight slider.
+/// When a Wan 2.2 model is selected, shows mode selectors (All/Base/Refiner).
 ///
 /// Example usage:
 /// ```swift
 /// LoRASection(
 ///     modelsManager: modelsManager,
-///     selectedLoRAs: $selectedLoRAs,
-///     mixtureOfExperts: $mixtureOfExperts
+///     selectedLoRAs: $selectedLoRAs
 /// )
 /// ```
 public struct LoRASection: View {
     @ObservedObject var modelsManager: ModelsManager
     @Binding var selectedLoRAs: [LoRAConfiguration]
 
-    /// When true, shows the Base/Refiner mode picker for each LoRA.
-    /// This is only needed for Mixture of Experts workflows (e.g., Wan 2.2).
-    var showModeSelector: Bool
-
     public init(
         modelsManager: ModelsManager,
-        selectedLoRAs: Binding<[LoRAConfiguration]>,
-        mixtureOfExperts: Bool = false
+        selectedLoRAs: Binding<[LoRAConfiguration]>
     ) {
         self.modelsManager = modelsManager
         self._selectedLoRAs = selectedLoRAs
-        self.showModeSelector = mixtureOfExperts
+    }
+
+    /// Whether Mixture of Experts mode is active (auto-detected from Wan 2.2 models).
+    private var isMixtureOfExperts: Bool {
+        guard let checkpoint = modelsManager.selectedCheckpoint else {
+            return false
+        }
+        return isWan22Model(checkpoint)
+    }
+
+    /// Check if a checkpoint model is a Wan 2.2 model
+    private func isWan22Model(_ model: CheckpointModel) -> Bool {
+        if let version = model.version {
+            if version.lowercased().contains("wan22") || version.lowercased().contains("wan_2.2") {
+                return true
+            }
+        }
+        let lower = model.file.lowercased()
+        if lower.contains("wan_v2.2") || lower.contains("wan_2.2") || lower.contains("wan22") {
+            return true
+        }
+        if model.name.lowercased().contains("wan 2.2") || model.name.lowercased().contains("wan2.2") {
+            return true
+        }
+        return false
     }
 
     private var enabledCount: Int {
@@ -42,50 +68,32 @@ public struct LoRASection: View {
 
     public var body: some View {
         Section {
-            DisclosureGroup("LoRAs (\(enabledCount)/\(selectedLoRAs.count))") {
-                VStack(spacing: 12) {
-                    // Add LoRA menu
-                    Menu {
-                        if modelsManager.compatibleLoRAs.isEmpty {
-                            Text("No compatible LoRAs")
-                                .foregroundColor(.secondary)
-                        } else {
-                            ForEach(modelsManager.compatibleLoRAs) { lora in
-                                Button {
-                                    addLoRA(lora)
-                                } label: {
-                                    ModelLabelView(name: lora.name, source: lora.source)
-                                }
-                                .disabled(selectedLoRAs.contains(where: { $0.lora.id == lora.id }))
-                            }
-                        }
-                    } label: {
-                        Label("Add LoRA", systemImage: "plus.circle")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .disabled(modelsManager.selectedCheckpoint == nil)
-                    .help(modelsManager.selectedCheckpoint == nil ? "Select a checkpoint first" : "Add a LoRA model")
+            VStack(spacing: 8) {
+                // Add LoRA picker
+                SearchableLoRAPicker(
+                    loras: modelsManager.compatibleLoRAs,
+                    selectedLoRAIds: Set(selectedLoRAs.map { $0.lora.id }),
+                    onSelect: { lora in addLoRA(lora) },
+                    disabled: modelsManager.selectedCheckpoint == nil,
+                    disabledReason: modelsManager.selectedCheckpoint == nil ? "Select a checkpoint first" : nil
+                )
 
-                    // LoRA list
-                    if selectedLoRAs.isEmpty {
-                        Text("No LoRAs added")
-                            .foregroundColor(.secondary)
-                            .font(.caption)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
-                    } else {
-                        ForEach($selectedLoRAs) { $loraConfig in
-                            LoRARow(
-                                config: $loraConfig,
-                                showModeSelector: showModeSelector
-                            ) {
-                                removeLoRA(loraConfig)
-                            }
+                // LoRA list
+                if selectedLoRAs.isEmpty {
+                    Text("No LoRAs added")
+                        .foregroundColor(.secondary)
+                        .font(.caption)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                } else {
+                    ForEach($selectedLoRAs) { $loraConfig in
+                        LoRARow(config: $loraConfig, showModeSelector: isMixtureOfExperts) {
+                            removeLoRA(loraConfig)
                         }
                     }
                 }
-                .padding(.vertical, 8)
             }
+            .padding(.vertical, 8)
         }
     }
 
@@ -164,7 +172,7 @@ public struct LoRARow: View {
                     .frame(width: 50, alignment: .trailing)
             }
 
-            // Mode picker - only shown for Mixture of Experts workflows
+            // Mode selector for Mixture of Experts workflows (Wan 2.2)
             if showModeSelector {
                 HStack {
                     Text("Mode:")
@@ -186,7 +194,9 @@ public struct LoRARow: View {
     }
 }
 
-#Preview {
+// MARK: - Previews
+
+#Preview("Empty State") {
     let manager = ModelsManager()
     return Form {
         LoRASection(
@@ -195,5 +205,63 @@ public struct LoRARow: View {
         )
     }
     .formStyle(.grouped)
+    .frame(width: 400, height: 300)
+}
+
+#if DEBUG
+#Preview("With LoRAs") {
+    let manager = ModelsManager.preview(withCheckpoints: [
+        .mock(name: "SDXL Base", file: "sdxl_base.safetensors", version: "sdxl")
+    ])
+
+    let mockLoRAs: [LoRAConfiguration] = [
+        LoRAConfiguration(
+            lora: .mock(name: "Detail Tweaker XL", file: "detail_tweaker_xl.safetensors", version: "sdxl"),
+            weight: 0.8,
+            enabled: true
+        ),
+        LoRAConfiguration(
+            lora: .mock(name: "Film Grain", file: "film_grain_lora.safetensors", version: "sdxl"),
+            weight: 0.5,
+            enabled: true
+        ),
+        LoRAConfiguration(
+            lora: .mock(name: "Cinematic Look", file: "cinematic_lora.safetensors", version: "sdxl"),
+            weight: 1.0,
+            enabled: false
+        )
+    ]
+
+    return Form {
+        LoRASection(
+            modelsManager: manager,
+            selectedLoRAs: .constant(mockLoRAs)
+        )
+    }
+    .formStyle(.grouped)
     .frame(width: 400, height: 400)
 }
+
+#Preview("Single LoRA") {
+    let manager = ModelsManager.preview(withCheckpoints: [
+        .mock(name: "SD 1.5", file: "sd15.safetensors", version: "sd15")
+    ])
+
+    let mockLoRAs: [LoRAConfiguration] = [
+        LoRAConfiguration(
+            lora: .mock(name: "Aesthetic Style", file: "aesthetic.safetensors", version: "sd15"),
+            weight: 1.2,
+            enabled: true
+        )
+    ]
+
+    return Form {
+        LoRASection(
+            modelsManager: manager,
+            selectedLoRAs: .constant(mockLoRAs)
+        )
+    }
+    .formStyle(.grouped)
+    .frame(width: 400, height: 250)
+}
+#endif

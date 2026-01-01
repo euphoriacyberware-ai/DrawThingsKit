@@ -2,7 +2,11 @@
 //  ModelSource.swift
 //  DrawThingsKit
 //
-//  Defines the source of a model (local, official cloud, or community).
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import Foundation

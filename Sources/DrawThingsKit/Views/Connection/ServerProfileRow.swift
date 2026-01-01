@@ -2,7 +2,11 @@
 //  ServerProfileRow.swift
 //  DrawThingsKit
 //
-//  A row view for displaying a server profile in a list.
+//  Created by euphoriacyberware-ai.
+//  Copyright © 2025 euphoriacyberware-ai
+//
+//  Licensed under the MIT License.
+//  See LICENSE file in the project root for license information.
 //
 
 import SwiftUI
