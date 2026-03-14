@@ -234,6 +234,9 @@ public final class QueueProcessor: ObservableObject {
                     // Synchronously add to collector - this runs on the same context as the callback
                     resultCollector.addResult(imageData)
 
+                case .audio(let audioData):
+                    resultCollector.addAudioResult(audioData)
+
                 case .completed:
                     break
 
@@ -244,6 +247,7 @@ public final class QueueProcessor: ObservableObject {
 
             // Get collected results
             let resultImages = resultCollector.getResults()
+            let resultAudio = resultCollector.getAudioResults()
 
             // Check if we got any results
             if resultImages.isEmpty {
@@ -254,7 +258,7 @@ public final class QueueProcessor: ObservableObject {
                 // Mark job as completed with results
                 let totalBytes = resultImages.reduce(0) { $0 + $1.count }
                 DTLogger.info("Job \(jobIdShort) completed with \(resultImages.count) image(s), \(ByteCountFormatter.string(fromByteCount: Int64(totalBytes), countStyle: .binary))", category: .generation)
-                queue.markJobCompleted(job.id, results: resultImages)
+                queue.markJobCompleted(job.id, results: resultImages, audioResults: resultAudio)
             }
 
             endOperation()
@@ -301,6 +305,7 @@ public final class QueueProcessor: ObservableObject {
 /// Uses a lock to safely collect results from callbacks that may run on different threads.
 private final class ResultCollector: @unchecked Sendable {
     private var results: [Data] = []
+    private var audioResults: [Data] = []
     private let lock = NSLock()
 
     func addResult(_ data: Data) {
@@ -314,6 +319,18 @@ private final class ResultCollector: @unchecked Sendable {
         defer { lock.unlock() }
         return results
     }
+
+    func addAudioResult(_ data: Data) {
+        lock.lock()
+        defer { lock.unlock() }
+        audioResults.append(data)
+    }
+
+    func getAudioResults() -> [Data] {
+        lock.lock()
+        defer { lock.unlock() }
+        return audioResults
+    }
 }
 
 // MARK: - Generation Update Enum
@@ -323,6 +340,7 @@ public enum GenerationUpdate {
     case progress(current: Int, total: Int, stage: String?)
     case preview(Data)
     case image(Data)
+    case audio(Data)
     case completed
     case error(String)
 }
@@ -467,6 +485,12 @@ extension DrawThingsService {
             },
             previewHandler: { previewData in
                 onUpdate(.preview(previewData))
+            },
+            audioHandler: { audioTensorData in
+                if let buffer = try? AudioHelpers.ccvTensorToAudioBuffer(audioTensorData),
+                   let wavData = try? AudioHelpers.audioBufferToWAVData(buffer) {
+                    onUpdate(.audio(wavData))
+                }
             }
         )
 

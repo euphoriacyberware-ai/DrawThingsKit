@@ -29,8 +29,8 @@ public enum JobEvent {
     case jobStarted(GenerationJob)
     /// A job's progress was updated
     case jobProgress(GenerationJob, JobProgress)
-    /// A job completed successfully with result images (as native PlatformImage)
-    case jobCompleted(GenerationJob, images: [PlatformImage])
+    /// A job completed successfully with result images (as native PlatformImage) and optional audio data
+    case jobCompleted(GenerationJob, images: [PlatformImage], audioData: [Data])
     /// A job failed with an error message
     case jobFailed(GenerationJob, error: String)
     /// A job was cancelled
@@ -402,12 +402,14 @@ public final class JobQueue: ObservableObject {
     /// - Parameters:
     ///   - jobId: The job ID
     ///   - results: Result images as PNG data
-    func markJobCompleted(_ jobId: UUID, results: [Data]) {
+    ///   - audioResults: Result audio as WAV data
+    func markJobCompleted(_ jobId: UUID, results: [Data], audioResults: [Data] = []) {
         guard let index = jobs.firstIndex(where: { $0.id == jobId }) else { return }
 
         jobs[index].status = .completed
         jobs[index].completedAt = Date()
         jobs[index].resultImageData = results
+        jobs[index].resultAudioData = audioResults.isEmpty ? nil : audioResults
         jobs[index].errorMessage = nil
 
         let completedJob = jobs[index]
@@ -423,7 +425,7 @@ public final class JobQueue: ObservableObject {
 
         // Convert PNG data to PlatformImages for the event
         let images = results.compactMap { PlatformImage.fromData($0) }
-        events.send(.jobCompleted(completedJob, images: images))
+        events.send(.jobCompleted(completedJob, images: images, audioData: audioResults))
     }
 
     /// Mark a job as failed.

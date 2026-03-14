@@ -140,6 +140,9 @@ public struct GenerationJob: Identifiable, Codable {
     // Results (image data in PNG format, internal storage)
     internal var resultImageData: [Data]
 
+    // Results (audio data in WAV format, internal storage)
+    internal var resultAudioData: [Data]?
+
     /// Result images as native platform images.
     /// These are converted on-demand from the stored PNG data.
     public var resultImages: [PlatformImage] {
@@ -150,6 +153,12 @@ public struct GenerationJob: Identifiable, Codable {
     public var firstResultImage: PlatformImage? {
         resultImageData.first.flatMap { PlatformImage.fromData($0) }
     }
+
+    /// Whether the job produced audio data.
+    public var hasAudio: Bool { !(resultAudioData ?? []).isEmpty }
+
+    /// First audio result as WAV data, if any.
+    public var firstAudioData: Data? { resultAudioData?.first }
 
     // Timestamps
     public var createdAt: Date
