@@ -77,6 +77,9 @@ public final class ConnectionManager: ObservableObject {
     /// Models manager populated from the connected server.
     @Published public private(set) var modelsManager = ModelsManager()
 
+    /// Whether the connected server requires a shared secret.
+    @Published public private(set) var serverRequiresSharedSecret: Bool = false
+
     // MARK: - Private Properties
 
     private var service: DrawThingsService?
@@ -213,6 +216,12 @@ public final class ConnectionManager: ObservableObject {
             let response = try await newService.echo(name: "DrawThingsKit")
             DTLogger.debug("Echo response received", category: .connection)
 
+            // Check if server requires a shared secret
+            serverRequiresSharedSecret = response.sharedSecretMissing
+            if response.sharedSecretMissing {
+                DTLogger.warning("Server requires a shared secret", category: .connection)
+            }
+
             // Update models from metadata
             if response.hasOverride {
                 DTLogger.debug("Received metadata: models=\(response.override.models.count) bytes, loras=\(response.override.loras.count) bytes", category: .connection)
@@ -253,6 +262,7 @@ public final class ConnectionManager: ObservableObject {
         service = nil
         activeProfile = nil
         connectionState = .disconnected
+        serverRequiresSharedSecret = false
         modelsManager.clearLocalModels()
     }
 

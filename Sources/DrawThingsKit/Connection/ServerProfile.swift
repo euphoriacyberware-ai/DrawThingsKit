@@ -18,6 +18,7 @@ public struct ServerProfile: Identifiable, Codable, Hashable, Sendable {
     public var host: String
     public var port: Int
     public var useTLS: Bool
+    public var sharedSecret: String?
     public var isDefault: Bool
 
     /// The full address string in "host:port" format.
@@ -31,6 +32,7 @@ public struct ServerProfile: Identifiable, Codable, Hashable, Sendable {
         host: String = "localhost",
         port: Int = 7859,
         useTLS: Bool = true,
+        sharedSecret: String? = nil,
         isDefault: Bool = false
     ) {
         self.id = id
@@ -38,14 +40,16 @@ public struct ServerProfile: Identifiable, Codable, Hashable, Sendable {
         self.host = host
         self.port = port
         self.useTLS = useTLS
+        self.sharedSecret = sharedSecret
         self.isDefault = isDefault
     }
 
     /// Creates a profile from an address string (e.g., "localhost:7859").
-    public init(name: String, address: String, useTLS: Bool = true, isDefault: Bool = false) {
+    public init(name: String, address: String, useTLS: Bool = true, sharedSecret: String? = nil, isDefault: Bool = false) {
         self.id = UUID()
         self.name = name
         self.useTLS = useTLS
+        self.sharedSecret = sharedSecret
         self.isDefault = isDefault
 
         let components = address.split(separator: ":")

@@ -200,8 +200,6 @@ public struct PlatformImageHelpers {
             switch error {
             case .invalidData:
                 throw PlatformImageError.invalidData
-            case .compressionNotSupported:
-                throw PlatformImageError.compressionNotSupported
             case .conversionFailed:
                 throw PlatformImageError.conversionFailed
             default:
@@ -319,7 +317,6 @@ public enum PlatformImageError: Error, LocalizedError {
     case invalidImage
     case invalidData
     case conversionFailed
-    case compressionNotSupported
 
     public var errorDescription: String? {
         switch self {
@@ -329,8 +326,6 @@ public enum PlatformImageError: Error, LocalizedError {
             return "Invalid image data"
         case .conversionFailed:
             return "Failed to convert image"
-        case .compressionNotSupported:
-            return "Compressed image format not supported. Disable compression in Draw Things server settings."
         }
     }
 }
