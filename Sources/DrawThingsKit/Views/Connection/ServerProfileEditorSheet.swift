@@ -41,6 +41,7 @@ public struct ServerProfileEditorSheet: View {
     @State private var host: String = "localhost"
     @State private var port: String = "7859"
     @State private var useTLS: Bool = true
+    @State private var sharedSecret: String = ""
     @State private var isDefault: Bool = false
 
     @State private var showValidationError: Bool = false
@@ -94,6 +95,9 @@ public struct ServerProfileEditorSheet: View {
                 Section {
                     Toggle("Use TLS", isOn: $useTLS)
 
+                    SecureField("Shared Secret", text: $sharedSecret)
+                        .textFieldStyle(.roundedBorder)
+
                     Toggle("Default Server", isOn: $isDefault)
                 }
 
@@ -126,13 +130,14 @@ public struct ServerProfileEditorSheet: View {
             }
             .padding()
         }
-        .frame(width: 400, height: 380)
+        .frame(width: 400, height: 420)
         .onAppear {
             if let profile = existingProfile {
                 name = profile.name
                 host = profile.host
                 port = String(profile.port)
                 useTLS = profile.useTLS
+                sharedSecret = profile.sharedSecret ?? ""
                 isDefault = profile.isDefault
             }
         }
@@ -172,12 +177,15 @@ public struct ServerProfileEditorSheet: View {
             return
         }
 
+        let trimmedSecret = sharedSecret.trimmingCharacters(in: .whitespaces)
+
         let profile = ServerProfile(
             id: existingProfile?.id ?? UUID(),
             name: trimmedName,
             host: trimmedHost,
             port: portNumber,
             useTLS: useTLS,
+            sharedSecret: trimmedSecret.isEmpty ? nil : trimmedSecret,
             isDefault: isDefault
         )
 

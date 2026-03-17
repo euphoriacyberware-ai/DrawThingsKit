@@ -202,13 +202,17 @@ public final class QueueProcessor: ObservableObject {
             // Use an actor-isolated array to safely collect results across async boundaries
             let resultCollector = ResultCollector()
 
+            // Get shared secret from the active profile
+            let sharedSecret = connectionManager.activeProfile?.sharedSecret
+
             try await service.generateImageWithUpdates(
                 prompt: job.prompt,
                 negativePrompt: job.negativePrompt,
                 configuration: config,
                 canvas: canvasImage,
                 mask: maskImage,
-                hints: hints
+                hints: hints,
+                sharedSecret: sharedSecret
             ) { [weak queue] update in
                 guard let queue = queue else { return }
 
@@ -383,6 +387,7 @@ extension DrawThingsService {
         canvas: PlatformImage?,
         mask: PlatformImage?,
         hints: [(type: String, image: PlatformImage, weight: Float)],
+        sharedSecret: String? = nil,
         onUpdate: @escaping (GenerationUpdate) -> Void
     ) async throws {
         DTLogger.debug("Preparing gRPC request...", category: .grpc)
@@ -445,6 +450,7 @@ extension DrawThingsService {
             image: canvasData,
             mask: maskData,
             hints: hintProtos,
+            sharedSecret: sharedSecret,
             progressHandler: { signpost in
                 if let signpost = signpost {
                     // Extract progress info from the signpost
