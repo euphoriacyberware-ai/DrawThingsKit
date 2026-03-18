@@ -52,31 +52,3 @@ public enum ModelSource: String, Codable, Sendable, CaseIterable {
         }
     }
 }
-
-// MARK: - Model Label View
-
-/// A view that displays a model name with its source icon.
-public struct ModelLabelView: View {
-    let name: String
-    let source: ModelSource
-    let showSourceIcon: Bool
-
-    public init(name: String, source: ModelSource, showSourceIcon: Bool = true) {
-        self.name = name
-        self.source = source
-        self.showSourceIcon = showSourceIcon
-    }
-
-    public var body: some View {
-        if showSourceIcon && source != .local {
-            Label {
-                Text(name)
-            } icon: {
-                Image(systemName: source.iconName)
-                    .foregroundColor(source.iconColor)
-            }
-        } else {
-            Text(name)
-        }
-    }
-}
