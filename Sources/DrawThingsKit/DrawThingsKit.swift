@@ -28,6 +28,9 @@ import DrawThingsQueue
 @_exported import enum DrawThingsClient.LatentModelFamily
 @_exported import struct DrawThingsClient.ImageHelpers
 @_exported import enum DrawThingsClient.ImageError
+@_exported import class DrawThingsClient.HintBuilder
+@_exported import struct DrawThingsClient.HintData
+@_exported import enum DrawThingsClient.HintType
 
 // Re-export commonly used types from DrawThingsQueue
 @_exported import struct DrawThingsQueue.GenerationRequest
