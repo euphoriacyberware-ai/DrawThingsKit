@@ -295,7 +295,7 @@ final class DrawThingsKitTests: XCTestCase {
 
     // MARK: - GenerationJob Tests
 
-    func testGenerationJobCreation() throws {
+    func testGenerationJobCreation() {
         let config = DrawThingsConfiguration(
             width: 1024,
             height: 1024,
@@ -303,11 +303,12 @@ final class DrawThingsKitTests: XCTestCase {
             model: "test.safetensors"
         )
 
-        let job = try GenerationJob(
+        let request = GenerationRequest(
             prompt: "A beautiful sunset",
             negativePrompt: "blurry",
             configuration: config
         )
+        let job = GenerationJob.fromRequest(request)
 
         XCTAssertEqual(job.prompt, "A beautiful sunset")
         XCTAssertEqual(job.negativePrompt, "blurry")
@@ -318,29 +319,23 @@ final class DrawThingsKitTests: XCTestCase {
         XCTAssertTrue(job.resultImages.isEmpty)
     }
 
-    func testGenerationJobNameGeneration() throws {
-        let config = DrawThingsConfiguration()
-
+    func testGenerationJobNameGeneration() {
         // Short prompt
-        let job1 = try GenerationJob(
-            prompt: "Cat",
-            configuration: config
-        )
+        let request1 = GenerationRequest(prompt: "Cat")
+        let job1 = GenerationJob.fromRequest(request1)
         XCTAssertEqual(job1.name, "Cat")
 
         // Long prompt (should truncate)
-        let job2 = try GenerationJob(
-            prompt: "A very long prompt with many words that should be truncated to a reasonable length",
-            configuration: config
+        let request2 = GenerationRequest(
+            prompt: "A very long prompt with many words that should be truncated to a reasonable length"
         )
-        XCTAssertTrue(job2.name.count <= 30)
+        let job2 = GenerationJob.fromRequest(request2)
+        XCTAssertTrue(job2.name.count <= 53) // GenerationRequest truncates at 50 + "..."
     }
 
-    func testJobStatus() throws {
-        var job = try GenerationJob(
-            prompt: "Test",
-            configuration: DrawThingsConfiguration()
-        )
+    func testJobStatus() {
+        let request = GenerationRequest(prompt: "Test")
+        var job = GenerationJob.fromRequest(request)
 
         XCTAssertTrue(job.isPending)
         XCTAssertFalse(job.isFinished)
@@ -371,39 +366,40 @@ final class DrawThingsKitTests: XCTestCase {
 
     // MARK: - QueueStorage Tests
 
-    func testQueueStorageSaveAndLoad() throws {
-        let tempURL = FileManager.default.temporaryDirectory
+    func testQueueStorageSaveAndLoad() {
+        let tempDir = FileManager.default.temporaryDirectory
             .appendingPathComponent("DrawThingsKitTests")
-            .appendingPathComponent("test_queue.json")
+        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        let tempURL = tempDir.appendingPathComponent("test_queue.json")
 
         let storage = QueueStorage(fileURL: tempURL)
-        storage.clearJobs()
+        storage.clearStorage()
 
-        let config = DrawThingsConfiguration()
-        let jobs = [
-            try GenerationJob(prompt: "Job 1", configuration: config),
-            try GenerationJob(prompt: "Job 2", configuration: config)
+        let requests = [
+            GenerationRequest(prompt: "Job 1"),
+            GenerationRequest(prompt: "Job 2")
         ]
 
-        storage.saveJobs(jobs)
+        storage.saveRequests(requests)
 
-        let loaded = storage.loadJobs()
+        let loaded = storage.loadRequests()
         XCTAssertEqual(loaded.count, 2)
         XCTAssertEqual(loaded[0].prompt, "Job 1")
         XCTAssertEqual(loaded[1].prompt, "Job 2")
 
-        storage.clearJobs()
+        storage.clearStorage()
     }
 
     func testQueueStorageEmpty() {
-        let tempURL = FileManager.default.temporaryDirectory
+        let tempDir = FileManager.default.temporaryDirectory
             .appendingPathComponent("DrawThingsKitTests")
-            .appendingPathComponent("empty_queue.json")
+        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        let tempURL = tempDir.appendingPathComponent("empty_queue.json")
 
         let storage = QueueStorage(fileURL: tempURL)
-        storage.clearJobs()
+        storage.clearStorage()
 
-        let loaded = storage.loadJobs()
+        let loaded = storage.loadRequests()
         XCTAssertTrue(loaded.isEmpty)
     }
 }

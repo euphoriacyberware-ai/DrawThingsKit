@@ -12,6 +12,7 @@
 import Foundation
 import SwiftUI
 import DrawThingsClient
+import DrawThingsQueue
 
 #if os(macOS)
 import AppKit
@@ -19,10 +20,11 @@ import AppKit
 import UIKit
 #endif
 
+
 // MARK: - Job Status
 
 /// The status of a generation job.
-public enum JobStatus: String, Codable, Sendable {
+public enum JobStatus: String, Sendable {
     case pending
     case processing
     case completed
@@ -33,32 +35,11 @@ public enum JobStatus: String, Codable, Sendable {
 // MARK: - Job Progress
 
 /// Progress information for a running job.
-///
-/// Note: This type uses `@unchecked Sendable` because `PlatformImage` is not Sendable,
-/// but the image property is only accessed on the main thread for UI purposes.
-public struct JobProgress: Codable, @unchecked Sendable {
+public struct JobProgress {
     public var currentStep: Int
     public var totalSteps: Int
     public var stage: String?
-
-    /// Raw DTTensor preview data (internal use only, not exposed to apps).
-    internal var previewImageData: Data?
-
-    /// Converted preview image ready for display.
-    /// This is populated by JobQueue after converting from DTTensor format.
-    /// Note: This property is transient and not persisted.
-    public var previewImage: PlatformImage? {
-        get { _previewImage }
-        set { _previewImage = newValue }
-    }
-
-    // Non-Codable storage for the converted image
-    private var _previewImage: PlatformImage?
-
-    // Custom coding keys to exclude the transient image
-    private enum CodingKeys: String, CodingKey {
-        case currentStep, totalSteps, stage, previewImageData
-    }
+    public var previewImage: PlatformImage?
 
     public init(
         currentStep: Int = 0,
@@ -69,22 +50,7 @@ public struct JobProgress: Codable, @unchecked Sendable {
         self.currentStep = currentStep
         self.totalSteps = totalSteps
         self.stage = stage
-        self.previewImageData = nil
-        self._previewImage = previewImage
-    }
-
-    /// Internal initializer that accepts raw DTTensor data
-    internal init(
-        currentStep: Int,
-        totalSteps: Int,
-        stage: String?,
-        previewImageData: Data?
-    ) {
-        self.currentStep = currentStep
-        self.totalSteps = totalSteps
-        self.stage = stage
-        self.previewImageData = previewImageData
-        self._previewImage = nil
+        self.previewImage = previewImage
     }
 
     public var progressFraction: Double {
@@ -95,121 +61,49 @@ public struct JobProgress: Codable, @unchecked Sendable {
     public var progressPercentage: Int {
         Int(progressFraction * 100)
     }
-}
 
-// MARK: - Hint Data (for serialization)
-
-/// Serializable hint data for moodboard/reference images.
-public struct HintData: Codable, Sendable {
-    public var type: String
-    public var imageData: Data
-    public var weight: Float
-
-    public init(type: String, imageData: Data, weight: Float = 1.0) {
-        self.type = type
-        self.imageData = imageData
-        self.weight = weight
+    /// Create from DrawThingsQueue's GenerationProgress.
+    @MainActor
+    init(from progress: GenerationProgress) {
+        self.currentStep = progress.currentStep
+        self.totalSteps = progress.totalSteps
+        self.stage = progress.stage.description
+        self.previewImage = progress.previewImage
     }
 }
 
-// MARK: - Generation Job
+// MARK: - Generation Job (View Model)
 
-/// A queued image generation job.
+/// A view-model representing a generation job in the queue.
 ///
-/// Contains all the information needed to execute a generation request,
-/// along with status tracking, progress updates, and results.
-public struct GenerationJob: Identifiable, Codable {
+/// This struct provides a unified view of a job's state by combining data from
+/// DrawThingsQueue's `GenerationRequest`, `GenerationResult`, and `GenerationError` types.
+public struct GenerationJob: Identifiable, Hashable, Equatable {
     public let id: UUID
     public var name: String
     public var prompt: String
     public var negativePrompt: String
-
-    // Configuration (serialized as JSON)
-    public var configurationJSON: String
-
-    // Input images (optional)
-    public var canvasImageData: Data?
-    public var maskImageData: Data?
-    public var hints: [HintData]
-
-    // Status and progress
+    public var configuration: DrawThingsConfiguration
     public var status: JobStatus
     public var progress: JobProgress?
     public var errorMessage: String?
-
-    // Results (image data in PNG format, internal storage)
-    internal var resultImageData: [Data]
-
-    // Results (audio data in WAV format, internal storage)
-    internal var resultAudioData: [Data]?
-
-    /// Result images as native platform images.
-    /// These are converted on-demand from the stored PNG data.
-    public var resultImages: [PlatformImage] {
-        resultImageData.compactMap { PlatformImage.fromData($0) }
-    }
-
-    /// First result image, if any.
-    public var firstResultImage: PlatformImage? {
-        resultImageData.first.flatMap { PlatformImage.fromData($0) }
-    }
-
-    /// Whether the job produced audio data.
-    public var hasAudio: Bool { !(resultAudioData ?? []).isEmpty }
-
-    /// First audio result as WAV data, if any.
-    public var firstAudioData: Data? { resultAudioData?.first }
-
-    // Timestamps
+    public var resultImages: [PlatformImage]
+    public var audioData: [Data]
     public var createdAt: Date
     public var startedAt: Date?
     public var completedAt: Date?
-
-    // Retry tracking
     public var retryCount: Int
 
-    public init(
-        id: UUID = UUID(),
-        name: String? = nil,
-        prompt: String,
-        negativePrompt: String = "",
-        configuration: DrawThingsConfiguration,
-        canvasImageData: Data? = nil,
-        maskImageData: Data? = nil,
-        hints: [HintData] = []
-    ) throws {
-        self.id = id
-        self.name = name ?? Self.generateName(from: prompt)
-        self.prompt = prompt
-        self.negativePrompt = negativePrompt
-        self.configurationJSON = try configuration.toJSON()
-        self.canvasImageData = canvasImageData
-        self.maskImageData = maskImageData
-        self.hints = hints
-        self.status = .pending
-        self.progress = nil
-        self.errorMessage = nil
-        self.resultImageData = []
-        self.createdAt = Date()
-        self.startedAt = nil
-        self.completedAt = nil
-        self.retryCount = 0
+    /// First result image, if any.
+    public var firstResultImage: PlatformImage? {
+        resultImages.first
     }
 
-    /// Parse the configuration from stored JSON.
-    public func configuration() throws -> DrawThingsConfiguration {
-        try DrawThingsConfiguration.fromJSON(configurationJSON)
-    }
+    /// Whether the job produced audio data.
+    public var hasAudio: Bool { !audioData.isEmpty }
 
-    /// Generate a short name from the prompt.
-    private static func generateName(from prompt: String) -> String {
-        let words = prompt.split(separator: " ").prefix(4)
-        let name = words.joined(separator: " ")
-        if name.count > 30 {
-            return String(name.prefix(27)) + "..."
-        }
-        return name.isEmpty ? "Untitled" : name
-    }
+    /// First audio result as WAV data, if any.
+    public var firstAudioData: Data? { audioData.first }
 
     // MARK: - Status Helpers
 
@@ -244,20 +138,76 @@ public struct GenerationJob: Identifiable, Codable {
             return "\(minutes)m \(seconds)s"
         }
     }
-}
 
-// MARK: - Equatable
+    // MARK: - Equatable / Hashable
 
-extension GenerationJob: Equatable {
     public static func == (lhs: GenerationJob, rhs: GenerationJob) -> Bool {
         lhs.id == rhs.id
     }
-}
 
-// MARK: - Hashable
-
-extension GenerationJob: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
+    }
+
+    // MARK: - Factory from DrawThingsQueue types
+
+    /// Create a pending job from a GenerationRequest.
+    static func fromRequest(_ request: GenerationRequest) -> GenerationJob {
+        GenerationJob(
+            id: request.id,
+            name: request.name,
+            prompt: request.prompt,
+            negativePrompt: request.negativePrompt,
+            configuration: request.configuration,
+            status: .pending,
+            progress: nil,
+            errorMessage: nil,
+            resultImages: [],
+            audioData: [],
+            createdAt: request.createdAt,
+            startedAt: nil,
+            completedAt: nil,
+            retryCount: 0
+        )
+    }
+
+    /// Create a completed job from a GenerationResult.
+    static func fromResult(_ result: GenerationResult) -> GenerationJob {
+        GenerationJob(
+            id: result.id,
+            name: result.request.name,
+            prompt: result.request.prompt,
+            negativePrompt: result.request.negativePrompt,
+            configuration: result.request.configuration,
+            status: .completed,
+            progress: nil,
+            errorMessage: nil,
+            resultImages: result.images,
+            audioData: result.audioData,
+            createdAt: result.request.createdAt,
+            startedAt: result.startedAt,
+            completedAt: result.completedAt,
+            retryCount: 0
+        )
+    }
+
+    /// Create a failed job from a queue GenerationError.
+    static func fromError(_ error: GenerationError) -> GenerationJob {
+        GenerationJob(
+            id: error.id,
+            name: error.request.name,
+            prompt: error.request.prompt,
+            negativePrompt: error.request.negativePrompt,
+            configuration: error.request.configuration,
+            status: .failed,
+            progress: nil,
+            errorMessage: error.underlyingError.localizedDescription,
+            resultImages: [],
+            audioData: [],
+            createdAt: error.request.createdAt,
+            startedAt: nil,
+            completedAt: error.occurredAt,
+            retryCount: 0
+        )
     }
 }

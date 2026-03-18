@@ -200,15 +200,5 @@ public struct QueueProgressBadge: View {
     }
 }
 
-#Preview("Progress View - Processing") {
-    let queue = JobQueue()
-    return QueueProgressView(queue: queue)
-        .frame(width: 300)
-        .padding()
-}
-
-#Preview("Progress Badge") {
-    let queue = JobQueue()
-    return QueueProgressBadge(queue: queue)
-        .padding()
-}
+// Previews require a DrawThingsQueue instance (server connection).
+// Use a live preview with a running Draw Things server.

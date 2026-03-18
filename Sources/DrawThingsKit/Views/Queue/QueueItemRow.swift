@@ -247,54 +247,54 @@ public struct QueueItemCompactRow: View {
     }
 }
 
+// Previews require GenerationJob instances.
+// Helper to create sample jobs for previews.
+private func sampleJob(
+    prompt: String,
+    status: JobStatus = .pending,
+    progress: JobProgress? = nil,
+    errorMessage: String? = nil
+) -> GenerationJob {
+    GenerationJob(
+        id: UUID(),
+        name: String(prompt.prefix(30)),
+        prompt: prompt,
+        negativePrompt: "",
+        configuration: DrawThingsConfiguration(),
+        status: status,
+        progress: progress,
+        errorMessage: errorMessage,
+        resultImages: [],
+        audioData: [],
+        createdAt: Date(),
+        startedAt: status == .processing ? Date() : nil,
+        completedAt: nil,
+        retryCount: 0
+    )
+}
+
 #Preview("Queue Item Row") {
     VStack(spacing: 8) {
+        QueueItemRow(job: sampleJob(prompt: "A beautiful sunset over mountains"))
+
+        Divider()
+
         QueueItemRow(
-            job: try! GenerationJob(
-                prompt: "A beautiful sunset over mountains",
-                configuration: DrawThingsConfiguration()
+            job: sampleJob(
+                prompt: "Processing job example",
+                status: .processing,
+                progress: JobProgress(currentStep: 15, totalSteps: 30, stage: "Sampling")
             )
         )
 
         Divider()
 
-        QueueItemRow(
-            job: {
-                var job = try! GenerationJob(
-                    prompt: "Processing job example",
-                    configuration: DrawThingsConfiguration()
-                )
-                job.status = .processing
-                job.progress = JobProgress(currentStep: 15, totalSteps: 30, stage: "Sampling")
-                return job
-            }()
-        )
+        QueueItemRow(job: sampleJob(prompt: "Completed job with results", status: .completed))
 
         Divider()
 
         QueueItemRow(
-            job: {
-                var job = try! GenerationJob(
-                    prompt: "Completed job with results",
-                    configuration: DrawThingsConfiguration()
-                )
-                job.status = .completed
-                return job
-            }()
-        )
-
-        Divider()
-
-        QueueItemRow(
-            job: {
-                var job = try! GenerationJob(
-                    prompt: "Failed job example",
-                    configuration: DrawThingsConfiguration()
-                )
-                job.status = .failed
-                job.errorMessage = "Out of memory"
-                return job
-            }()
+            job: sampleJob(prompt: "Failed job example", status: .failed, errorMessage: "Out of memory")
         )
     }
     .padding()
@@ -303,58 +303,17 @@ public struct QueueItemCompactRow: View {
 
 #Preview("Queue Item Compact Row") {
     List {
+        QueueItemCompactRow(job: sampleJob(prompt: "Pending job"))
         QueueItemCompactRow(
-            job: try! GenerationJob(
-                prompt: "Pending job",
-                configuration: DrawThingsConfiguration()
+            job: sampleJob(
+                prompt: "Processing job",
+                status: .processing,
+                progress: JobProgress(currentStep: 15, totalSteps: 30, stage: "Sampling")
             )
         )
-
-        QueueItemCompactRow(
-            job: {
-                var job = try! GenerationJob(
-                    prompt: "Processing job example",
-                    configuration: DrawThingsConfiguration()
-                )
-                job.status = .processing
-                job.progress = JobProgress(currentStep: 15, totalSteps: 30, stage: "Sampling")
-                return job
-            }()
-        )
-
-        QueueItemCompactRow(
-            job: {
-                var job = try! GenerationJob(
-                    prompt: "Completed job",
-                    configuration: DrawThingsConfiguration()
-                )
-                job.status = .completed
-                return job
-            }()
-        )
-
-        QueueItemCompactRow(
-            job: {
-                var job = try! GenerationJob(
-                    prompt: "Failed job",
-                    configuration: DrawThingsConfiguration()
-                )
-                job.status = .failed
-                job.errorMessage = "Out of memory"
-                return job
-            }()
-        )
-
-        QueueItemCompactRow(
-            job: {
-                var job = try! GenerationJob(
-                    prompt: "Cancelled job",
-                    configuration: DrawThingsConfiguration()
-                )
-                job.status = .cancelled
-                return job
-            }()
-        )
+        QueueItemCompactRow(job: sampleJob(prompt: "Completed job", status: .completed))
+        QueueItemCompactRow(job: sampleJob(prompt: "Failed job", status: .failed, errorMessage: "Out of memory"))
+        QueueItemCompactRow(job: sampleJob(prompt: "Cancelled job", status: .cancelled))
     }
     .listStyle(.plain)
     .frame(width: 250, height: 200)

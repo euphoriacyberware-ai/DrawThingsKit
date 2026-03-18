@@ -12,6 +12,7 @@
 import Foundation
 import SwiftUI
 import DrawThingsClient
+import DrawThingsQueue
 
 // MARK: - Public Exports
 
@@ -27,3 +28,10 @@ import DrawThingsClient
 @_exported import enum DrawThingsClient.LatentModelFamily
 @_exported import struct DrawThingsClient.ImageHelpers
 @_exported import enum DrawThingsClient.ImageError
+
+// Re-export commonly used types from DrawThingsQueue
+@_exported import struct DrawThingsQueue.GenerationRequest
+@_exported import struct DrawThingsQueue.GenerationResult
+@_exported import class DrawThingsQueue.GenerationProgress
+@_exported import enum DrawThingsQueue.RequestStatus
+@_exported import class DrawThingsQueue.QueueStorage
