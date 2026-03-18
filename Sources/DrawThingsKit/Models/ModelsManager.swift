@@ -339,6 +339,9 @@ public enum ModelVersionNormalizer {
         "zImage": "z_image",
         // Hunyuan Video
         "hunyuanVideo": "hunyuan_video",
+        // LTX Video
+        "ltx2": "ltx_2",
+        "ltx2_3": "ltx_2.3",
         // Wan models
         "wan21_1_3b": "wan_v2.1_1.3b",
         "wan21_14b": "wan_v2.1_14b",
