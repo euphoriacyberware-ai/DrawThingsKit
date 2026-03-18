@@ -292,14 +292,5 @@ public struct QueueSidebarView: View {
     }
 }
 
-#Preview("Queue View") {
-    let queue = JobQueue()
-    return QueueView(queue: queue)
-        .frame(width: 400, height: 600)
-}
-
-#Preview("Queue Sidebar") {
-    let queue = JobQueue()
-    return QueueSidebarView(queue: queue)
-        .frame(width: 250, height: 400)
-}
+// Previews require a DrawThingsQueue instance (server connection).
+// Use a live preview with a running Draw Things server.

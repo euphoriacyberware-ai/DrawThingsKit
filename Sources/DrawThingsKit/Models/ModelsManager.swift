@@ -79,6 +79,27 @@ public struct CheckpointModel: Identifiable, Codable, Hashable, Sendable {
         self.source = source
     }
 
+    /// The native frame rate for video models, derived from the model version.
+    /// Returns nil for non-video models.
+    public var framesPerSecond: Int? {
+        guard let version = version else { return nil }
+        let v = version.lowercased()
+        if v.contains("ltx") {
+            return 25
+        } else if v.contains("wan") {
+            // Wan 2.2 TI2V runs at 24 FPS, other Wan models at 16
+            if v.contains("2.2") || v.contains("22") {
+                return file.lowercased().contains("ti2v") ? 24 : 16
+            }
+            return 16
+        } else if v.contains("hunyuan") {
+            return 24
+        } else if v.contains("svd") {
+            return 25
+        }
+        return nil
+    }
+
     public func hash(into hasher: inout Hasher) {
         hasher.combine(file)
     }
@@ -339,6 +360,9 @@ public enum ModelVersionNormalizer {
         "zImage": "z_image",
         // Hunyuan Video
         "hunyuanVideo": "hunyuan_video",
+        // LTX Video
+        "ltx2": "ltx_2",
+        "ltx2_3": "ltx_2.3",
         // Wan models
         "wan21_1_3b": "wan_v2.1_1.3b",
         "wan21_14b": "wan_v2.1_14b",

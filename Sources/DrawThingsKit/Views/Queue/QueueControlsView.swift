@@ -156,18 +156,5 @@ public struct QueueToolbar: View {
     }
 }
 
-#Preview("Queue Controls") {
-    let queue = JobQueue()
-    return VStack {
-        QueueControlsView(queue: queue)
-            .padding()
-
-        Divider()
-
-        QueueToolbar(queue: queue) {
-            print("Add job")
-        }
-        .padding()
-    }
-    .frame(width: 300)
-}
+// Previews require a DrawThingsQueue instance (server connection).
+// Use a live preview with a running Draw Things server.

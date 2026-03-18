@@ -12,6 +12,8 @@
 import Foundation
 import SwiftUI
 import Combine
+import DrawThingsClient
+import DrawThingsQueue
 
 #if os(macOS)
 import AppKit
@@ -19,60 +21,29 @@ import AppKit
 import UIKit
 #endif
 
+// The DrawThingsQueue module has a class also named DrawThingsQueue,
+// so we can't use module-qualified names like "DrawThingsQueue.JobEvent".
+// The Queue's JobEvent is imported unqualified; our local JobEvent is defined below.
+// We reference the Queue's JobEvent through the queue.events publisher type.
+
 // MARK: - Job Events
 
 /// Events emitted by the job queue for easy observation.
 public enum JobEvent {
-    /// A job was added to the queue
     case jobAdded(GenerationJob)
-    /// A job started processing
     case jobStarted(GenerationJob)
-    /// A job's progress was updated
     case jobProgress(GenerationJob, JobProgress)
-    /// A job completed successfully with result images (as native PlatformImage)
-    case jobCompleted(GenerationJob, images: [PlatformImage])
-    /// A job failed with an error message
+    case jobCompleted(GenerationJob, images: [PlatformImage], audioData: [Data])
     case jobFailed(GenerationJob, error: String)
-    /// A job was cancelled
     case jobCancelled(GenerationJob)
-    /// A job was removed from the queue
     case jobRemoved(UUID)
 }
 
 /// Manages the queue of generation jobs.
 ///
-/// Provides:
-/// - Job enqueueing and removal
-/// - Queue ordering (drag to reorder)
-/// - Pause/resume functionality
-/// - Current job and progress tracking
-/// - Persistence through QueueStorage
-/// - Event publisher for job lifecycle events
-///
-/// Example usage:
-/// ```swift
-/// @StateObject private var queue = JobQueue()
-///
-/// // Add a job
-/// try queue.enqueue(job)
-///
-/// // Start processing
-/// queue.resume()
-///
-/// // Listen for job events
-/// queue.events
-///     .sink { event in
-///         switch event {
-///         case .jobCompleted(let job, let results):
-///             // Handle completed job
-///         case .jobFailed(let job, let error):
-///             // Handle failed job
-///         default:
-///             break
-///         }
-///     }
-///     .store(in: &cancellables)
-/// ```
+/// This class wraps `DrawThingsQueue` and presents a view-model layer using
+/// `GenerationJob` structs for SwiftUI views. It translates between
+/// DrawThingsQueue's event-driven model and a unified job list.
 @MainActor
 public final class JobQueue: ObservableObject {
     // MARK: - Published Properties
@@ -87,9 +58,6 @@ public final class JobQueue: ObservableObject {
     @Published public private(set) var isProcessing: Bool = false
 
     /// Whether the queue is paused.
-    /// Defaults to `false` (ready to process). The queue will automatically start
-    /// processing when jobs are added and a connection is available.
-    /// Call `pause()` during app initialization if you want the queue to start paused.
     @Published public private(set) var isPaused: Bool = false
 
     /// Preview image from the current job.
@@ -103,389 +71,239 @@ public final class JobQueue: ObservableObject {
 
     // MARK: - Event Publisher
 
-    /// Publisher for job lifecycle events.
-    /// Subscribe to this to be notified when jobs complete, fail, etc.
     public let events = PassthroughSubject<JobEvent, Never>()
 
-    // MARK: - Private Properties
+    // MARK: - Internal Queue
 
-    private let storage: QueueStorage
-    private var processingTask: Task<Void, Never>?
+    /// The underlying DrawThingsQueue instance.
+    public let queue: DrawThingsQueue
 
-    /// Optional ModelsManager for accurate model family detection in previews.
-    /// If provided, uses the version field from the model catalog for better latent-to-RGB conversion.
-    public weak var modelsManager: ModelsManager?
+    private var cancellables = Set<AnyCancellable>()
+
+    /// Tracks cancelled IDs for view-model purposes.
+    private var cancelledRequests: [UUID: GenerationRequest] = [:]
 
     // MARK: - Initialization
 
-    /// Initialize with optional custom storage and models manager.
-    /// - Parameters:
-    ///   - storage: Storage for job persistence
-    ///   - modelsManager: Optional ModelsManager for accurate model family detection in previews
-    public init(storage: QueueStorage = QueueStorage(), modelsManager: ModelsManager? = nil) {
-        self.storage = storage
-        self.modelsManager = modelsManager
-        loadJobs()
+    /// Initialize with an existing DrawThingsQueue.
+    public init(queue: DrawThingsQueue) {
+        self.queue = queue
+        subscribeToQueue()
     }
 
     // MARK: - Computed Properties
 
-    /// Jobs that are waiting to be processed.
     public var pendingJobs: [GenerationJob] {
         jobs.filter { $0.status == .pending }
     }
 
-    /// Jobs that have completed successfully.
     public var completedJobs: [GenerationJob] {
         jobs.filter { $0.status == .completed }
     }
 
-    /// Jobs that failed.
     public var failedJobs: [GenerationJob] {
         jobs.filter { $0.status == .failed }
     }
 
-    /// Number of pending jobs.
-    public var pendingCount: Int {
-        pendingJobs.count
-    }
-
-    /// Number of jobs currently processing.
-    public var processingCount: Int {
-        jobs.filter { $0.status == .processing }.count
-    }
-
-    /// Number of jobs in the active queue (pending + processing).
-    /// Useful for displaying a badge count in UI.
-    public var activeQueueCount: Int {
-        jobs.filter { $0.status == .pending || $0.status == .processing }.count
-    }
-
-    /// Whether there are jobs waiting to be processed.
-    public var hasPendingJobs: Bool {
-        !pendingJobs.isEmpty
-    }
-
-    /// Whether the queue is empty.
-    public var isEmpty: Bool {
-        jobs.isEmpty
-    }
+    public var pendingCount: Int { pendingJobs.count }
+    public var processingCount: Int { jobs.filter { $0.status == .processing }.count }
+    public var activeQueueCount: Int { jobs.filter { $0.isPending || $0.isProcessing }.count }
+    public var hasPendingJobs: Bool { !pendingJobs.isEmpty }
+    public var isEmpty: Bool { jobs.isEmpty }
 
     // MARK: - Queue Operations
 
-    /// Add a job to the queue.
-    ///
-    /// If the job's seed is nil or negative (random), a random seed will be generated
-    /// client-side so the seed value is known and can be displayed in results.
-    ///
-    /// - Parameter job: The job to add.
-    public func enqueue(_ job: GenerationJob) {
-        var newJob = job
-        newJob.status = .pending
-
-        // Generate random seed if needed
-        newJob = assignRandomSeedIfNeeded(newJob)
-
-        jobs.append(newJob)
-        saveJobs()
-        events.send(.jobAdded(newJob))
+    /// Enqueue a GenerationRequest directly.
+    public func enqueue(_ request: GenerationRequest) {
+        queue.enqueue(request)
     }
 
-    /// Add multiple jobs to the queue.
-    ///
-    /// If any job's seed is nil or negative (random), a random seed will be generated
-    /// client-side so the seed value is known and can be displayed in results.
-    ///
-    /// - Parameter newJobs: The jobs to add.
-    public func enqueue(_ newJobs: [GenerationJob]) {
-        for var job in newJobs {
-            job.status = .pending
-            job = assignRandomSeedIfNeeded(job)
-            jobs.append(job)
-            events.send(.jobAdded(job))
-        }
-        saveJobs()
+    /// Enqueue multiple requests.
+    public func enqueue(_ requests: [GenerationRequest]) {
+        queue.enqueue(requests)
     }
 
-    /// Assigns a random seed to a job if its current seed is nil or negative.
-    ///
-    /// Draw Things uses -1 (or nil) to indicate "server should generate random seed",
-    /// but this means we don't know what seed was used. By generating the seed
-    /// client-side, we can display it in the results and allow reproduction.
-    ///
-    /// - Parameter job: The job to check and potentially modify.
-    /// - Returns: The job with a random seed assigned if needed.
-    private func assignRandomSeedIfNeeded(_ job: GenerationJob) -> GenerationJob {
-        guard var config = try? job.configuration() else {
-            return job
-        }
-
-        // Check if seed needs to be randomized
-        // nil or negative values indicate "random"
-        if config.seed == nil || config.seed! < 0 {
-            // Generate a random seed within UInt32 range to match Draw Things flatbuffer format
-            let randomSeed = Int64(arc4random())
-            config.seed = randomSeed
-
-            // Update the job with the new configuration
-            if let updatedJSON = try? config.toJSON() {
-                var updatedJob = job
-                updatedJob.configurationJSON = updatedJSON
-                DTLogger.debug("Assigned random seed \(randomSeed) to job \(job.id)", category: .queue)
-                return updatedJob
-            }
-        }
-
-        return job
-    }
-
-    /// Remove a job from the queue.
-    /// - Parameter job: The job to remove.
+    /// Remove a job.
     public func remove(_ job: GenerationJob) {
-        // Can't remove the currently processing job
         guard currentJob?.id != job.id else { return }
-
-        let jobId = job.id
-        jobs.removeAll { $0.id == jobId }
-        saveJobs()
-        events.send(.jobRemoved(jobId))
+        queue.remove(job.id)
+        jobs.removeAll { $0.id == job.id }
     }
 
     /// Cancel a job.
-    /// - Parameter job: The job to cancel.
     public func cancel(_ job: GenerationJob) {
-        guard let index = jobs.firstIndex(where: { $0.id == job.id }) else { return }
-
-        if currentJob?.id == job.id {
-            // Cancel the current processing task
-            processingTask?.cancel()
-            jobs[index].status = .cancelled
-            jobs[index].completedAt = Date()
-            currentJob = nil
-            isProcessing = false
-            currentProgress = nil
-            currentPreview = nil
-        } else if jobs[index].status == .pending {
-            jobs[index].status = .cancelled
-            jobs[index].completedAt = Date()
+        // Store the request info for cancelled event before it's removed
+        if let request = findRequest(for: job.id) {
+            cancelledRequests[job.id] = request
         }
-
-        saveJobs()
-        events.send(.jobCancelled(jobs[index]))
+        queue.cancel(id: job.id)
     }
 
-    /// Move a job in the queue.
-    /// - Parameters:
-    ///   - source: Source indices.
-    ///   - destination: Destination index.
+    /// Move jobs in the pending list.
     public func moveJobs(from source: IndexSet, to destination: Int) {
-        jobs.move(fromOffsets: source, toOffset: destination)
-        saveJobs()
+        queue.moveRequests(from: source, to: destination)
     }
 
     /// Retry a failed job.
-    /// - Parameter job: The job to retry.
     public func retry(_ job: GenerationJob) {
-        guard let index = jobs.firstIndex(where: { $0.id == job.id }),
-              jobs[index].canRetry else { return }
-
-        jobs[index].status = .pending
-        jobs[index].errorMessage = nil
-        jobs[index].retryCount += 1
-        jobs[index].startedAt = nil
-        jobs[index].completedAt = nil
-        saveJobs()
+        queue.retry(job.id)
     }
 
     /// Clear all completed jobs.
     public func clearCompleted() {
+        queue.clearCompleted()
         jobs.removeAll { $0.status == .completed }
-        saveJobs()
     }
 
     /// Clear all failed jobs.
     public func clearFailed() {
+        queue.clearErrors()
         jobs.removeAll { $0.status == .failed || $0.status == .cancelled }
-        saveJobs()
     }
 
-    /// Clear all finished jobs (completed, failed, cancelled).
+    /// Clear all finished jobs.
     public func clearFinished() {
+        queue.clearCompleted()
+        queue.clearErrors()
         jobs.removeAll { $0.isFinished }
-        saveJobs()
     }
 
-    /// Clear all jobs and stop processing.
+    /// Clear all jobs.
     public func clearAll() {
-        pause()
-        processingTask?.cancel()
+        queue.clearAll()
         jobs.removeAll()
         currentJob = nil
         currentProgress = nil
         currentPreview = nil
-        saveJobs()
     }
 
     // MARK: - Queue Control
 
-    /// Pause the queue.
     public func pause() {
-        isPaused = true
+        queue.pause()
     }
 
-    /// Resume the queue.
     public func resume() {
-        isPaused = false
-        lastError = nil
+        queue.resume()
     }
 
-    /// Pause due to connectivity issues (will auto-resume on reconnect).
-    public func pauseForReconnection(error: String) {
-        isPaused = true
-        lastError = error
+    // MARK: - Private
+
+    private func findRequest(for id: UUID) -> GenerationRequest? {
+        if let current = queue.currentRequest, current.id == id {
+            return current
+        }
+        return queue.pendingRequests.first { $0.id == id }
     }
 
-    // MARK: - Job Processing (called by QueueProcessor)
+    private func subscribeToQueue() {
+        // Sync published state from the underlying queue
+        queue.$isPaused.assign(to: &$isPaused)
+        queue.$isProcessing.assign(to: &$isProcessing)
+        queue.$lastError.assign(to: &$lastError)
 
-    /// Mark a job as started.
-    func markJobStarted(_ jobId: UUID) {
-        guard let index = jobs.firstIndex(where: { $0.id == jobId }) else { return }
-
-        jobs[index].status = .processing
-        jobs[index].startedAt = Date()
-        jobs[index].progress = JobProgress()
-        currentJob = jobs[index]
-        isProcessing = true
-        currentProgress = jobs[index].progress
-        saveJobs()
-        events.send(.jobStarted(jobs[index]))
-    }
-
-    /// Update progress for a job.
-    func updateJobProgress(_ jobId: UUID, progress: JobProgress) {
-        guard let index = jobs.firstIndex(where: { $0.id == jobId }) else { return }
-
-        var updatedProgress = progress
-
-        // Update preview image if available (convert from DTTensor format)
-        if let previewData = progress.previewImageData {
-            // Detect model family from configuration for correct latent-to-RGB conversion
-            var modelFamily: LatentModelFamily? = nil
-            if let config = try? jobs[index].configuration() {
-                // Try to use ModelsManager for accurate version-based detection
-                if let manager = modelsManager {
-                    let version = manager.version(forFile: config.model)
-                    modelFamily = manager.latentModelFamily(forFile: config.model)
-                    DTLogger.debug("Preview conversion: model='\(config.model)', version='\(version ?? "nil")', family=\(modelFamily ?? .unknown)", category: .generation)
+        // Sync preview from progress
+        queue.$currentProgress
+            .sink { [weak self] progress in
+                self?.currentPreview = progress?.previewImage
+                if let progress {
+                    self?.currentProgress = JobProgress(from: progress)
                 } else {
-                    // Fall back to filename-based detection
-                    modelFamily = LatentModelFamily.detect(from: config.model)
-                    DTLogger.debug("Preview conversion (no ModelsManager): model='\(config.model)', family=\(modelFamily ?? .unknown)", category: .generation)
+                    self?.currentProgress = nil
                 }
-            } else {
-                DTLogger.debug("Preview conversion: failed to get configuration from job", category: .generation)
             }
+            .store(in: &cancellables)
 
-            if let image = try? PlatformImageHelpers.dtTensorToImage(previewData, modelFamily: modelFamily) {
-                currentPreview = image
-                updatedProgress.previewImage = image
+        // Subscribe to queue events and translate to Kit's JobEvent
+        queue.events
+            .sink { [weak self] event in
+                guard let self else { return }
+                switch event {
+                case .requestAdded(let request):
+                    self.onRequestAdded(request)
+                case .requestStarted(let request):
+                    self.onRequestStarted(request)
+                case .requestProgress(let request, let progress):
+                    self.onRequestProgress(request, progress)
+                case .requestCompleted(let result):
+                    self.onRequestCompleted(result)
+                case .requestFailed(let error):
+                    self.onRequestFailed(error)
+                case .requestCancelled(let id):
+                    self.onRequestCancelled(id)
+                case .requestRemoved(let id):
+                    self.onRequestRemoved(id)
+                }
             }
+            .store(in: &cancellables)
+    }
+
+    private func onRequestAdded(_ request: GenerationRequest) {
+        let job = GenerationJob.fromRequest(request)
+        jobs.append(job)
+        events.send(.jobAdded(job))
+    }
+
+    private func onRequestStarted(_ request: GenerationRequest) {
+        var job = GenerationJob.fromRequest(request)
+        job.status = JobStatus.processing
+        job.startedAt = Date()
+        upsertJob(job)
+        currentJob = job
+        events.send(.jobStarted(job))
+    }
+
+    private func onRequestProgress(_ request: GenerationRequest, _ progress: GenerationProgress) {
+        let jobProgress = JobProgress(from: progress)
+        if let index = jobs.firstIndex(where: { $0.id == request.id }) {
+            jobs[index].progress = jobProgress
+            let job = jobs[index]
+            events.send(.jobProgress(job, jobProgress))
         }
-
-        jobs[index].progress = updatedProgress
-        currentProgress = updatedProgress
-
-        events.send(.jobProgress(jobs[index], updatedProgress))
     }
 
-    /// Mark a job as completed with results.
-    /// - Parameters:
-    ///   - jobId: The job ID
-    ///   - results: Result images as PNG data
-    func markJobCompleted(_ jobId: UUID, results: [Data]) {
-        guard let index = jobs.firstIndex(where: { $0.id == jobId }) else { return }
-
-        jobs[index].status = .completed
-        jobs[index].completedAt = Date()
-        jobs[index].resultImageData = results
-        jobs[index].errorMessage = nil
-
-        let completedJob = jobs[index]
-
-        if currentJob?.id == jobId {
-            currentJob = nil
-            isProcessing = false
-            currentProgress = nil
-            currentPreview = nil
-        }
-
-        saveJobs()
-
-        // Convert PNG data to PlatformImages for the event
-        let images = results.compactMap { PlatformImage.fromData($0) }
-        events.send(.jobCompleted(completedJob, images: images))
+    private func onRequestCompleted(_ result: GenerationResult) {
+        let job = GenerationJob.fromResult(result)
+        upsertJob(job)
+        currentJob = nil
+        events.send(.jobCompleted(job, images: result.images, audioData: result.audioData))
     }
 
-    /// Mark a job as failed.
-    func markJobFailed(_ jobId: UUID, error: String) {
-        guard let index = jobs.firstIndex(where: { $0.id == jobId }) else { return }
-
-        jobs[index].status = .failed
-        jobs[index].completedAt = Date()
-        jobs[index].errorMessage = error
-
-        let failedJob = jobs[index]
-
-        if currentJob?.id == jobId {
-            currentJob = nil
-            isProcessing = false
-            currentProgress = nil
-            currentPreview = nil
-        }
-
-        saveJobs()
-        events.send(.jobFailed(failedJob, error: error))
+    private func onRequestFailed(_ error: GenerationError) {
+        let job = GenerationJob.fromError(error)
+        upsertJob(job)
+        currentJob = nil
+        events.send(.jobFailed(job, error: error.underlyingError.localizedDescription))
     }
 
-    /// Get the next pending job.
-    func nextPendingJob() -> GenerationJob? {
-        jobs.first { $0.status == .pending }
-    }
-
-    /// Reset a job to pending status (for retry after connectivity errors).
-    func resetJobToPending(_ jobId: UUID) {
-        guard let index = jobs.firstIndex(where: { $0.id == jobId }) else { return }
-
-        jobs[index].status = .pending
-        jobs[index].startedAt = nil
-        jobs[index].progress = nil
-
-        if currentJob?.id == jobId {
-            currentJob = nil
-            isProcessing = false
-            currentProgress = nil
-            currentPreview = nil
-        }
-
-        saveJobs()
-    }
-
-    // MARK: - Persistence
-
-    private func loadJobs() {
-        jobs = storage.loadJobs()
-
-        // Reset any jobs that were processing when the app quit
-        for index in jobs.indices {
-            if jobs[index].status == .processing {
-                jobs[index].status = .pending
-                jobs[index].startedAt = nil
-                jobs[index].progress = nil
+    private func onRequestCancelled(_ id: UUID) {
+        if let index = jobs.firstIndex(where: { $0.id == id }) {
+            jobs[index].status = JobStatus.cancelled
+            jobs[index].completedAt = Date()
+            let job = jobs[index]
+            if currentJob?.id == id {
+                currentJob = nil
             }
+            events.send(.jobCancelled(job))
+        } else if let request = cancelledRequests.removeValue(forKey: id) {
+            var job = GenerationJob.fromRequest(request)
+            job.status = JobStatus.cancelled
+            job.completedAt = Date()
+            jobs.append(job)
+            events.send(.jobCancelled(job))
         }
     }
 
-    private func saveJobs() {
-        storage.saveJobs(jobs)
+    private func onRequestRemoved(_ id: UUID) {
+        jobs.removeAll { $0.id == id }
+        events.send(.jobRemoved(id))
+    }
+
+    private func upsertJob(_ job: GenerationJob) {
+        if let index = jobs.firstIndex(where: { $0.id == job.id }) {
+            jobs[index] = job
+        } else {
+            jobs.append(job)
+        }
     }
 }
