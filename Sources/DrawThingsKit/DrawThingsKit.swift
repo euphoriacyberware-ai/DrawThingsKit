@@ -25,3 +25,5 @@ import DrawThingsClient
 @_exported import class DrawThingsClient.DrawThingsService
 @_exported import struct DrawThingsClient.MetadataOverride
 @_exported import enum DrawThingsClient.LatentModelFamily
+@_exported import struct DrawThingsClient.ImageHelpers
+@_exported import enum DrawThingsClient.ImageError

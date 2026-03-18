@@ -399,7 +399,7 @@ extension DrawThingsService {
         // Convert canvas image to DTTensor format (same as hints)
         var canvasData: Data? = nil
         if let canvas = canvas {
-            canvasData = try? PlatformImageHelpers.imageToDTTensor(canvas, forceRGB: true)
+            canvasData = try? ImageHelpers.imageToDTTensor(canvas, forceRGB: true)
             if let data = canvasData {
                 DTLogger.debug("Canvas DTTensor: \(ByteCountFormatter.string(fromByteCount: Int64(data.count), countStyle: .binary))", category: .grpc)
             }
@@ -418,7 +418,7 @@ extension DrawThingsService {
         // Group hints by type (like ComfyUI does) - one HintProto per type with multiple tensors
         var hintsByType: [String: [TensorAndWeight]] = [:]
         for hint in hints {
-            if let tensorData = try? PlatformImageHelpers.imageToDTTensor(hint.image, forceRGB: true) {
+            if let tensorData = try? ImageHelpers.imageToDTTensor(hint.image, forceRGB: true) {
                 var tensor = TensorAndWeight()
                 tensor.tensor = tensorData
                 tensor.weight = hint.weight
@@ -507,7 +507,7 @@ extension DrawThingsService {
             DTLogger.debug("Processing result \(index + 1): DTTensor \(ByteCountFormatter.string(fromByteCount: Int64(imageData.count), countStyle: .binary))", category: .grpc)
             do {
                 // Convert DTTensor format to PlatformImage
-                let image = try PlatformImageHelpers.dtTensorToImage(imageData)
+                let image = try ImageHelpers.dtTensorToImage(imageData)
                 // Convert to PNG data
                 if let pngData = image.pngData() {
                     DTLogger.debug("Result \(index + 1) converted to PNG: \(ByteCountFormatter.string(fromByteCount: Int64(pngData.count), countStyle: .binary))", category: .grpc)

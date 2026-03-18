@@ -12,6 +12,7 @@
 import Foundation
 import SwiftUI
 import Combine
+import DrawThingsClient
 
 #if os(macOS)
 import AppKit
@@ -386,7 +387,7 @@ public final class JobQueue: ObservableObject {
                 DTLogger.debug("Preview conversion: failed to get configuration from job", category: .generation)
             }
 
-            if let image = try? PlatformImageHelpers.dtTensorToImage(previewData, modelFamily: modelFamily) {
+            if let image = try? ImageHelpers.dtTensorToImage(previewData, modelFamily: modelFamily) {
                 currentPreview = image
                 updatedProgress.previewImage = image
             }
