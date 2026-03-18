@@ -1,10 +1,12 @@
 # DrawThingsKit
 
-A Swift package providing UI components, utilities, and model management for building Draw Things gRPC client applications.
+A Swift package providing model management, configuration, connection handling, and queue management for building Draw Things gRPC client applications.
 
 ## Overview
 
-DrawThingsKit abstracts away the complexity of connecting to Draw Things servers, managing generation jobs, and provides reusable SwiftUI components for configuration editing and queue management. It's built on top of **DrawThingsClient** and supports both macOS and iOS applications.
+DrawThingsKit abstracts away the complexity of connecting to Draw Things servers, managing generation jobs, and provides reusable SwiftUI components for connection and queue management. It's built on top of **DrawThingsClient** and supports both macOS and iOS applications.
+
+> **Note:** Configuration UI views (section editors, preset pickers, model pickers, etc.) have been moved to **EuphoriaKit**, a separate SwiftUI component library that depends on DrawThingsKit. DrawThingsKit retains the non-UI types these views depend on (ConfigurationManager, ModelsManager, etc.).
 
 ## Installation
 
@@ -30,7 +32,6 @@ struct MyApp: App {
     @StateObject private var connectionManager = ConnectionManager()
     @StateObject private var configurationManager = ConfigurationManager()
     @StateObject private var queue = JobQueue()
-    @StateObject private var processor = QueueProcessor()
 
     var body: some Scene {
         WindowGroup {
@@ -38,10 +39,6 @@ struct MyApp: App {
                 .environmentObject(connectionManager)
                 .environmentObject(configurationManager)
                 .environmentObject(queue)
-                .environmentObject(processor)
-                .task {
-                    processor.startProcessing(queue: queue, connectionManager: connectionManager)
-                }
         }
     }
 }
@@ -54,10 +51,9 @@ Sources/DrawThingsKit/
 ├── Configuration/     # JSON serialization & presets
 ├── Connection/        # Server profiles & connection management
 ├── Logging/           # DTLogger unified logging system
-├── Models/            # Model catalog & ConfigurationManager
-├── Queue/             # Job queue, events, processing & HintBuilder
+├── Models/            # Model catalog, ConfigurationManager & ModelsManager
+├── Queue/             # Job queue, events & processing
 └── Views/
-    ├── Configuration/ # Config editors, presets, section views
     ├── Connection/    # Server profile & status views
     └── Queue/         # Queue progress, list & control views
 ```
@@ -326,27 +322,6 @@ struct ContentView: View {
 | `.jobCancelled` | `GenerationJob` | Job was cancelled |
 | `.jobRemoved` | `UUID` | Job was removed from queue |
 
-### QueueProcessor
-
-Processes jobs from the queue using the Draw Things service.
-
-```swift
-let processor = QueueProcessor()
-
-// Start processing loop
-processor.startProcessing(queue: queue, connectionManager: connectionManager)
-
-// Stop processing
-processor.stopProcessing()
-```
-
-The processor automatically:
-- Picks up pending jobs when connected and unpaused
-- Updates progress with previews
-- Marks jobs completed with results
-- Pauses on connectivity errors
-- Fails jobs that return no images
-
 ### GenerationJob
 
 A queued image generation job.
@@ -589,7 +564,7 @@ ConfigurationDefaults.sampler    // .dpmpp2mkarras
 
 ---
 
-## SwiftUI Views (macOS)
+## SwiftUI Views
 
 ### Connection Views
 
@@ -640,230 +615,7 @@ QueueItemRow(job: job, queue: queue)
 QueueItemCompactRow(job: job, queue: queue)
 ```
 
-### Configuration Editor
-
-```swift
-@State private var configJSON = "{}"
-
-ConfigurationEditorView(json: $configJSON, title: "Edit Configuration")
-```
-
-Features:
-- Monospace code editor
-- Paste, Copy, Format, Validate, Clear buttons
-- Real-time validation status
-- Auto-format on paste
-
-### Configuration Actions
-
-Views for managing configuration presets and clipboard operations:
-
-```swift
-// Full action bar with Copy, Paste, Save, Presets buttons
-ConfigurationActionsView(
-    configurationManager: configurationManager,
-    modelContext: modelContext
-)
-
-// Compact single-row version
-ConfigurationActionsCompactView(
-    configurationManager: configurationManager,
-    modelContext: modelContext
-)
-
-// Save configuration sheet (presented modally)
-SaveConfigurationSheet(
-    configurationManager: configurationManager,
-    modelContext: modelContext,
-    isPresented: $showingSaveSheet
-)
-
-// Preset picker menu
-PresetPickerMenu(
-    configurationManager: configurationManager,
-    presets: savedConfigurations
-)
-
-// Preset list for settings/management
-PresetListView(
-    configurationManager: configurationManager,
-    modelContext: modelContext
-)
-```
-
-**ConfigurationActionsView Features:**
-- **Copy**: Copy current configuration to clipboard as JSON
-- **Paste**: Paste configuration from clipboard
-- **Save**: Save current configuration as a named preset
-- **Presets**: Load from saved presets or reset to defaults
-
-### Configuration Section Views
-
-Reusable SwiftUI form sections for building configuration UIs. Each section is a composable view that binds directly to `DrawThingsConfiguration` properties.
-
-**Standard Sections** (always visible):
-
-```swift
-// Prompt input fields
-PromptSection(
-    prompt: $configurationManager.prompt,
-    negativePrompt: $configurationManager.negativePrompt
-)
-
-// Model selection - checkpoint, refiner, sampler
-// Mixture of Experts mode is auto-detected for Wan 2.2 models
-ModelSection(
-    modelsManager: connectionManager.modelsManager,
-    selectedCheckpoint: $configurationManager.selectedCheckpoint,
-    selectedRefiner: $configurationManager.selectedRefiner,
-    refinerStart: $configurationManager.activeConfiguration.refinerStart,
-    sampler: $configurationManager.activeConfiguration.sampler,
-    modelName: $configurationManager.activeConfiguration.model,
-    refinerName: $configurationManager.activeConfiguration.refinerModel
-)
-
-// LoRA management with weight sliders
-// Use LoRAMOESection for Wan 2.2 models (auto-detected via configurationManager.mixtureOfExperts)
-if configurationManager.mixtureOfExperts {
-    LoRAMOESection(
-        modelsManager: connectionManager.modelsManager,
-        selectedLoRAs: $configurationManager.selectedLoRAs
-    )
-} else {
-    LoRASection(
-        modelsManager: connectionManager.modelsManager,
-        selectedLoRAs: $configurationManager.selectedLoRAs
-    )
-}
-
-// Core generation parameters
-// When showAdvanced is true, also shows CFG Zero Star toggle and Init Steps
-ParametersSection(
-    steps: $configurationManager.activeConfiguration.steps,
-    guidanceScale: $configurationManager.activeConfiguration.guidanceScale,
-    cfgZeroStar: $configurationManager.activeConfiguration.cfgZeroStar,
-    cfgZeroInitSteps: $configurationManager.activeConfiguration.cfgZeroInitSteps,
-    resolutionDependentShift: $configurationManager.activeConfiguration.resolutionDependentShift,
-    shift: $configurationManager.activeConfiguration.shift,
-    showAdvanced: showAdvanced
-)
-
-// Dimensions with presets and swap button
-DimensionsSection(
-    width: $configurationManager.activeConfiguration.width,
-    height: $configurationManager.activeConfiguration.height
-)
-
-// Seed with mode selector
-// When showAdvanced is true, shows additional seed modes
-SeedSection(
-    seed: $configurationManager.activeConfiguration.seed,
-    seedMode: $configurationManager.activeConfiguration.seedMode,
-    showAdvanced: showAdvanced
-)
-
-// Image-to-image strength
-StrengthSection(
-    strength: $configurationManager.activeConfiguration.strength
-)
-
-// Batch size (1-4 images per generation)
-BatchSection(
-    batchSize: $configurationManager.activeConfiguration.batchSize
-)
-
-// ControlNet model selection
-ControlNetSection(
-    modelsManager: connectionManager.modelsManager,
-    selectedControls: $configurationManager.selectedControls
-)
-```
-
-**Advanced Sections** (typically shown when an "Advanced" toggle is enabled):
-
-```swift
-if showAdvanced {
-    // Advanced generation settings
-    // Includes: Clip Skip, Tiled Diffusion/Decoding, HiRes Fix, Sharpness, Inpainting
-    AdvancedSection(
-        clipSkip: $config.clipSkip,
-        tiledDiffusion: $config.tiledDiffusion,
-        diffusionTileWidth: $config.diffusionTileWidth,
-        diffusionTileHeight: $config.diffusionTileHeight,
-        diffusionTileOverlap: $config.diffusionTileOverlap,
-        tiledDecoding: $config.tiledDecoding,
-        decodingTileWidth: $config.decodingTileWidth,
-        decodingTileHeight: $config.decodingTileHeight,
-        decodingTileOverlap: $config.decodingTileOverlap,
-        hiresFix: $config.hiresFix,
-        hiresFixWidth: $config.hiresFixWidth,
-        hiresFixHeight: $config.hiresFixHeight,
-        hiresFixStrength: $config.hiresFixStrength,
-        sharpness: $config.sharpness,
-        aestheticScore: $config.aestheticScore,
-        negativeAestheticScore: $config.negativeAestheticScore,
-        maskBlur: $config.maskBlur,
-        maskBlurOutset: $config.maskBlurOutset,
-        preserveOriginalAfterInpaint: $config.preserveOriginalAfterInpaint
-    )
-
-    // TEA Cache for faster generation
-    TeaCacheSection(
-        teaCache: $config.teaCache,
-        teaCacheStart: $config.teaCacheStart,
-        teaCacheEnd: $config.teaCacheEnd,
-        teaCacheThreshold: $config.teaCacheThreshold,
-        teaCacheMaxSkipSteps: $config.teaCacheMaxSkipSteps
-    )
-
-    // Video generation settings
-    VideoSection(
-        numFrames: $config.numFrames
-    )
-
-    // Causal inference for video models (CausVid)
-    CausalInferenceSection(
-        causalInferenceEnabled: $config.causalInferenceEnabled,
-        causalInference: $config.causalInference,
-        causalInferencePad: $config.causalInferencePad
-    )
-}
-```
-
-**Section Details:**
-
-| Section | Description |
-|---------|-------------|
-| `PromptSection` | Text fields for prompt and negative prompt |
-| `ModelSection` | Checkpoint/refiner pickers, sampler, Mixture of Experts toggle |
-| `LoRASection` | LoRA selection with weight sliders, optional mode selector |
-| `ParametersSection` | Steps, CFG Scale, CFG Zero Star (advanced), Resolution Dependent Shift, Shift |
-| `DimensionsSection` | Width/height sliders with presets and aspect ratio display |
-| `SeedSection` | Seed input with randomize, seed mode picker |
-| `StrengthSection` | Img2img strength slider |
-| `BatchSection` | Batch size slider |
-| `ControlNetSection` | ControlNet model selection with weight sliders |
-| `AdvancedSection` | Clip Skip, tiling, HiRes Fix, sharpness, inpainting settings |
-| `TeaCacheSection` | TEA Cache toggle and parameters for faster generation |
-| `VideoSection` | Number of frames for video generation |
-| `CausalInferenceSection` | CausVid settings for video models |
-
-**ParameterSlider:**
-
-All sections use the `ParameterSlider` component for numeric inputs:
-
-```swift
-// Reusable slider with label and value display
-ParameterSlider(
-    label: "Steps",
-    value: $stepsBinding,  // Binding<Double>
-    range: 1...150,
-    step: 1,
-    format: "%.0f"
-)
-```
-
-Sliders snap to step values when released, avoiding dense tick marks for large ranges.
+> **Note:** Configuration UI views (section editors, model pickers, preset views, etc.) have been moved to private repo **EuphoriaKit**. See the EuphoriaKit documentation for `ConfigurationEditorView`, `ConfigurationActionsView`, `PromptSection`, `ModelSection`, `ParametersSection`, `DimensionsSection`, and other configuration section views.
 
 ---
 
@@ -929,128 +681,22 @@ struct JobProgress {
 
 The `previewImage` is automatically converted from the server's DTTensor format with correct color handling for different model families (Flux, Qwen, Wan, SD3, etc.).
 
-### HintData
+### HintBuilder, HintData & HintType
 
-Used for control images (shuffle hints, IP-Adapter, etc.):
-
-```swift
-struct HintData {
-    var type: String      // "shuffle", "ip_adapter", etc.
-    var imageData: Data   // Image bytes
-    var weight: Float
-}
-```
-
-### HintBuilder
-
-A fluent builder for constructing hints for image generation. This helper abstracts the complexity of hint construction and ensures proper formatting for Draw Things.
+These types are defined in **DrawThingsClient** and re-exported by DrawThingsKit for convenience. See the DrawThingsClient documentation for full usage details.
 
 ```swift
-// Basic usage - add moodboard images for style transfer
+// Available via DrawThingsKit's re-exports
 let hints = HintBuilder()
     .addMoodboardImage(styleImageData, weight: 1.0)
-    .addMoodboardImage(referenceImageData, weight: 0.8)
+    .addDepthMap(depthImageData, weight: 1.0)
     .build()
 
 let job = try GenerationJob(
-    prompt: "A portrait in the style of image 2 with colors from image 3",
+    prompt: "A portrait",
     configuration: config,
-    canvasImageData: sourceImage,  // This is "image 1"
-    hints: hints                    // Moodboard images become "image 2", "image 3", etc.
+    hints: hints
 )
-```
-
-**Moodboard/Shuffle Hints:**
-
-Used with models like Qwen Image Edit for style and content transfer. Images are referenced as "image 2", "image 3", etc. in prompts (canvas/source image is "image 1").
-
-```swift
-// Single image
-builder.addMoodboardImage(imageData, weight: 1.0)
-
-// Multiple images with same weight
-builder.addMoodboardImages([image1, image2, image3], weight: 1.0)
-
-// Multiple images with individual weights
-builder.addMoodboardImages([
-    (data: dressImage, weight: 1.0),
-    (data: styleImage, weight: 0.8),
-    (data: colorImage, weight: 0.5)
-])
-```
-
-**ControlNet Hints:**
-
-```swift
-let hints = HintBuilder()
-    .addDepthMap(depthImageData, weight: 1.0)      // Structural guidance
-    .addPose(poseImageData, weight: 0.8)           // Character positioning
-    .addCannyEdges(edgeImageData, weight: 1.0)     // Edge detection
-    .addScribble(sketchImageData, weight: 0.7)     // Rough sketch
-    .addColorReference(colorImageData, weight: 0.5) // Color palette
-    .addLineArt(lineArtData, weight: 1.0)          // Line art
-    .build()
-```
-
-**Generic Hints:**
-
-For custom or less common hint types:
-
-```swift
-// Using HintType enum
-builder.addHint(type: .tile, imageData: tileData, weight: 1.0)
-builder.addHint(type: .seg, imageData: segmentationData, weight: 0.8)
-
-// Using custom string
-builder.addHint(type: "custom_type", imageData: imageData, weight: 1.0)
-```
-
-**HintType Enum:**
-
-All supported hint types:
-
-| Type | Description |
-|------|-------------|
-| `.shuffle` | Moodboard/reference images for style transfer |
-| `.depth` | Depth map for structural guidance |
-| `.pose` | Pose skeleton for character positioning |
-| `.canny` | Canny edge detection |
-| `.scribble` | Rough sketches for composition |
-| `.color` | Color palette reference |
-| `.lineart` | Line art for structural guidance |
-| `.softedge` | Soft edge detection |
-| `.seg` | Segmentation map |
-| `.inpaint` | Inpainting hint |
-| `.ip2p` | Image-to-image prompt |
-| `.mlsd` | MLSD line detection |
-| `.tile` | Tile-based generation |
-| `.blur` | Blur hint |
-| `.lowquality` | Low quality hint |
-| `.gray` | Grayscale hint |
-| `.custom` | Generic custom type |
-
-**Inline Builder Syntax:**
-
-GenerationJob supports an inline builder closure for convenience:
-
-```swift
-let job = try GenerationJob(
-    prompt: "A person wearing the dress from image 2",
-    configuration: config,
-    canvasImageData: personImage
-) { builder in
-    builder.addMoodboardImage(dressImage, weight: 1.0)
-    builder.addMoodboardImage(backgroundImage, weight: 0.5)
-}
-```
-
-**Builder Properties:**
-
-```swift
-let builder = HintBuilder()
-builder.count     // Number of hints added
-builder.isEmpty   // Whether any hints have been added
-builder.clear()   // Remove all hints and start fresh
 ```
 
 ### Model Types
@@ -1152,7 +798,6 @@ import SwiftUI
 import DrawThingsKit
 
 struct GeneratorView: View {
-    // Note: Views require explicit parameters, not @EnvironmentObject
     @ObservedObject var connectionManager: ConnectionManager
     @ObservedObject var configurationManager: ConfigurationManager
     @ObservedObject var queue: JobQueue
@@ -1164,24 +809,6 @@ struct GeneratorView: View {
         VStack {
             // Connection status
             ConnectionStatusBadge(connectionManager: connectionManager)
-
-            // Prompt input
-            PromptSection(
-                prompt: $configurationManager.prompt,
-                negativePrompt: $configurationManager.negativePrompt
-            )
-
-            // Model selection (full signature with all bindings)
-            ModelSection(
-                modelsManager: connectionManager.modelsManager,
-                selectedCheckpoint: $configurationManager.selectedCheckpoint,
-                selectedRefiner: $configurationManager.selectedRefiner,
-                refinerStart: $configurationManager.activeConfiguration.refinerStart,
-                sampler: $configurationManager.activeConfiguration.sampler,
-                modelName: $configurationManager.activeConfiguration.model,
-                refinerName: $configurationManager.activeConfiguration.refinerModel,
-                mixtureOfExperts: $configurationManager.mixtureOfExperts
-            )
 
             // Generate button
             Button("Generate") {
@@ -1251,6 +878,8 @@ extension Image {
 }
 ```
 
+> **Note:** For configuration UI views (PromptSection, ModelSection, DimensionsSection, etc.), import **EuphoriaKit** which provides all the configuration section views.
+
 ---
 
 ## Cross-Platform Support
@@ -1259,8 +888,8 @@ DrawThingsKit supports both macOS and iOS:
 
 | Platform | Minimum Version |
 |----------|-----------------|
-| macOS | 13.0+ |
-| iOS | 16.0+ |
+| macOS | 14.0+ |
+| iOS | 17.0+ |
 
 ### Platform-Specific Notes
 
@@ -1288,7 +917,7 @@ queue.events.sink { event in
 let canvasData = try PlatformImageHelpers.imageToDTTensor(myImage)
 ```
 
-**Note**: The `ConfigurationEditorView` uses `NSPasteboard` and is only available on macOS. Other views work on both platforms.
+**Note**: Some views use platform-specific APIs (e.g., `NSPasteboard` on macOS). Views are conditionally compiled for each platform.
 
 ---
 
@@ -1375,7 +1004,7 @@ In Xcode console, logs appear with timestamps and category prefixes:
 
 ## Requirements
 
-- macOS 13.0+ / iOS 16.0+
+- macOS 14.0+ / iOS 17.0+
 - Swift 5.9+
 - DrawThingsClient package
 
