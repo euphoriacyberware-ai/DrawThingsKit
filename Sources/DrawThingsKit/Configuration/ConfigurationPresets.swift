@@ -105,6 +105,7 @@ public enum SamplerPresets {
         SamplerInfo(type: .ddimtrailing, name: "DDIM Trailing", shortName: "DDIM Trail"),
         SamplerInfo(type: .unipctrailing, name: "UniPC Trailing", shortName: "UniPC Trail"),
         SamplerInfo(type: .unipcays, name: "UniPC AYS", shortName: "UniPC AYS"),
+        SamplerInfo(type: .tcdtrailing, name: "TCD Trailing", shortName: "TCD Trail"),
     ]
 
     /// Commonly used samplers.
