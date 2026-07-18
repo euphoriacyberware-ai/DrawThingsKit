@@ -17,11 +17,11 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/appinteractive/DT-gRPC-Swift-Client",
-            branch: "fix/off-main-tensor-encoding"
+            revision: "c25fdcda804f04bd9167dff60c418c1ce312e87a"
         ),
         .package(
             url: "https://github.com/appinteractive/DrawThingsQueue",
-            branch: "fix/off-main-tensor-encoding"
+            revision: "2e4243d8845ae434b3c7e231c0a65c921fcba659"
         ),
     ],
     targets: [

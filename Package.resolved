@@ -5,8 +5,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/appinteractive/DrawThingsQueue",
       "state" : {
-        "branch" : "fix/off-main-tensor-encoding",
-        "revision" : "4159871bb821b2439205da1d1586bb30824056ed"
+        "revision" : "2e4243d8845ae434b3c7e231c0a65c921fcba659"
       }
     },
     {
@@ -14,7 +13,6 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/appinteractive/DT-gRPC-Swift-Client",
       "state" : {
-        "branch" : "fix/off-main-tensor-encoding",
         "revision" : "c25fdcda804f04bd9167dff60c418c1ce312e87a"
       }
     },
