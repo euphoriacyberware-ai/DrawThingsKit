@@ -3,19 +3,19 @@
     {
       "identity" : "drawthingsqueue",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/euphoriacyberware-ai/DrawThingsQueue",
+      "location" : "https://github.com/appinteractive/DrawThingsQueue",
       "state" : {
-        "branch" : "main",
-        "revision" : "fb4a111936ac31f7ff37b05d872a5a67c4109b9c"
+        "branch" : "fix/off-main-tensor-encoding",
+        "revision" : "4159871bb821b2439205da1d1586bb30824056ed"
       }
     },
     {
       "identity" : "dt-grpc-swift-client",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/euphoriacyberware-ai/DT-gRPC-Swift-Client",
+      "location" : "https://github.com/appinteractive/DT-gRPC-Swift-Client",
       "state" : {
-        "branch" : "main",
-        "revision" : "9917ce733fe6b370e1cae3f51aab20b89d559ea8"
+        "branch" : "fix/off-main-tensor-encoding",
+        "revision" : "c25fdcda804f04bd9167dff60c418c1ce312e87a"
       }
     },
     {
@@ -97,14 +97,6 @@
       "state" : {
         "revision" : "fa308c07a6fa04a727212d793e761460e41049c3",
         "version" : "4.3.0"
-      }
-    },
-    {
-      "identity" : "swift-fpzip-support",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/weiyanlin117/swift-fpzip-support.git",
-      "state" : {
-        "revision" : "0ec6d4668c9c83bc3da0f8b2d6dfc46da0b98609"
       }
     },
     {
