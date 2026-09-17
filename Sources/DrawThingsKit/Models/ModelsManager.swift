@@ -92,10 +92,32 @@ public struct CheckpointModel: Identifiable, Codable, Hashable, Sendable {
                 return file.lowercased().contains("ti2v") ? 24 : 16
             }
             return 16
+        } else if v.contains("minimax") {
+            // MiniMax H3 runs at 24 FPS
+            return 24
+        } else if v.contains("longcat") {
+            return 25
         } else if v.contains("hunyuan") {
             return 24
         } else if v.contains("svd") {
             return 25
+        }
+        return nil
+    }
+
+    /// The native audio sample rate (Hz) for models that generate audio, derived from the model version.
+    /// Returns nil for models that don't produce audio.
+    public var audioSampleRate: Int? {
+        guard let version = version else { return nil }
+        let v = version.lowercased()
+        if v.contains("minimax") {
+            return 32_000
+        } else if v.contains("longcat") {
+            return 16_000
+        } else if v.contains("ltx") {
+            // LTX-2 outputs 24kHz audio, LTX-2.3 outputs 48kHz.
+            // Version strings vary: "ltx2.3" (server) vs "ltx2_3" (catalog).
+            return (v.contains("2.3") || v.contains("2_3")) ? 48_000 : 24_000
         }
         return nil
     }
