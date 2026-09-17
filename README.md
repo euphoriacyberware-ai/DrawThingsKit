@@ -1,12 +1,40 @@
 # DrawThingsKit
 
-A Swift package providing model management, configuration, connection handling, and queue management for building Draw Things gRPC client applications.
+A Swift package providing model management, configuration, connection handling and queue management for building Draw Things gRPC client applications.
 
 ## Overview
 
-DrawThingsKit abstracts away the complexity of connecting to Draw Things servers, managing generation jobs, and provides reusable SwiftUI components for connection and queue management. It's built on top of **DrawThingsClient** and supports both macOS and iOS applications.
+DrawThingsKit is the application-layer library of the DrawThings Swift family. It builds on [DrawThingsClient](https://github.com/euphoriacyberware-ai/DT-gRPC-Swift-Client) and [DrawThingsQueue](https://github.com/euphoriacyberware-ai/DrawThingsQueue) and adds the pieces an app needs around them: saved server profiles and connection lifecycle, a model catalog with compatibility filtering, an editable configuration with JSON import/export, a job queue view-model, and ready-made SwiftUI views for connection and queue state. Using it in an app means most of the boilerplate between "the user tapped Generate" and "an image appeared" is already written, on both macOS and iOS.
+
+> ⚠️ **Caution:** This library is capable of generating very large batch jobs which can result in your account being throttled by the Draw Things cloud service if used with "bridge mode". It is recommended you only run large batches with local generation.
 
 > **Note:** Configuration UI views (section editors, preset pickers, model pickers, etc.) have been moved to **EuphoriaKit**, a separate SwiftUI component library that depends on DrawThingsKit. DrawThingsKit retains the non-UI types these views depend on (ConfigurationManager, ModelsManager, etc.).
+
+## Features
+
+- **ConnectionManager**: Saved server profiles (persisted to UserDefaults), default profile, connect/reconnect/disconnect and observable connection state
+- **JobQueue**: A view-model over DrawThingsQueue with a unified `GenerationJob` list, pause/resume, retry, and Combine lifecycle events
+- **ModelsManager**: Checkpoint, LoRA, ControlNet, textual inversion and upscaler catalogs from the server, with compatibility filtering by selected checkpoint
+- **ConfigurationManager**: Active configuration and prompt state, model selection sync, JSON import/export, clipboard copy/paste and presets
+- **Queue persistence**: Jobs are saved to JSON in Application Support and restored on launch
+- **SwiftUI views**: Server profile manager and picker, connection status badge/view, queue progress, list, sidebar, controls and toolbar
+- **Native image types**: Results and previews arrive as `PlatformImage`; DTTensor conversion is handled internally with correct colors per model family
+- **DTLogger**: Unified `os.log` based logging with categories, levels and timed operations
+- **Cross-platform**: Same API on macOS and iOS
+
+## Requirements
+
+- macOS 14.0+ / iOS 17.0+
+- Swift 5.9+
+- Xcode 15.0+
+- A running [Draw Things](https://drawthings.ai) gRPC server (with **Model Browsing** enabled for model lists)
+
+## Dependencies
+
+**DrawThings family:**
+
+- [DrawThingsClient](https://github.com/euphoriacyberware-ai/DT-gRPC-Swift-Client) (DT-gRPC-Swift-Client) — gRPC transport, configuration and image conversion
+- [DrawThingsQueue](https://github.com/euphoriacyberware-ai/DrawThingsQueue) — the underlying generation queue wrapped by `JobQueue`
 
 ## Installation
 
@@ -14,7 +42,7 @@ Add to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/euphoriacyberware-ai/DrawThingsKit", from: "latest")
+    .package(url: "https://github.com/euphoriacyberware-ai/DrawThingsKit", branch: "main")
 ]
 ```
 
@@ -1002,12 +1030,10 @@ In Xcode console, logs appear with timestamps and category prefixes:
 
 ---
 
-## Requirements
-
-- macOS 14.0+ / iOS 17.0+
-- Swift 5.9+
-- DrawThingsClient package
-
 ## License
 
-MIT License
+MIT License - see LICENSE file for details.
+
+## Disclaimer
+
+The "Draw Things" name is used in this project only because Draw Things is the application these libraries are designed to work with. The author is not affiliated with, endorsed by, or associated with the developers of Draw Things. The code in this library was independently derived and is not based on Draw Things source code.
