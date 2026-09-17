@@ -57,9 +57,25 @@ import DrawThingsKit
 
 @main
 struct MyApp: App {
-    @StateObject private var connectionManager = ConnectionManager()
+    @StateObject private var connectionManager: ConnectionManager
     @StateObject private var configurationManager = ConfigurationManager()
-    @StateObject private var queue = JobQueue()
+    @StateObject private var queue: JobQueue
+
+    init() {
+        let connectionManager = ConnectionManager()
+        _connectionManager = StateObject(wrappedValue: connectionManager)
+
+        // JobQueue wraps a DrawThingsQueue, which owns the gRPC connection used for generation.
+        let drawThingsQueue = try! DrawThingsQueue(address: "localhost:7859")
+
+        // Tell the queue which model family is in use so previews are converted with the right colors.
+        drawThingsQueue.modelFamilyProvider = { [weak connectionManager] modelFile in
+            guard let modelFile, let connectionManager else { return nil }
+            return connectionManager.modelsManager.latentModelFamily(forFile: modelFile)
+        }
+
+        _queue = StateObject(wrappedValue: JobQueue(queue: drawThingsQueue))
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -185,10 +201,11 @@ The `profiles` property is `@Published`, so SwiftUI views automatically update w
 
 ### JobQueue
 
-Observable queue state management for generation jobs.
+Observable queue state management for generation jobs. `JobQueue` is a view-model over a [DrawThingsQueue](https://github.com/euphoriacyberware-ai/DrawThingsQueue) instance, which it takes in its initializer; the underlying queue is available as `queue.queue`.
 
 ```swift
-@StateObject var queue = JobQueue()
+let drawThingsQueue = try DrawThingsQueue(address: "localhost:7859")
+@StateObject var queue = JobQueue(queue: drawThingsQueue)
 
 // Create and enqueue a job
 let job = try GenerationJob(
@@ -233,9 +250,11 @@ To start the queue in a paused state (requiring explicit user action to begin):
 ```swift
 @main
 struct MyApp: App {
-    @StateObject private var queue = JobQueue()
+    @StateObject private var queue: JobQueue
 
     init() {
+        let queue = JobQueue(queue: try! DrawThingsQueue(address: "localhost:7859"))
+        _queue = StateObject(wrappedValue: queue)
         // Start paused - user must explicitly resume
         queue.pause()
     }
@@ -707,7 +726,7 @@ struct JobProgress {
 }
 ```
 
-The `previewImage` is automatically converted from the server's DTTensor format with correct color handling for different model families (Flux, Qwen, Wan, SD3, etc.).
+The `previewImage` is automatically converted from the server's DTTensor format. For correct colors across model families (Flux, Qwen, Wan, SD3, etc.), set `modelFamilyProvider` on the underlying `DrawThingsQueue` as shown in [Quick Start](#quick-start); `ModelsManager.latentModelFamily(forFile:)` resolves the family from the server's model catalog.
 
 ### HintBuilder, HintData & HintType
 
@@ -759,15 +778,16 @@ let manager = ConnectionManager(storage: storage)
 
 ### Queue Storage
 
-Jobs are persisted to JSON in Application Support:
+Persistence is handled by the underlying `DrawThingsQueue`. Pass a `QueueStorage` when creating it to save pending jobs to JSON in Application Support:
 
 ```swift
 // Default location: ~/Library/Application Support/{BundleID}/queue.json
-let queue = JobQueue()
+let storage = QueueStorage()
+let drawThingsQueue = try DrawThingsQueue(address: "localhost:7859", storage: storage)
+let queue = JobQueue(queue: drawThingsQueue)
 
 // Custom location
 let storage = QueueStorage(fileURL: customURL)
-let queue = JobQueue(storage: storage)
 
 // Storage info
 storage.storageLocation  // URL
