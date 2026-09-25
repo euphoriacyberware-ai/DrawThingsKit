@@ -19,7 +19,7 @@ DrawThingsKit is the application-layer library of the DrawThings Swift family. I
 - **Queue persistence**: Jobs are saved to JSON in Application Support and restored on launch
 - **SwiftUI views**: Server profile manager and picker, connection status badge/view, queue progress, list, sidebar, controls and toolbar
 - **Native image types**: Results and previews arrive as `PlatformImage`; DTTensor conversion is handled internally with correct colors per model family
-- **DTLogger**: Unified `os.log` based logging with categories, levels and timed operations
+- **DTLogger**: Re-exported from DrawThingsClient: unified `os.log` logging with categories, levels and timed operations, shared with the client, queue and video packages (see [Logging](#logging))
 - **Cross-platform**: Same API on macOS and iOS
 
 ## Requirements
@@ -94,7 +94,6 @@ struct MyApp: App {
 Sources/DrawThingsKit/
 ├── Configuration/     # JSON serialization & presets
 ├── Connection/        # Server profiles & connection management
-├── Logging/           # DTLogger unified logging system
 ├── Models/            # Model catalog, ConfigurationManager & ModelsManager
 ├── Queue/             # Job queue, events & processing
 └── Views/
