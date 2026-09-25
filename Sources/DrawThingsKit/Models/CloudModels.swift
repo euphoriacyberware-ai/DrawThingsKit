@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import DrawThingsClient
 
 /// Container for cloud model lists loaded from bundled JSON files.
 private struct CloudModelCatalog: Codable {
@@ -141,7 +142,7 @@ public enum CloudModels {
 
     private static func loadCatalog(named name: String, source: ModelSource) -> CloudModelCatalog {
         guard let url = Bundle.module.url(forResource: name, withExtension: "json") else {
-            print("CloudModels: Could not find \(name).json in bundle")
+            DTLogger.warning("Could not find \(name).json in bundle", category: .models)
             return .empty
         }
 
@@ -161,7 +162,7 @@ public enum CloudModels {
 
             return catalog
         } catch {
-            print("CloudModels: Failed to load \(name).json: \(error)")
+            DTLogger.error("Failed to load \(name).json: \(error)", category: .models)
             return .empty
         }
     }
