@@ -31,6 +31,9 @@ import DrawThingsQueue
 @_exported import class DrawThingsClient.HintBuilder
 @_exported import struct DrawThingsClient.HintData
 @_exported import enum DrawThingsClient.HintType
+@_exported import class DrawThingsClient.DTLogger
+@_exported import enum DrawThingsClient.DTLogCategory
+@_exported import enum DrawThingsClient.DTLogLevel
 
 // Re-export commonly used types from DrawThingsQueue
 @_exported import struct DrawThingsQueue.GenerationRequest

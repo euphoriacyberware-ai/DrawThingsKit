@@ -172,7 +172,7 @@ public final class ConfigurationManager: ObservableObject {
             UIPasteboard.general.string = json
             #endif
         } catch {
-            print("Failed to copy configuration: \(error)")
+            DTLogger.error("Failed to copy configuration: \(error)", category: .configuration)
         }
     }
 
@@ -195,7 +195,7 @@ public final class ConfigurationManager: ObservableObject {
             try activeConfiguration.mergeJSON(json)
             return true
         } catch {
-            print("Failed to paste configuration: \(error)")
+            DTLogger.error("Failed to paste configuration: \(error)", category: .configuration)
             return false
         }
     }
@@ -207,7 +207,7 @@ public final class ConfigurationManager: ObservableObject {
             try activeConfiguration.mergeJSON(json)
             return true
         } catch {
-            print("Failed to load configuration: \(error)")
+            DTLogger.error("Failed to load configuration: \(error)", category: .configuration)
             return false
         }
     }

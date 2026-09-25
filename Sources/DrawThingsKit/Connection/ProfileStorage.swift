@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import DrawThingsClient
 
 /// Handles persistence of server profiles to UserDefaults.
 /// Profiles are stored per-app using the bundle identifier as a key prefix.
@@ -41,7 +42,7 @@ public final class ProfileStorage: Sendable {
             let profiles = try JSONDecoder().decode([ServerProfile].self, from: data)
             return profiles
         } catch {
-            print("DrawThingsKit: Failed to decode profiles: \(error)")
+            DTLogger.error("Failed to decode profiles: \(error)", category: .connection)
             return []
         }
     }
@@ -53,7 +54,7 @@ public final class ProfileStorage: Sendable {
             let data = try JSONEncoder().encode(profiles)
             userDefaults.set(data, forKey: storageKey)
         } catch {
-            print("DrawThingsKit: Failed to encode profiles: \(error)")
+            DTLogger.error("Failed to encode profiles: \(error)", category: .connection)
         }
     }
 

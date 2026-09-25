@@ -971,7 +971,16 @@ let canvasData = try PlatformImageHelpers.imageToDTTensor(myImage)
 
 ## Logging
 
-DrawThingsKit includes a unified logging system using Apple's `os.log` for efficient, structured logging.
+DrawThingsKit re-exports `DTLogger` from DrawThingsClient. It is one `os.log`-based logger shared by DrawThingsClient, DrawThingsQueue, DrawThingsKit and DrawThingsVideoKit, so a single setting turns on diagnostics from the gRPC layer up to the UI.
+
+### Enable Logging
+
+Logging is **off by default**. Enable it early in your app, for example in your `App` initializer:
+
+```swift
+DTLogger.minimumLevel = .debug   // everything, including gRPC request/response details
+// DTLogger.minimumLevel = .info  // lifecycle events only
+```
 
 ### DTLogger
 
@@ -992,7 +1001,7 @@ DTLogger.logConfiguration(configJSON, label: "Generation Config", category: .con
 // Scoped operation logging with timing
 let endOperation = DTLogger.startOperation("Image Generation", category: .generation)
 // ... do work ...
-endOperation()  // Logs "Image Generation completed in 2.34s"
+endOperation()  // Logs "Image Generation completed in 2340.00ms"
 ```
 
 **Log Categories:**
@@ -1001,9 +1010,11 @@ endOperation()  // Logs "Image Generation completed in 2.34s"
 | `.connection` | Server connection lifecycle |
 | `.queue` | Job queue operations |
 | `.generation` | Image generation process |
-| `.grpc` | gRPC communication details |
-| `.models` | Model loading and selection |
+| `.grpc` | gRPC request/response details (DrawThingsClient) |
+| `.models` | Model specs, loading and selection |
 | `.configuration` | Configuration parsing and validation |
+| `.images` | Image/tensor conversion (DrawThingsClient) |
+| `.video` | Video assembly and processing (DrawThingsVideoKit) |
 | `.general` | General purpose logging |
 
 **Log Levels:**
@@ -1014,38 +1025,34 @@ endOperation()  // Logs "Image Generation completed in 2.34s"
 | `.warning` | Potential issues |
 | `.error` | Recoverable errors |
 | `.fault` | Critical, unrecoverable errors |
+| `.none` | Disable all logging (default minimum level) |
 
 **Configuration:**
 
 ```swift
-// Access shared logger
 let logger = DTLogger.shared
 
-// Set minimum log level
-logger.minimumLevel = .info  // Ignores debug messages
-
-// Enable/disable logging
-logger.isEnabled = false
-
-// Console output (default: true in DEBUG, false in RELEASE)
-logger.logToConsole = true
-
-// Include timestamps in console output
-logger.includeTimestamps = true
+logger.minimumLevel = .info       // Same as DTLogger.minimumLevel
+logger.isEnabled = false          // Turn everything off
+logger.logToConsole = true        // Mirror to stdout (default: true in DEBUG, false in RELEASE)
+logger.includeTimestamps = true   // Console output only
+logger.useEmoji = true            // Console output only
 ```
 
 **Viewing Logs:**
 
+Messages are logged with public privacy, so values are readable in Console.app and `log stream`, not only in the debugger.
+
 In Terminal:
 ```bash
-log stream --predicate 'subsystem == "com.drawthings.kit"' --level debug
+log stream --predicate 'subsystem == "com.drawthings"' --level debug
 ```
 
 In Xcode console, logs appear with timestamps and category prefixes:
 ```
-[12:34:56.789] [Generation] Job A1B2C3D4 prompt: "a beautiful sunset"
-[12:34:56.790] [gRPC] Sending generateImage request (prompt: 42 chars, config: 1024 bytes)
-[12:34:58.123] [Generation] Job A1B2C3D4 completed in 1340.00ms
+[12:34:56.789] ℹ️ [Connection] Connecting to Local at localhost:7859... (ConnectionManager.swift:194)
+[12:34:56.790] 🔍 [gRPC] Sending request: prompt='a beautiful sunset', config size=1024 bytes (DrawThingsService.swift:181)
+[12:34:58.123] 🔍 [gRPC] Stream completed after 12 responses (DrawThingsService.swift:364)
 ```
 
 ---
