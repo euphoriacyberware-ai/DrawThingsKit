@@ -1,5 +1,15 @@
 # DrawThingsKit
 
+> [!IMPORTANT]
+> **DrawThingsKit has moved into [DrawThings-Swift](https://github.com/euphoriacyberware-ai/DrawThings-Swift).** Since DrawThings-Swift 2.0.0 it is the
+> `DrawThingsKit` product of that package: `ConnectionManager`, `ModelsManager` and `ConfigurationManager` are
+> `@Observable`, the job queue is `GenerationQueue` (DrawThingsQueue product), and the SwiftUI views are now in
+> the [example app](https://github.com/euphoriacyberware-ai/DrawThings-Swift/tree/main/Examples/DrawThingsExample). New development happens there.
+>
+> This repository stays at **2.2.1**, which works with DrawThingsClient 1.x. Pin it with
+> `.upToNextMajor(from: "2.2.1")` until you move to 2.0; see the
+> [migration guide](https://github.com/euphoriacyberware-ai/DrawThings-Swift/blob/main/MIGRATING-2.0.md#drawthingskit-2x).
+
 A Swift package providing model management, configuration, connection handling and queue management for building Draw Things gRPC client applications.
 
 ## Overview
